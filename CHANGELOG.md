@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.0] - 2026-07-20
+- 🚀 Introduce a new Bun script 'scripts/commit.ts' to automate semantic commits and version bumping using Gemini AI.
+- ⚙️ Update 'package.json' with a new 'commit' command for easier task execution.
+- 🧹 Add '.commit-auth.json' to '.gitignore' to prevent accidental exposure of local AI API credentials.
+
 ## [1.2.2] - 2026-07-20
 - 📦 Bump project version from 1.2.0 to 1.2.1 in package.json
 

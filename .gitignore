@@ -30,3 +30,4 @@ data/
 # Compiled binaries
 build/
 .tanstack/
+.commit-auth.json
