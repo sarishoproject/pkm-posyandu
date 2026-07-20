@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.2] - 2026-07-20
+- 📦 Bump project version from 1.2.0 to 1.2.1 in package.json
+
 ## [1.2.0] - 2026-07-20
 - ⚙️ Rename build job to test-build and refine test output messages.
 - 🚀 Add automated GitHub release workflow triggered on push.
