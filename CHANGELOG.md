@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.1] - 2026-07-20
+- ⚙️ Update CI workflow to trigger releases specifically on v* tag pushes.
+- 📦 Standardize release artifacts naming convention using ${github.ref_name}.
+- 🧹 Remove redundant version checking logic and environment variables by leveraging native ref handling.
+
 ## [1.3.0] - 2026-07-20
 - 🚀 Introduce a new Bun script 'scripts/commit.ts' to automate semantic commits and version bumping using Gemini AI.
 - ⚙️ Update 'package.json' with a new 'commit' command for easier task execution.

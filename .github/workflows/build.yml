@@ -3,11 +3,17 @@ name: Compile, Test, and Release
 on:
   push:
     branches: ["main", "master"]
+    tags:
+      - "v*" # Trigger release saat tag v* di-push (oleh script bun run commit)
   pull_request:
     branches: ["main", "master"]
 
 jobs:
+  # ═══════════════════════════════════════════════════════════
+  # JOB 1: Build untuk Testing di CI (Linux x64)
+  # ═══════════════════════════════════════════════════════════
   test-build:
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout repository
@@ -36,35 +42,31 @@ jobs:
           ./build/app-bun-linux-x64 > server.log 2>&1 &
           PID=$!
           
-          # Beri waktu 5 detik untuk inisialisasi server & database
           sleep 5
           
           if kill -0 $PID 2>/dev/null; then
             echo "✅ Server berhasil berjalan tanpa error (PID: $PID)."
-            echo "📄 Log Output:"
             cat server.log
-            
             kill $PID
             echo "🛑 Server telah dihentikan. Test sukses!"
             exit 0
           else
             echo "❌ Server gagal berjalan (crash saat startup)."
-            echo "📄 Log Output:"
             cat server.log
             exit 1
           fi
 
+  # ═══════════════════════════════════════════════════════════
+  # JOB 2: Build Target Asli & Release ke GitHub
+  # ═══════════════════════════════════════════════════════════
   release:
-    needs: test-build 
-    if: github.event_name == 'push' 
+    if: startsWith(github.ref, 'refs/tags/v') # Hanya jalan kalau ada tag v* di-push
     runs-on: ubuntu-latest
     permissions:
-      contents: write 
+      contents: write
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: 🥟 Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -74,53 +76,31 @@ jobs:
       - name: 📦 Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: 🔖 Cek versi dari package.json
-        id: version
-        run: |
-          VERSION=$(jq -r '.version' package.json)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          
-          # Cek apakah tag sudah ada (mencegah error jika push berkali-kali)
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_ENV
-          else
-            echo "exists=false" >> $GITHUB_ENV
-          fi
-
-      - name: 🛑 Skip jika tag sudah ada
-        if: env.exists == 'true'
-        run: echo "Tag v${{ env.VERSION }} sudah ada. Melewati proses release."
-
       - name: 🍓 Compile untuk Linux ARM64 (Raspberry Pi)
-        if: env.exists == 'false'
         run: bun run compile -- --target=bun-linux-arm64
 
       - name: 📦 Arsipkan Linux ARM64
-        if: env.exists == 'false'
         run: |
           cd build
-          tar -czf ../pkm-posyandu-v${{ env.VERSION }}-linux-arm64.tar.gz .
+          tar -czf ../pkm-posyandu-${{ github.ref_name }}-linux-arm64.tar.gz .
           cd ..
 
       - name: 🪟 Compile untuk Windows x64
-        if: env.exists == 'false'
         run: bun run compile -- --target=bun-windows-x64
 
       - name: 📦 Arsipkan Windows x64
-        if: env.exists == 'false'
         run: |
           mv build build-windows
-          zip -r pkm-posyandu-v${{ env.VERSION }}-windows-x64.zip build-windows
+          zip -r pkm-posyandu-${{ github.ref_name }}-windows-x64.zip build-windows
 
       - name: 🚀 Buat GitHub Release
-        if: env.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.VERSION }}
-          name: Release v${{ env.VERSION }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           generate_release_notes: true
           files: |
-            pkm-posyandu-v${{ env.VERSION }}-linux-arm64.tar.gz
-            pkm-posyandu-v${{ env.VERSION }}-windows-x64.zip
+            pkm-posyandu-${{ github.ref_name }}-linux-arm64.tar.gz
+            pkm-posyandu-${{ github.ref_name }}-windows-x64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
