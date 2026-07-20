@@ -1,0 +1,20 @@
+asset mockup design = bisa , figma / fiver 
+(animasterlib.dev) 
+
+backend transfer langsung ( jadi ) 
+
+ui kit tailwind ( anggaplah beli semacam shadcn premium ) kalau misal ada yang jual seperti itu , kita pakai nota asli mereka , kalau gaada kita bikin 'shadcn' sendiri trus untuk nota resmine , kita pakai sek sarena .  
+
+modul manajemen hak skip sek ( hapus , gak perlu karena lokal ) 
+
+sek pluggin , transfer dana langsung ke rizki "fataa"
+
+script integrasi hapus , 
+
+web e dijalanke dimana ? laptop ? hp ? apa esp ne ? apa cloud ? 
+
+database e pake apa , backend yang buat siapa ? 
+pake sqlite kita yang bikin backend 
+
+web e 24/7 atau nggak 
+nggak , aktif ketika orange pi aktif / server aktif ( backend , frontend dan data dari sensor jadi 1 di server itu ) 

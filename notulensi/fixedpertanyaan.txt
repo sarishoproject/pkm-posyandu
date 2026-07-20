@@ -1,0 +1,30 @@
+1. bukti pembayaran , bisa pakai bukti transfer misal transfer ke akun dana lain apa harus ada bukti resmi fisik nota 
+( nota boleh ga dari resmi misal figma dll ) dari warung boleh ( bener bener dari kita langsung boleh, kayak transfer dana )  
+
+2.  backendnya yang buat siapa ? kita bikin backendnya sekalian ( fullstack ) 
+
+3. website mau dijalankan dimana ? laptop , hp , esp apa cloud 
+ raspberry pi, ram 1.5 GB, storage 32GB 
+Clientnya: hp
+
+platform design : 
+pakai bantuan stitch / tidak 
+figma 
+antigravity 
+
+tech stack : 
+Runtime 
+- bun bisa multiplatform dan ringan ( alternatif nodejs yang lebih ringan ) runtime fixed pakai bun 
+frontend 
+	- a vite react , tailwind + shadcn / retro ui 
+	- b nextjs , tailwind + shadcn 
+	- c bun + vite react, shadcn , tanstack query dan route ( fixed frontend ) 
+backend: 
+	   - Hono (Fixed)
+	   - fastify
+	   - elysia
+	   - express
+
+
+
+

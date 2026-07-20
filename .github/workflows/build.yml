@@ -1,0 +1,63 @@
+name: Compile and Run Test
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🥟 Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: 📦 Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: 🔨 Compile binary (Linux x64)
+        # Karena runner GitHub Actions menggunakan arsitektur x64, 
+        # kita override target default (arm64) menjadi x64
+        run: bun run compile -- --target=bun-linux-x64
+
+      - name: 🚀 Run and test binary
+        run: |
+          # Beri chmod agar bisa dieksekusi
+          chmod +x ./build/app-bun-linux-x64
+          
+          # Set environment variable untuk testing
+          export PORT=8080
+          export NODE_ENV=production
+          export DB_PATH=test-posyandu.db
+          
+          echo "Menjalankan binary di background..."
+          # Jalankan di background dan simpan log ke server.log
+          ./build/app-bun-linux-x64 > server.log 2>&1 &
+          PID=$!
+          
+          # Beri waktu 5 detik untuk startup (DB init, schema, dll)
+          sleep 5
+          
+          # Cek apakah proses masih berjalan
+          if kill -0 $PID 2>/dev/null; then
+            echo "✅ Server berhasil berjalan tanpa error (PID: $PID)."
+            echo "📄 Log Output:"
+            cat server.log
+            
+            # Matikan server karena tes sudah selesai
+            kill $PID
+            echo "🛑 Server telah dihentikan. Workflow sukses!"
+            exit 0
+          else
+            echo "❌ Server gagal berjalan (crash saat startup)."
+            echo "📄 Log Output:"
+            cat server.log
+            exit 1
+          fi
