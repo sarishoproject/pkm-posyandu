@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0] - 2026-07-21
+- ✨ Create new members page layout for mobile device.
+- 🎨 Add search functionality and scan input trigger for member management.
+- 📦 Integrate dynamic child data rendering with status indicators.
+- ⚙️ Update route tree configuration to support the new '/anggota' route path.
+
+
 ## [2.0.0] - 2026-07-21
 - ⚙️ Migrate core database schemas from users/weights to participants/measurements
 - 🚀 Implement full CRUD API endpoints for peserta (participants) and pendataan (measurements)

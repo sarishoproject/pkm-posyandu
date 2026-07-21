@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
+import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
 import { Route as PesertaIndexRouteImport } from './app/peserta/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnggotaIndexRoute = AnggotaIndexRouteImport.update({
+  id: '/anggota/',
+  path: '/anggota/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PesertaIndexRoute = PesertaIndexRouteImport.update({
@@ -25,27 +31,31 @@ const PesertaIndexRoute = PesertaIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/anggota/': typeof AnggotaIndexRoute
   '/peserta/': typeof PesertaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/anggota': typeof AnggotaIndexRoute
   '/peserta': typeof PesertaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/anggota/': typeof AnggotaIndexRoute
   '/peserta/': typeof PesertaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/peserta/'
+  fullPaths: '/' | '/anggota/' | '/peserta/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/peserta'
-  id: '__root__' | '/' | '/peserta/'
+  to: '/' | '/anggota' | '/peserta'
+  id: '__root__' | '/' | '/anggota/' | '/peserta/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnggotaIndexRoute: typeof AnggotaIndexRoute
   PesertaIndexRoute: typeof PesertaIndexRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anggota/': {
+      id: '/anggota/'
+      path: '/anggota'
+      fullPath: '/anggota/'
+      preLoaderRoute: typeof AnggotaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/peserta/': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnggotaIndexRoute: AnggotaIndexRoute,
   PesertaIndexRoute: PesertaIndexRoute,
 }
 export const routeTree = rootRouteImport
