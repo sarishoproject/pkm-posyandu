@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0] - 2026-07-21
+- 🚀 Implement automated systemd setup flow for Raspberry Pi, enabling service persistence and logging management.
+- 🛠️ Refactor compilation script to support true single-file execution without needing extra runtime dependencies.
+- ⚙️ Update internal shell execution logic to use `Bun.spawnSync` for improved compatibility with SSR and cross-platform handling.
+- 📖 Update README with comprehensive deployment documentation for both automatic and manual Raspberry Pi setups.
+
 ## [1.5.0] - 2026-07-21
 - 🚀 Add CLI argument handler to support automated systemd service registration for Raspberry Pi deployment.
 - ⚙️ Integrate systemd generation logic with auto-restart, log management, and process permissions.

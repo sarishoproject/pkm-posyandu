@@ -62,10 +62,12 @@ console.log("🔗 [4/5] Creating entry point...");
 const entryCode = [
   "// AUTO-GENERATED entry point — DO NOT EDIT",
   "// Imports _embeds first (sets globalThis.__EMBEDDED_ASSETS__)",
-  "// Then imports server (reads globalThis.__EMBEDDED_ASSETS__)",
+  "// Then imports server — yang langsung memulai HTTP server via side-effect",
   'import "./_embeds.ts";',
-  'import server from "./server/server.js";',
-  "export default server;",
+  'import "./server/server.js";',
+  "",
+  "// Trigger keep-alive agar binary tidak exit setelah server start",
+  'console.log("[entry] Server module loaded.");',
   "",
 ].join("\n");
 writeFileSync(join(cwd, "dist/entry.ts"), entryCode);

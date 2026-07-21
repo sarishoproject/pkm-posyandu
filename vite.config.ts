@@ -38,6 +38,6 @@ export default defineConfig({
   },
   // Tambahkan konfigurasi SSR ini:
   ssr: {
-    external: ["bun:sqlite"],
+    external: ["bun:sqlite", "bun"],
   },
 });

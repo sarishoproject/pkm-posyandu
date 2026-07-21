@@ -19,7 +19,8 @@
 9. [Error Handling](#error-handling)
 10. [Komponen UI (Shadcn)](#komponen-ui-shadcn)
 11. [Kompilasi ke Binary Tunggal](#kompilasi-ke-binary-tunggal)
-12. [Panduan Kontribusi](#panduan-kontribusi)
+12. [Deployment ke Raspberry Pi](#deployment-ke-raspberry-pi)
+13. [Panduan Kontribusi](#panduan-kontribusi)
 
 ---
 
@@ -101,11 +102,11 @@ pkm-posyandu/
 │   │   │   └── client.ts           # Placeholder untuk client-side classes
 │   │   └── utils/index.ts          # cn() helper
 │   ├── types/                      # Type definitions (frontend/backend)
-│   ├── server.ts                   # Entry point produksi (serve frontend + API)
+│   ├── server.ts                   # Entry point produksi (serve frontend + API + setup arg)
 │   ├── main.tsx                    # Entry point React (mount DOM)
 │   ├── routeTree.gen.ts            # Auto-generated TanStack Router (JANGAN edit)
 │   └── index.css                   # Tailwind + tema kustom
-├── scripts/compile.ts              # Script kompilasi binary
+├── scripts/compile.ts              # Script kompilasi binary (True Single File)
 ├── vite.config.ts
 ├── components.json
 ├── biome.json
@@ -343,7 +344,7 @@ import db from "@/db/connection";
 ### Lokasi File Database
 
 - **Dev** (`NODE_ENV !== "production"`): `./data/dev.db`
-- **Produksi**: nilai dari `process.env.DB_PATH` atau `data.db`
+- **Produksi**: nilai dari `process.env.DB_PATH` atau `data.db` (di-sandbox di folder binary berada).
 
 ### PRAGMA Otomatis
 
@@ -531,18 +532,49 @@ build/
 └── app-bun-windows-x64.exe
 ```
 
-### Menjalankan Binary di Raspberry Pi
+---
 
-```bash
-# Beri permission eksekusi (hanya sekali di Linux)
-chmod +x app-bun-linux-arm64
+## Deployment ke Raspberry Pi
 
-# Jalankan langsung!
-./app-bun-linux-arm64
+Aplikasi ini mendukung auto-setup menggunakan systemd. Anda dapat mendistribusikan langsung file binary yang dihasilkan dari proses compile ke Raspberry Pi tanpa perlu menginstal Bun, Node.js, atau dependency lainnya.
 
-# Dengan env kustom
-PORT=8080 DB_PATH=/var/data/posyandu.db ./build/app-bun-linux-arm64
-```
+### Mode 1: Menggunakan Auto-Setup (Direkomendasikan)
+
+1. Copy file `app-bun-linux-arm64` ke Raspberry Pi (misal via SCP atau flashdrive).
+2. Beri permission eksekusi (hanya sekali):
+   ```bash
+   chmod +x app-bun-linux-arm64
+   ```
+3. Jalankan perintah setup (butuh akses root):
+   ```bash
+   sudo ./app-bun-linux-arm64 setup
+   ```
+   Binary akan secara otomatis:
+   - Membuat file service systemd (`/etc/systemd/system/posyandu.service`)
+   - Enable service agar jalan otomatis saat Raspberry Pi dinyalakan
+   - Start service secara langsung
+   - Mengatur pengelolaan log ke syslog (bisa dicek via journalctl)
+
+4. Akses aplikasi di `http://<ip-raspberry-pi>:3000`.
+
+### Mode 2: Setup Manual (Tanpa Argumen Setup)
+
+Jika Anda tidak ingin menggunakan systemd dan lebih memilih menjalankan binary secara manual:
+
+1. Copy file `app-bun-linux-arm64` ke Raspberry Pi.
+2. Beri permission eksekusi:
+   ```bash
+   chmod +x app-bun-linux-arm64
+   ```
+3. Jalankan langsung binary:
+   ```bash
+   ./app-bun-linux-arm64
+   ```
+4. (Opsional) Jika ingin menjalankannya di background tanpa systemd, gunakan `nohup`:
+   ```bash
+   nohup ./app-bun-linux-arm64 > output.log 2>&1 &
+   ```
+5. Aplikasi akan berjalan di port 3000. Untuk menghentikan, gunakan `kill <PID>` atau `pkill app-bun-linux-arm64`.
 
 ### Variabel Environment Produksi
 

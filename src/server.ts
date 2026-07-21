@@ -1,6 +1,5 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { $ } from "bun";
 import app from "./app/api/index";
 
 // ─── ANSI Color Helpers (Native Bun) ────────────────────────────────
@@ -33,6 +32,16 @@ declare global {
 
 const _embedded = globalThis.__EMBEDDED_ASSETS__;
 
+// ─── Shell Helper (Tanpa import "bun" agar Vite SSR tidak error) ────
+function runCmd(cmd: string[]) {
+  const proc = Bun.spawnSync(cmd, { stdout: "pipe", stderr: "pipe" });
+  if (proc.exitCode !== 0) {
+    const err = new TextDecoder().decode(proc.stderr);
+    throw new Error(`Command failed: ${cmd.join(" ")}\n${err}`);
+  }
+  return new TextDecoder().decode(proc.stdout).trim();
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // CLI Argument Handler
 // ═══════════════════════════════════════════════════════════════════
@@ -47,7 +56,7 @@ if (args.includes("setup")) {
 // ═══════════════════════════════════════════════════════════════════
 // Setup Mode: Auto-configure Systemd & Log Management
 // ═══════════════════════════════════════════════════════════════════
-async function setupSystemd() {
+function setupSystemd() {
   console.log(C.bold(C.cyan("PKM Posyandu - Auto Setup")));
   console.log(C.gray("---------------------------------"));
 
@@ -108,17 +117,17 @@ WantedBy=multi-user.target`;
 
   try {
     console.log(`${C.cyan("[2/4] ")}Reload systemd daemon...`);
-    await $`systemctl daemon-reload`;
+    runCmd(["systemctl", "daemon-reload"]);
     console.log(`${C.green("  [OK] ")}Daemon reloaded.`);
 
     console.log(
       `${C.cyan("[3/4] ")}Enable service untuk auto-start saat boot...`,
     );
-    await $`systemctl enable ${serviceName}`;
+    runCmd(["systemctl", "enable", serviceName]);
     console.log(`${C.green("  [OK] ")}Auto-start enabled.`);
 
     console.log(`${C.cyan("[4/4] ")}Memulai service...`);
-    await $`systemctl restart ${serviceName}`;
+    runCmd(["systemctl", "restart", serviceName]);
     console.log(`${C.green("  [OK] ")}Service dimulai.`);
 
     console.log("");
