@@ -502,11 +502,11 @@ export function FormKartu() {
 
 ---
 
-## Kompilasi ke Binary Tunggal
+## Kompilasi ke Binary Tunggal (True Single File)
 
 Proyek dapat dikompilasi menjadi **satu file executable** yang mencakup
-frontend (terembedded) + backend + (database tetap file eksternal di
-`data/`).
+frontend (ter-embed 100% di dalam binary) + backend + schema database.
+Hanya file database SQLite (`data.db`) yang berada di luar (karena butuh akses tulis).
 
 ```bash
 # Default: Linux ARM64 (Raspberry Pi / Orange Pi)
@@ -517,13 +517,13 @@ bun run compile --target=bun-linux-x64
 bun run compile --target=bun-windows-x64
 ```
 
-Proses:
+Proses (Otomatis via `scripts/compile.ts`):
+1. `vite build` → Frontend di-bundle ke `dist/client/`
+2. `vite build --ssr` → Backend di-bundle ke `dist/server/`
+3. Generate `_embeds.ts` → Semua aset frontend (HTML, CSS, JS, Font, SVG) di-import dan di-embed sebagai string/bytes.
+4. `bun build --compile` → Menggabungkan server + aset terembed + Bun runtime menjadi 1 binary dengan flag `--minify` dan `--bytecode` (untuk startup cepat & ringan).
 
-1. `vite build` → frontend ke `dist/client/`
-2. `bun build --compile` → binary mandiri ke `build/app-<target>`
-
-Binary output:
-
+Output:
 ```
 build/
 ├── app-bun-linux-arm64
@@ -531,11 +531,14 @@ build/
 └── app-bun-windows-x64.exe
 ```
 
-### Menjalankan Binary
+### Menjalankan Binary di Raspberry Pi
 
 ```bash
-# Linux / Raspberry Pi
-./build/app-bun-linux-arm64
+# Beri permission eksekusi (hanya sekali di Linux)
+chmod +x app-bun-linux-arm64
+
+# Jalankan langsung!
+./app-bun-linux-arm64
 
 # Dengan env kustom
 PORT=8080 DB_PATH=/var/data/posyandu.db ./build/app-bun-linux-arm64

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0] - 2026-07-21
+- 🚀 Add CLI argument handler to support automated systemd service registration for Raspberry Pi deployment.
+- ⚙️ Integrate systemd generation logic with auto-restart, log management, and process permissions.
+- ⚡️ Implement native Bun ANSI color helpers for enhanced console readability.
+- 📦 Refactor server startup to include automatic port listening and periodic memory/uptime statistics logging.
+- 🛠️ Update documentation to reflect improved binary compilation and deployment workflow.
+
 ## [1.4.0] - 2026-07-21
 - 📦 [scripts/compile.ts] Added auto-generation logic to embed frontend assets directly into the binary.
 - ⚙️ [scripts/compile.ts] Refactored compilation process to use a new entry point that registers assets before server startup.
