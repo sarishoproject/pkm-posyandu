@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0] - 2026-07-21
+- ⚙️ Migrate core database schemas from users/weights to participants/measurements
+- 🚀 Implement full CRUD API endpoints for peserta (participants) and pendataan (measurements)
+- 🎨 Create new frontend interface for participant management using TanStack Query
+- 🧹 Remove deprecated user management modules and associated database tables
+- 🔧 Update route definitions to reflect the new application structure
+- ⚡️ Improve TypeScript configuration for module resolution
+
 ## [1.6.0] - 2026-07-21
 - 🚀 Implement automated systemd setup flow for Raspberry Pi, enabling service persistence and logging management.
 - 🛠️ Refactor compilation script to support true single-file execution without needing extra runtime dependencies.

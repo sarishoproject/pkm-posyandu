@@ -1,13 +1,13 @@
-import beratBadanSchema from "./berat_badan.sql?raw";
-import usersSchema from "./users.sql?raw";
-
+import pendataanSchema from "./pendataan.sql?raw";
+import pesertaSchema from "./peserta.sql?raw";
 /**
  * Daftar schema yang sudah ter-embed ke dalam kode.
  * Ini memastikan binary tunggal tidak butuh file .sql eksternal.
  */
+
 export const schemaOrder = [
-  { name: "users.sql", content: usersSchema },
-  { name: "berat_badan.sql", content: beratBadanSchema },
+  { name: "peserta.sql", content: pesertaSchema },
+  { name: "pendataan.sql", content: pendataanSchema },
 ];
 
 /**

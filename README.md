@@ -58,7 +58,7 @@ bun --version
 ## Memulai Proyek
 
 ```bash
-git clone <url-repo> pkm-posyandu
+git clone https://github.com/sarishoproject/pkm-posyandu.git pkm-posyandu
 cd pkm-posyandu
 bun install
 bun dev
