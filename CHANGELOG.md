@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0] - 2026-07-21
+- 📦 [scripts/compile.ts] Added auto-generation logic to embed frontend assets directly into the binary.
+- ⚙️ [scripts/compile.ts] Refactored compilation process to use a new entry point that registers assets before server startup.
+- ⚡️ [src/server.ts] Implemented dual-mode asset loading: uses memory-embedded assets for production binaries and standard filesystem fallback for development.
+- 🧹 [package.json] Added biome CI check to the lint script.
+- 📝 [scripts/compile.ts] Improved binary size output and summary logging for better deployment visibility.
+
 ## [1.3.1] - 2026-07-20
 - ⚙️ Update CI workflow to trigger releases specifically on v* tag pushes.
 - 📦 Standardize release artifacts naming convention using ${github.ref_name}.
