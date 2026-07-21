@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.1] - 2026-07-21
+- 📝 Update the app description text in the main index component
+- 🎨 Improve aesthetic spacing/formatting for the application header
+
 ## [2.1.0] - 2026-07-21
 - ✨ Create new members page layout for mobile device.
 - 🎨 Add search functionality and scan input trigger for member management.
