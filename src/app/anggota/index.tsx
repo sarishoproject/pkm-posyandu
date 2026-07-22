@@ -49,10 +49,11 @@ function MobileView() {
             <ScanLine className="w-5 h-5" />
           </button>
         </div>
-        
+        <Link to="/anggota/input/" className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors">
         <button className="p-3 border border-slate-200 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 transition-colors shadow-sm flex-shrink-0">
           <UserPlus className="w-5 h-5" />
         </button>
+        </Link>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4">

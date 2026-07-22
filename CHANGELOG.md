@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.2.0] - 2026-07-22
+- ✨ Added measurement input page for capturing weight, height, head circumference, and arm circumference.
+- ✨ Added new member registration form with basic validation fields for child details.
+- ⚙️ Integrated new routes into TanStack Router via routeTree.gen.ts.
+- 🎨 Styled components using Tailwind CSS for consistent UI/UX across mobile and desktop views.
+
 ## [2.1.1] - 2026-07-21
 - 📝 Update the app description text in the main index component
 - 🎨 Improve aesthetic spacing/formatting for the application header

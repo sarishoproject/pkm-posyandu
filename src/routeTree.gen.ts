@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
 import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
 import { Route as PesertaIndexRouteImport } from './app/peserta/index'
+import { Route as AnggotaInputIndexRouteImport } from './app/anggota/input/index'
+import { Route as AnggotaTambahIndexRouteImport } from './app/anggota/tambah/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +30,60 @@ const PesertaIndexRoute = PesertaIndexRouteImport.update({
   path: '/peserta/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnggotaInputIndexRoute = AnggotaInputIndexRouteImport.update({
+  id: '/anggota/input/',
+  path: '/anggota/input/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnggotaTambahIndexRoute = AnggotaTambahIndexRouteImport.update({
+  id: '/anggota/tambah/',
+  path: '/anggota/tambah/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/peserta/': typeof PesertaIndexRoute
+  '/anggota/input/': typeof AnggotaInputIndexRoute
+  '/anggota/tambah/': typeof AnggotaTambahIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anggota': typeof AnggotaIndexRoute
   '/peserta': typeof PesertaIndexRoute
+  '/anggota/input': typeof AnggotaInputIndexRoute
+  '/anggota/tambah': typeof AnggotaTambahIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/peserta/': typeof PesertaIndexRoute
+  '/anggota/input/': typeof AnggotaInputIndexRoute
+  '/anggota/tambah/': typeof AnggotaTambahIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/anggota/' | '/peserta/'
+  fullPaths:
+    '/' | '/anggota/' | '/peserta/' | '/anggota/input/' | '/anggota/tambah/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/anggota' | '/peserta'
-  id: '__root__' | '/' | '/anggota/' | '/peserta/'
+  to: '/' | '/anggota' | '/peserta' | '/anggota/input' | '/anggota/tambah'
+  id:
+    | '__root__'
+    | '/'
+    | '/anggota/'
+    | '/peserta/'
+    | '/anggota/input/'
+    | '/anggota/tambah/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnggotaIndexRoute: typeof AnggotaIndexRoute
   PesertaIndexRoute: typeof PesertaIndexRoute
+  AnggotaInputIndexRoute: typeof AnggotaInputIndexRoute
+  AnggotaTambahIndexRoute: typeof AnggotaTambahIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +109,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PesertaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/anggota/input/': {
+      id: '/anggota/input/'
+      path: '/anggota/input'
+      fullPath: '/anggota/input/'
+      preLoaderRoute: typeof AnggotaInputIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anggota/tambah/': {
+      id: '/anggota/tambah/'
+      path: '/anggota/tambah'
+      fullPath: '/anggota/tambah/'
+      preLoaderRoute: typeof AnggotaTambahIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +130,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnggotaIndexRoute: AnggotaIndexRoute,
   PesertaIndexRoute: PesertaIndexRoute,
+  AnggotaInputIndexRoute: AnggotaInputIndexRoute,
+  AnggotaTambahIndexRoute: AnggotaTambahIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
