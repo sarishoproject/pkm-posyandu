@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.0] - 2026-07-22
+- ✨ Create new MemberDetailView component to display growth history and visual charts.
+- 📊 Implement SVG-based interactive growth charts for weight and height tracking.
+- 📋 Integrate history measurement display and navigation to add new entries.
+- ⚙️ Update routeTree.gen.ts to include the new /anggota/info/ path.
+
 ## [2.2.0] - 2026-07-22
 - ✨ Added measurement input page for capturing weight, height, head circumference, and arm circumference.
 - ✨ Added new member registration form with basic validation fields for child details.
