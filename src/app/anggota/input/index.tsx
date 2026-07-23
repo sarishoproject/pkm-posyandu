@@ -1,16 +1,89 @@
-import React from 'react';
-import { ArrowLeft, Radio } from 'lucide-react';
-import { Link, createFileRoute } from '@tanstack/react-router';
+import React, { useState } from 'react';
+import { ArrowLeft, Radio, Loader2 } from 'lucide-react';
+import { Link, createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 
+// Catatan: Sebaiknya ubah nama file/rute ini menjadi $pesertaId.tsx agar bisa menangkap ID dari URL
 export const Route = createFileRoute('/anggota/input/')({
   component: MeasurementForm,
 });
 
 function MeasurementForm() {
+  const navigate = useNavigate();
+  
+  // Asumsi ID didapat dari URL parameter. Gunakan angka statis untuk sementara jika belum menggunakan dynamic route.
+  // const { pesertaId } = Route.useParams(); 
+  const pesertaId = 1; // HAPUS DAN GANTI DENGAN PARAMS DARI URL NANTI
+
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // State form sesuai dengan interface PendataanInput
+  const [formData, setFormData] = useState({
+    peserta_id: pesertaId,
+    tanggal_ukur: new Date().toISOString().split('T')[0], // Set otomatis ke hari ini (YYYY-MM-DD)
+    berat: '',
+    tinggi: '',
+    lingkar_kepala: '',
+    lila: '', // Lingkar Lengan Atas
+    pitting_edema: false, // Boolean di UI, dikonversi ke String saat dikirim
+    cara_ukur: 'Berdiri', 
+  });
+
+  // Fungsi untuk mensimulasikan sensor Raspberry Pi
+  const handleSimulateSensor = () => {
+    // Generate angka acak untuk simulasi
+    const mockBerat = (Math.random() * (15 - 10) + 10).toFixed(1);
+    const mockTinggi = (Math.random() * (90 - 75) + 75).toFixed(1);
+    
+    setFormData(prev => ({
+      ...prev,
+      berat: mockBerat,
+      tinggi: mockTinggi
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Menyiapkan payload, mengonversi string ke number, dan boolean ke string
+      const payload = {
+        ...formData,
+        berat: formData.berat ? Number(formData.berat) : null,
+        tinggi: formData.tinggi ? Number(formData.tinggi) : null,
+        lingkar_kepala: formData.lingkar_kepala ? Number(formData.lingkar_kepala) : null,
+        lila: formData.lila ? Number(formData.lila) : null,
+        pitting_edema: formData.pitting_edema ? "Ya" : "Tidak",
+      };
+
+      const response = await fetch('/api/pendataan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Gagal menyimpan data');
+      }
+
+      alert('Data pengukuran berhasil disimpan!');
+      // Arahkan kembali ke halaman detail profil
+      navigate({ to: `/anggota/detail/${pesertaId}` as any });
+
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || 'Terjadi kesalahan pada sistem.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-md md:max-w-4xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden md:min-h-[auto]">
         
+        {/* Header */}
         <div className="p-4 md:px-8 md:pt-8 md:pb-4 flex items-center md:border-b md:border-slate-100">
           <Link to="/anggota/" className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
@@ -22,11 +95,12 @@ function MeasurementForm() {
 
         <div className="px-5 pb-8 flex-1 overflow-y-auto md:p-8 md:overflow-visible">
           
-        
-          <div className="md:grid md:grid-cols-2 md:gap-10 lg:gap-14">
+          <form onSubmit={handleSubmit} className="md:grid md:grid-cols-2 md:gap-10 lg:gap-14 h-full flex flex-col">
             
+            {/* ================= KOLOM KIRI (Profil & Sensor) ================= */}
             <div className="flex flex-col">
               
+              {/* Profil Singkat (Idealnya di-fetch dari API, tapi kita hardcode sementara sesuai desain) */}
               <div className="relative bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 mb-8 overflow-hidden md:border-slate-200 md:shadow-md">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-orange-300 rounded-r-full" />
                 <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 ml-1">
@@ -42,30 +116,48 @@ function MeasurementForm() {
                 </div>
               </div>
 
+              {/* Area Sensor */}
               <div className="mb-6 md:mb-0">
-                <h3 className="text-xs font-bold text-slate-500 tracking-wider mb-3 uppercase">
-                  Sensor Otomatis
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold text-slate-500 tracking-wider uppercase">
+                    Sensor Otomatis
+                  </h3>
+                  {/* Indikator Tanggal Ukur */}
+                  <span className="text-[10px] font-medium text-slate-400">
+                    Tgl: {formData.tanggal_ukur}
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6">
+                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
                     <span className="text-xs text-slate-500 mb-2">Berat Badan (kg)</span>
-                    <span className="text-2xl font-bold text-slate-800">--</span>
+                    <span className={`text-2xl font-bold ${formData.berat ? 'text-indigo-600' : 'text-slate-800'}`}>
+                      {formData.berat || '--'}
+                    </span>
                   </div>
-                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6">
+                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
                     <span className="text-xs text-slate-500 mb-2">Tinggi Badan (cm)</span>
-                    <span className="text-2xl font-bold text-slate-800">--</span>
+                    <span className={`text-2xl font-bold ${formData.tinggi ? 'text-orange-500' : 'text-slate-800'}`}>
+                      {formData.tinggi || '--'}
+                    </span>
                   </div>
                 </div>
-                <button className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors">
+                
+                <button 
+                  type="button"
+                  onClick={handleSimulateSensor}
+                  className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors"
+                >
                   <Radio className="w-5 h-5" />
-                  <span>Ukur BB & TB (Sensor)</span>
+                  <span>{formData.berat ? 'Ukur Ulang (Sensor)' : 'Ukur BB & TB (Sensor)'}</span>
                 </button>
               </div>
             </div>
 
             <hr className="border-slate-200 my-6 md:hidden" />
 
-            <div className="flex flex-col space-y-4 h-full">
+            {/* ================= KOLOM KANAN (Input Manual) ================= */}
+            <div className="flex flex-col space-y-4 h-full flex-1">
               
               <div className="flex-1">
                 <h3 className="hidden md:block text-xs font-bold text-slate-500 tracking-wider mb-4 uppercase">
@@ -78,6 +170,8 @@ function MeasurementForm() {
                     <input 
                       type="number" 
                       step="0.1"
+                      value={formData.lingkar_kepala}
+                      onChange={(e) => setFormData({...formData, lingkar_kepala: e.target.value})}
                       placeholder="Contoh: 45.5" 
                       className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
                     />
@@ -87,6 +181,8 @@ function MeasurementForm() {
                     <input 
                       type="number" 
                       step="0.1"
+                      value={formData.lila}
+                      onChange={(e) => setFormData({...formData, lila: e.target.value})}
                       placeholder="Contoh: 14.5" 
                       className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
                     />
@@ -94,11 +190,14 @@ function MeasurementForm() {
                 </div>
 
                 <div className="flex flex-col gap-1.5 pt-4">
-                  <label className="text-xs font-semibold text-slate-700">Pemberian ASI</label>
-                  <select className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none">
-                    <option value="eksklusif">Eksklusif</option>
-                    <option value="parsial">Parsial</option>
-                    <option value="tidak">Tidak Diberikan</option>
+                  <label className="text-xs font-semibold text-slate-700">Cara Ukur Tinggi</label>
+                  <select 
+                    value={formData.cara_ukur}
+                    onChange={(e) => setFormData({...formData, cara_ukur: e.target.value})}
+                    className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none cursor-pointer"
+                  >
+                    <option value="Berdiri">Berdiri</option>
+                    <option value="Terlentang">Terlentang</option>
                   </select>
                 </div>
 
@@ -106,6 +205,8 @@ function MeasurementForm() {
                   <input 
                     type="checkbox" 
                     id="edema"
+                    checked={formData.pitting_edema}
+                    onChange={(e) => setFormData({...formData, pitting_edema: e.target.checked})}
                     className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
                   />
                   <label htmlFor="edema" className="text-sm text-slate-700 font-medium cursor-pointer">
@@ -114,16 +215,27 @@ function MeasurementForm() {
                 </div>
               </div>
 
-              
+              {/* Tombol Submit di bawah sendiri */}
               <div className="mt-10 md:mt-auto pt-4 md:pt-8">
-                <button className="w-full py-4 rounded-full bg-[#373895] text-white font-semibold hover:bg-indigo-800 transition-colors shadow-md">
-                  Simpan Data Pengukuran
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#373895] text-white font-semibold hover:bg-indigo-800 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    'Simpan Data Pengukuran'
+                  )}
                 </button>
               </div>
 
             </div>
 
-          </div>
+          </form>
         </div>
       </div>
     </div>

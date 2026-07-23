@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.0] - 2026-07-23
+- ⚡️ Implement API integration for fetching member list and member details from backend
+- ⚙️ Add dynamic routing support for member details using $id parameter
+- 🛠️ Replace static dummy data with real-time state management using React useEffect and useState
+- 🎨 Implement loading states with spinners while waiting for API responses
+- 🧹 Clean up redundant static components and consolidate member display logic
+- 🚀 Enable navigation and searching functionality based on actual API data
+
 ## [2.3.0] - 2026-07-22
 - ✨ Create new MemberDetailView component to display growth history and visual charts.
 - 📊 Implement SVG-based interactive growth charts for weight and height tracking.

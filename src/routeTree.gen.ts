@@ -12,9 +12,9 @@ import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
 import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
 import { Route as PesertaIndexRouteImport } from './app/peserta/index'
-import { Route as AnggotaInfoIndexRouteImport } from './app/anggota/info/index'
+import { Route as AnggotaInfoIdRouteImport } from './app/anggota/info/$id'
 import { Route as AnggotaInputIndexRouteImport } from './app/anggota/input/index'
-import { Route as AnggotaTambahIndexRouteImport } from './app/anggota/tambah/index'
+import { Route as AnggotaTambahPesertaIdRouteImport } from './app/anggota/tambah/$pesertaId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,9 +31,9 @@ const PesertaIndexRoute = PesertaIndexRouteImport.update({
   path: '/peserta/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AnggotaInfoIndexRoute = AnggotaInfoIndexRouteImport.update({
-  id: '/anggota/info/',
-  path: '/anggota/info/',
+const AnggotaInfoIdRoute = AnggotaInfoIdRouteImport.update({
+  id: '/anggota/info/$id',
+  path: '/anggota/info/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaInputIndexRoute = AnggotaInputIndexRouteImport.update({
@@ -41,9 +41,9 @@ const AnggotaInputIndexRoute = AnggotaInputIndexRouteImport.update({
   path: '/anggota/input/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AnggotaTambahIndexRoute = AnggotaTambahIndexRouteImport.update({
-  id: '/anggota/tambah/',
-  path: '/anggota/tambah/',
+const AnggotaTambahPesertaIdRoute = AnggotaTambahPesertaIdRouteImport.update({
+  id: '/anggota/tambah/$pesertaId',
+  path: '/anggota/tambah/$pesertaId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -51,26 +51,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/peserta/': typeof PesertaIndexRoute
-  '/anggota/info/': typeof AnggotaInfoIndexRoute
+  '/anggota/info/$id': typeof AnggotaInfoIdRoute
+  '/anggota/tambah/$pesertaId': typeof AnggotaTambahPesertaIdRoute
   '/anggota/input/': typeof AnggotaInputIndexRoute
-  '/anggota/tambah/': typeof AnggotaTambahIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anggota': typeof AnggotaIndexRoute
   '/peserta': typeof PesertaIndexRoute
-  '/anggota/info': typeof AnggotaInfoIndexRoute
+  '/anggota/info/$id': typeof AnggotaInfoIdRoute
+  '/anggota/tambah/$pesertaId': typeof AnggotaTambahPesertaIdRoute
   '/anggota/input': typeof AnggotaInputIndexRoute
-  '/anggota/tambah': typeof AnggotaTambahIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/peserta/': typeof PesertaIndexRoute
-  '/anggota/info/': typeof AnggotaInfoIndexRoute
+  '/anggota/info/$id': typeof AnggotaInfoIdRoute
+  '/anggota/tambah/$pesertaId': typeof AnggotaTambahPesertaIdRoute
   '/anggota/input/': typeof AnggotaInputIndexRoute
-  '/anggota/tambah/': typeof AnggotaTambahIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,34 +78,34 @@ export interface FileRouteTypes {
     | '/'
     | '/anggota/'
     | '/peserta/'
-    | '/anggota/info/'
+    | '/anggota/info/$id'
+    | '/anggota/tambah/$pesertaId'
     | '/anggota/input/'
-    | '/anggota/tambah/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/anggota'
     | '/peserta'
-    | '/anggota/info'
+    | '/anggota/info/$id'
+    | '/anggota/tambah/$pesertaId'
     | '/anggota/input'
-    | '/anggota/tambah'
   id:
     | '__root__'
     | '/'
     | '/anggota/'
     | '/peserta/'
-    | '/anggota/info/'
+    | '/anggota/info/$id'
+    | '/anggota/tambah/$pesertaId'
     | '/anggota/input/'
-    | '/anggota/tambah/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnggotaIndexRoute: typeof AnggotaIndexRoute
   PesertaIndexRoute: typeof PesertaIndexRoute
-  AnggotaInfoIndexRoute: typeof AnggotaInfoIndexRoute
+  AnggotaInfoIdRoute: typeof AnggotaInfoIdRoute
+  AnggotaTambahPesertaIdRoute: typeof AnggotaTambahPesertaIdRoute
   AnggotaInputIndexRoute: typeof AnggotaInputIndexRoute
-  AnggotaTambahIndexRoute: typeof AnggotaTambahIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -131,11 +131,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PesertaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/anggota/info/': {
-      id: '/anggota/info/'
-      path: '/anggota/info'
-      fullPath: '/anggota/info/'
-      preLoaderRoute: typeof AnggotaInfoIndexRouteImport
+    '/anggota/info/$id': {
+      id: '/anggota/info/$id'
+      path: '/anggota/info/$id'
+      fullPath: '/anggota/info/$id'
+      preLoaderRoute: typeof AnggotaInfoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anggota/input/': {
@@ -145,11 +145,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnggotaInputIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/anggota/tambah/': {
-      id: '/anggota/tambah/'
-      path: '/anggota/tambah'
-      fullPath: '/anggota/tambah/'
-      preLoaderRoute: typeof AnggotaTambahIndexRouteImport
+    '/anggota/tambah/$pesertaId': {
+      id: '/anggota/tambah/$pesertaId'
+      path: '/anggota/tambah/$pesertaId'
+      fullPath: '/anggota/tambah/$pesertaId'
+      preLoaderRoute: typeof AnggotaTambahPesertaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -159,9 +159,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnggotaIndexRoute: AnggotaIndexRoute,
   PesertaIndexRoute: PesertaIndexRoute,
-  AnggotaInfoIndexRoute: AnggotaInfoIndexRoute,
+  AnggotaInfoIdRoute: AnggotaInfoIdRoute,
+  AnggotaTambahPesertaIdRoute: AnggotaTambahPesertaIdRoute,
   AnggotaInputIndexRoute: AnggotaInputIndexRoute,
-  AnggotaTambahIndexRoute: AnggotaTambahIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
