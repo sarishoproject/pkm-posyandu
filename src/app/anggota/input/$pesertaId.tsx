@@ -1,52 +1,77 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Radio, Loader2 } from 'lucide-react';
-import { Link, createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 
-// Catatan: Sebaiknya ubah nama file/rute ini menjadi $pesertaId.tsx agar bisa menangkap ID dari URL
-export const Route = createFileRoute('/anggota/input/')({
+// Mendefinisikan route dinamis berdasarkan nama file $pesertaId.tsx
+export const Route = createFileRoute('/anggota/input/$pesertaId')({
   component: MeasurementForm,
 });
 
 function MeasurementForm() {
   const navigate = useNavigate();
   
-  // Asumsi ID didapat dari URL parameter. Gunakan angka statis untuk sementara jika belum menggunakan dynamic route.
-  // const { pesertaId } = Route.useParams(); 
-  const pesertaId = 1; // HAPUS DAN GANTI DENGAN PARAMS DARI URL NANTI
+  // Mengambil ID dari URL (misal: /anggota/input/1 -> pesertaId = "1")
+  const { pesertaId } = Route.useParams(); 
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isSensorLoading, setIsSensorLoading] = useState(false);
   
-  // State form sesuai dengan interface PendataanInput
+  // State form sesuai dengan interface PendataanInput di backend
   const [formData, setFormData] = useState({
-    peserta_id: pesertaId,
-    tanggal_ukur: new Date().toISOString().split('T')[0], // Set otomatis ke hari ini (YYYY-MM-DD)
+    peserta_id: Number(pesertaId),
+    tanggal_ukur: new Date().toISOString().split('T')[0], // YYYY-MM-DD
     berat: '',
     tinggi: '',
     lingkar_kepala: '',
     lila: '', // Lingkar Lengan Atas
-    pitting_edema: false, // Boolean di UI, dikonversi ke String saat dikirim
+    pitting_edema: false, // Boolean di UI
     cara_ukur: 'Berdiri', 
   });
 
-  // Fungsi untuk mensimulasikan sensor Raspberry Pi
-  const handleSimulateSensor = () => {
-    // Generate angka acak untuk simulasi
-    const mockBerat = (Math.random() * (15 - 10) + 10).toFixed(1);
-    const mockTinggi = (Math.random() * (90 - 75) + 75).toFixed(1);
+  // Fungsi untuk mengambil data dari Mock API Sensor
+  const handleSimulateSensor = async () => {
+    setIsSensorLoading(true);
     
-    setFormData(prev => ({
-      ...prev,
-      berat: mockBerat,
-      tinggi: mockTinggi
-    }));
+    try {
+      // Menjalankan fetch secara paralel agar lebih cepat
+      const [weightRes, heightRes] = await Promise.all([
+        fetch('https://mock.fadlanabduh.my.id/api/weight'),
+        fetch('https://mock.fadlanabduh.my.id/api/height')
+      ]);
+
+      if (!weightRes.ok || !heightRes.ok) {
+        throw new Error('Gagal terhubung ke sensor alat ukur.');
+      }
+
+      const weightData = await weightRes.json();
+      const heightData = await heightRes.json();
+
+      // Ekstraksi nilai (menyesuaikan kemungkinan struktur JSON dari API)
+      const hasilBerat = weightData.weight ?? weightData.value ?? weightData;
+      const hasilTinggi = heightData.height ?? heightData.value ?? heightData;
+
+      // Update state dengan data dari sensor
+      setFormData(prev => ({
+        ...prev,
+        berat: Number(hasilBerat).toFixed(1),
+        tinggi: Number(hasilTinggi).toFixed(1)
+      }));
+
+    } catch (error: any) {
+      console.error("Error membaca sensor:", error);
+      alert(error.message || 'Gagal mengambil data dari sensor otomatis.');
+    } finally {
+      setIsSensorLoading(false);
+    }
   };
 
+  // Fungsi untuk mengirim data ke backend Hono
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Menyiapkan payload, mengonversi string ke number, dan boolean ke string
+      // Konversi tipe data agar sesuai dengan skema database
       const payload = {
         ...formData,
         berat: formData.berat ? Number(formData.berat) : null,
@@ -68,12 +93,12 @@ function MeasurementForm() {
       }
 
       alert('Data pengukuran berhasil disimpan!');
-      // Arahkan kembali ke halaman detail profil
-      navigate({ to: `/anggota/detail/${pesertaId}` as any });
+      // Arahkan kembali ke halaman info/detail anggota
+      navigate({ to: `/anggota/info/${pesertaId}` as any });
 
     } catch (error: any) {
-      console.error(error);
-      alert(error.message || 'Terjadi kesalahan pada sistem.');
+      console.error("Error submit data:", error);
+      alert(error.message || 'Terjadi kesalahan pada sistem saat menyimpan data.');
     } finally {
       setIsLoading(false);
     }
@@ -100,19 +125,15 @@ function MeasurementForm() {
             {/* ================= KOLOM KIRI (Profil & Sensor) ================= */}
             <div className="flex flex-col">
               
-              {/* Profil Singkat (Idealnya di-fetch dari API, tapi kita hardcode sementara sesuai desain) */}
+              {/* Card Profil Anak (Bisa di-fetch dari API nantinya, sementara statis) */}
               <div className="relative bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 mb-8 overflow-hidden md:border-slate-200 md:shadow-md">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-orange-300 rounded-r-full" />
-                <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 ml-1">
-                  <img 
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Budi" 
-                    alt="Budi Santoso" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0 ml-1">
+                  ID: {pesertaId}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-slate-900 text-[16px]">Budi Santoso</span>
-                  <span className="text-sm text-slate-500 mt-0.5">24 Bulan • Laki-laki</span>
+                  <span className="font-bold text-slate-900 text-[16px]">Data Peserta</span>
+                  <span className="text-sm text-slate-500 mt-0.5">Input pengukuran baru</span>
                 </div>
               </div>
 
@@ -122,7 +143,6 @@ function MeasurementForm() {
                   <h3 className="text-xs font-bold text-slate-500 tracking-wider uppercase">
                     Sensor Otomatis
                   </h3>
-                  {/* Indikator Tanggal Ukur */}
                   <span className="text-[10px] font-medium text-slate-400">
                     Tgl: {formData.tanggal_ukur}
                   </span>
@@ -130,26 +150,37 @@ function MeasurementForm() {
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
-                    <span className="text-xs text-slate-500 mb-2">Berat Badan (kg)</span>
+                    <span className="text-xs text-slate-500 mb-2 text-center">Berat Badan (kg)</span>
                     <span className={`text-2xl font-bold ${formData.berat ? 'text-indigo-600' : 'text-slate-800'}`}>
                       {formData.berat || '--'}
                     </span>
                   </div>
                   <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
-                    <span className="text-xs text-slate-500 mb-2">Tinggi Badan (cm)</span>
+                    <span className="text-xs text-slate-500 mb-2 text-center">Tinggi Badan (cm)</span>
                     <span className={`text-2xl font-bold ${formData.tinggi ? 'text-orange-500' : 'text-slate-800'}`}>
                       {formData.tinggi || '--'}
                     </span>
                   </div>
                 </div>
                 
+                {/* Tombol Fetch API Sensor */}
                 <button 
                   type="button"
                   onClick={handleSimulateSensor}
-                  className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors"
+                  disabled={isSensorLoading}
+                  className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
                 >
-                  <Radio className="w-5 h-5" />
-                  <span>{formData.berat ? 'Ukur Ulang (Sensor)' : 'Ukur BB & TB (Sensor)'}</span>
+                  {isSensorLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Membaca Sensor...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Radio className="w-5 h-5" />
+                      <span>{formData.berat ? 'Ukur Ulang (Sensor)' : 'Ukur BB & TB (Sensor)'}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -215,17 +246,17 @@ function MeasurementForm() {
                 </div>
               </div>
 
-              {/* Tombol Submit di bawah sendiri */}
+              {/* Tombol Submit Hono */}
               <div className="mt-10 md:mt-auto pt-4 md:pt-8">
                 <button 
                   type="submit" 
-                  disabled={isLoading}
+                  disabled={isLoading || (!formData.berat && !formData.tinggi)} // Disable jika belum ukur
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#373895] text-white font-semibold hover:bg-indigo-800 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Menyimpan...
+                      Menyimpan Data...
                     </>
                   ) : (
                     'Simpan Data Pengukuran'

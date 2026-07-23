@@ -6,20 +6,22 @@ import {
   Calendar,
   Loader2
 } from 'lucide-react';
-import { Link, createFileRoute, useParams } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 
-// Ubah route ini di TanStack Router Anda menjadi dynamic route
+// Route dinamis TanStack
 export const Route = createFileRoute('/anggota/info/$id')({
   component: MemberDetailView,
 });
 
-// Interface menyesuaikan response dari BE Anda
+// Interface response dari Backend
 interface DetailResponse {
   id: number;
   nama_anak: string;
   nik: string;
   nama_ibu: string | null;
   status: string;
+  tanggal_lahir?: string; 
+  jenis_kelamin?: string; 
   riwayat: {
     id: number;
     tanggal_ukur: string;
@@ -29,14 +31,13 @@ interface DetailResponse {
 }
 
 function MemberDetailView() {
-  // Mengambil parameter ID dari URL
   const { id } = Route.useParams(); 
   
   const [data, setData] = useState<DetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
 
-  // Fetch data dari backend saat komponen dimuat
+  // Fetch data dari backend
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -63,26 +64,26 @@ function MemberDetailView() {
     );
   }
 
-  // LOGIKA GRAFIK DINAMIS
-  // BE mengurutkan DESC (terbaru di atas), tapi grafik butuh dari kiri (lama) ke kanan (baru)
+  // --- LOGIKA GRAFIK DINAMIS ---
   const riwayatUrut = [...data.riwayat].reverse();
 
-  // Menghitung koordinat X dan Y untuk grafik SVG
   const graphData = riwayatUrut.map((item, index) => {
-    // Spasi X (horizontal) dibagi rata sesuai jumlah data (max lebar area grafik = 360)
     const spacingX = riwayatUrut.length > 1 ? 360 / (riwayatUrut.length - 1) : 180;
     const x = 20 + (index * spacingX);
     
-    // Kalkulasi Y (vertikal): Angka 160 adalah batas bawah grafik. 
-    // Semakin besar berat/tinggi, nilainya dikurangi agar grafiknya naik.
+    // Kalkulasi Y (vertikal)
     const berat = item.berat || 0;
-    const weightY = 160 - (berat * 5); // Multiplier skala berat
+    let weightY = 160 - (berat * 5); 
 
     const tinggi = item.tinggi || 0;
-    const heightY = 160 - ((tinggi - 40) * 1.5); // Multiplier skala tinggi
+    let heightY = 160 - ((tinggi - 40) * 1.5); 
+
+    // PENYELESAIAN BUG 1: Kunci batas Y (Clamp) agar tidak tembus ke atas/bawah jika datanya ekstrem
+    weightY = Math.max(15, Math.min(185, weightY));
+    heightY = Math.max(15, Math.min(185, heightY));
 
     const dateObj = new Date(item.tanggal_ukur);
-    const shortBulan = dateObj.toLocaleDateString('id-ID', { month: 'short' }); // "Jan"
+    const shortBulan = dateObj.toLocaleDateString('id-ID', { month: 'short' }); 
     const tahun = dateObj.getFullYear();
 
     return {
@@ -97,15 +98,38 @@ function MemberDetailView() {
     };
   });
 
-  // Membuat string path SVG dari koordinat
   const weightPath = `M ${graphData.map(d => `${d.x} ${d.weightY}`).join(' L ')}`;
   const heightPath = `M ${graphData.map(d => `${d.x} ${d.heightY}`).join(' L ')}`;
 
-  // Ambil data terbaru untuk summary (indeks 0 karena BE mengurutkan DESC)
   const dataTerbaru = data.riwayat[0];
-
-  // Mendapatkan inisial nama untuk avatar
   const inisial = data.nama_anak.substring(0, 2).toUpperCase();
+
+  // --- FUNGSI HELPER UI ---
+  const formatTanggalLahir = (tgl?: string) => {
+    if (!tgl) return '-';
+    return new Date(tgl).toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+  };
+
+  const hitungUmur = (tglLahir?: string) => {
+    if (!tglLahir) return '-';
+    const lahir = new Date(tglLahir);
+    const sekarang = new Date();
+    
+    let tahun = sekarang.getFullYear() - lahir.getFullYear();
+    let bulan = sekarang.getMonth() - lahir.getMonth();
+
+    if (bulan < 0 || (bulan === 0 && sekarang.getDate() < lahir.getDate())) {
+      tahun--;
+      bulan += 12;
+    }
+
+    if (tahun <= 0 && bulan <= 0) return `0 Bulan`;
+    if (tahun === 0) return `${bulan} Bulan`;
+    if (bulan === 0) return `${tahun} Tahun`;
+    return `${tahun} Tahun ${bulan} Bulan`;
+  };
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
@@ -136,15 +160,20 @@ function MemberDetailView() {
                     <h2 className="font-bold text-slate-900 text-lg leading-tight truncate">
                       {data.nama_anak}
                     </h2>
-                    <button className="flex items-center gap-1.5 text-slate-600 hover:text-[#1E1B4B] transition-colors bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm shrink-0">
+                    <Link 
+                      to={`/anggota/edit/${id}`}
+                      className="flex items-center gap-1.5 text-slate-600 hover:text-[#1E1B4B] transition-colors bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm shrink-0"
+                    >
                       <Pencil className="w-3 h-3" />
                       <span className="text-[10px] font-bold uppercase tracking-wider">Edit</span>
-                    </button>
+                    </Link>
                   </div>
                   <div className="flex flex-col mt-2 space-y-0.5">
                     <span className="text-xs text-slate-500">NIK: {data.nik}</span>
-                    <span className="text-xs text-slate-500">Ibu: {data.nama_ibu || '-'}</span>
-                    <span className="text-xs text-slate-500">Status: <span className="capitalize">{data.status}</span></span>
+                    <span className="text-xs text-slate-500">Tgl Lahir: {formatTanggalLahir(data.tanggal_lahir)}</span>
+                    <span className="text-xs text-slate-500 font-medium">
+                      {hitungUmur(data.tanggal_lahir)} • {data.jenis_kelamin || 'Laki-laki'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -152,14 +181,16 @@ function MemberDetailView() {
               <div className="mb-8">
                 <div className="mb-4">
                   <h3 className="font-semibold text-slate-800 text-[15px]">Grafik Pertumbuhan</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Ketuk titik pada grafik untuk melihat detail angka.</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Ketuk area titik pada grafik untuk melihat detail angka.</p>
                 </div>
 
                 <div className="bg-[#F8F9FA] rounded-2xl p-4 md:border md:border-slate-100 md:shadow-sm">
                   
                   {graphData.length > 0 ? (
-                    <div className="relative w-full">
-                      <svg viewBox="0 0 400 200" className="w-full h-auto overflow-visible" preserveAspectRatio="none">
+                    // PENYELESAIAN BUG 2: Gunakan h-[220px] yang konstan, alih-alih aspect-ratio. 
+                    // Ini memastikan kotak container grafik selalu punya dimensi fisik yang kuat.
+                    <div className="relative w-full h-[220px]">
+                      <svg viewBox="0 0 400 200" className="w-full h-full overflow-visible" preserveAspectRatio="none">
                         
                         <line x1="0" y1="40" x2="400" y2="40" stroke="#E2E8F0" strokeWidth="1.5" />
                         <line x1="0" y1="100" x2="400" y2="100" stroke="#E2E8F0" strokeWidth="1.5" />
@@ -171,33 +202,36 @@ function MemberDetailView() {
                         {graphData.map((d) => {
                           const isSelected = selectedPoint?.id === d.id;
                           return (
-                            <g key={d.id}>
+                            <g 
+                              key={d.id} 
+                              className="cursor-pointer outline-none" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPoint(isSelected ? null : d);
+                              }}
+                            >
+                              {/* Invisible hitbox dengan fill="transparent" (bukan rgba) supaya kompatibel */}
+                              <rect x={d.x - 20} y="0" width="40" height="200" fill="transparent" />
+
                               {isSelected && (
                                 <line x1={d.x} y1="20" x2={d.x} y2="160" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="4 4" />
                               )}
 
                               <circle cx={d.x} cy={d.heightY} r={isSelected ? "5" : "3.5"} fill={isSelected ? "#FFF" : "#FDBA74"} stroke="#FDBA74" strokeWidth={isSelected ? "2" : "0"} />
-                              
                               <circle cx={d.x} cy={d.weightY} r={isSelected ? "5" : "3.5"} fill={isSelected ? "#FFF" : "#1E1B4B"} stroke="#1E1B4B" strokeWidth={isSelected ? "2" : "0"} />
 
                               <text x={d.x} y="185" fontSize="11" fill={isSelected ? "#1E1B4B" : "#64748B"} textAnchor="middle" fontWeight={isSelected ? "700" : "500"}>
                                 {d.date}
                               </text>
-
-                              <rect 
-                                x={d.x - 20} y="0" width="40" height="200" 
-                                fill="transparent" 
-                                className="cursor-pointer" 
-                                onClick={() => setSelectedPoint(isSelected ? null : d)} 
-                              />
                             </g>
                           )
                         })}
                       </svg>
 
+                      {/* Tooltip Popup */}
                       {selectedPoint && (
                         <div
-                          className="absolute bg-white shadow-lg border border-slate-100 rounded-xl p-2.5 flex flex-col gap-1 w-28 pointer-events-none transition-all duration-200 z-10"
+                          className="absolute bg-white shadow-lg border border-slate-100 rounded-xl p-2.5 flex flex-col gap-1 w-28 pointer-events-none transition-all duration-200 z-20"
                           style={{
                             left: `${(selectedPoint.x / 400) * 100}%`,
                             top: `${(Math.min(selectedPoint.heightY, selectedPoint.weightY) / 200) * 100}%`,
@@ -261,7 +295,6 @@ function MemberDetailView() {
             <div className="flex flex-col px-5 md:px-0">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold text-slate-800 text-[15px]">Riwayat Pengukuran</h3>
-                {/* Arahkan tombol tambah ke form input pengukuran spesifik anak ini */}
                 <Link 
                   to={`/anggota/input/${id}`}
                   className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"

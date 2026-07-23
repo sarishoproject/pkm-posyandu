@@ -1,44 +1,74 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Loader2 } from 'lucide-react';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/anggota/tambah/$pesertaId')({
-  component: AddMemberForm,
+export const Route = createFileRoute('/anggota/edit/$editId')({
+  component: EditMemberForm,
 });
 
-function AddMemberForm() {
+function EditMemberForm() {
+  // Mengambil parameter editId dari URL TanStack Router
+  const { editId } = Route.useParams();
   const navigate = useNavigate();
+  
+  const [isFetching, setIsFetching] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // State disesuaikan dengan kebutuhan Form UI dan Backend
+  // State disesuaikan dengan Form UI
   const [formData, setFormData] = useState({
     nama_anak: '',
     nik: '',
     nama_ibu: '',
-    // Data berikut hanya untuk UI saat ini karena belum ada di interface backend
+    // UI Only (Karena belum ada di DB)
     jenis_kelamin: 'Laki-laki',
     tgl_lahir: '',
     bulan_lahir: '',
     tahun_lahir: '',
   });
 
+  // Fetch data lama saat komponen pertama kali dimuat
+  useEffect(() => {
+    const fetchExistingData = async () => {
+      try {
+        const response = await fetch(`/api/peserta/${editId}`);
+        if (!response.ok) throw new Error('Data tidak ditemukan');
+        
+        const data = await response.json();
+        
+        // Memasukkan data lama ke dalam state form
+        setFormData(prev => ({
+          ...prev,
+          nama_anak: data.nama_anak || '',
+          nik: data.nik || '',
+          nama_ibu: data.nama_ibu || '',
+          // Jika suatu saat ada tanggal lahir di DB, bisa di-split dan dimasukkan ke sini
+        }));
+      } catch (error) {
+        console.error('Error fetching detail:', error);
+        alert('Gagal memuat data anggota.');
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchExistingData();
+  }, [editId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // 1. Siapkan payload sesuai interface PesertaInput
+      // 1. Siapkan payload sesuai kolom yang ada di DB saat ini
       const payload = {
         nama_anak: formData.nama_anak,
         nik: formData.nik,
         nama_ibu: formData.nama_ibu,
-        status: 'Aktif', // Default status
-        // asi_bulan_0 hingga asi_bulan_6 tidak dikirim (opsional di backend)
       };
 
-      // 2. Kirim ke API endpoint yang sudah Anda buat
-      const response = await fetch('/api/peserta', {
-        method: 'POST',
+      // 2. Kirim ke API endpoint (Pastikan backend Anda sudah punya method PUT/PATCH untuk update)
+      const response = await fetch(`/api/peserta/${editId}`, {
+        method: 'PUT', 
         headers: {
           'Content-Type': 'application/json',
         },
@@ -46,20 +76,29 @@ function AddMemberForm() {
       });
 
       if (!response.ok) {
-        throw new Error('Gagal menyimpan data');
+        throw new Error('Gagal menyimpan perubahan');
       }
 
-      // 3. Berikan feedback dan arahkan kembali
-      alert('Data anggota baru berhasil disimpan!');
-      navigate({ to: '/anggota/' });
+      alert('Data anggota berhasil diperbarui!');
+      // Arahkan kembali ke halaman info detail anak tersebut
+      navigate({ to: `/anggota/info/${editId}` });
       
     } catch (error) {
       console.error('Error:', error);
-      alert('Terjadi kesalahan saat menyimpan data.');
+      alert('Terjadi kesalahan saat memperbarui data.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Tampilkan loading screen saat sedang menarik data dari database
+  if (isFetching) {
+    return (
+      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#23257B] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
@@ -68,13 +107,13 @@ function AddMemberForm() {
         
         <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
           <Link 
-            to="/anggota/" 
+            to={`/anggota/info/${editId}`}
             className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
           >
             <X className="w-6 h-6" />
           </Link>
           <h1 className="text-[17px] font-medium text-slate-800">
-            Tambah Anggota Baru
+            Edit Data Anggota
           </h1>
         </div>
 
@@ -100,7 +139,7 @@ function AddMemberForm() {
                 required
                 maxLength={16}
                 value={formData.nik}
-                onChange={(e) => setFormData({ ...formData, nik: e.target.value.replace(/\D/g, '') })} // Hanya angka
+                onChange={(e) => setFormData({ ...formData, nik: e.target.value.replace(/\D/g, '') })}
                 placeholder="16 digit NIK" 
                 className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
               />
@@ -147,7 +186,7 @@ function AddMemberForm() {
                 >
                   <option value="">Tgl</option>
                   {Array.from({ length: 31 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
                   ))}
                 </select>
 
@@ -196,9 +235,16 @@ function AddMemberForm() {
               <button 
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 rounded-xl bg-[#23257B] text-white font-medium text-sm hover:bg-[#1a1c5e] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center py-4 rounded-xl bg-[#23257B] text-white font-medium text-sm hover:bg-[#1a1c5e] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Menyimpan...' : 'Simpan Data'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    Menyimpan...
+                  </>
+                ) : (
+                  'Simpan Perubahan'
+                )}
               </button>
             </div>
 

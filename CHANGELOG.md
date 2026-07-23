@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0] - 2026-07-23
+- ✨ Added EditMemberForm for updating member details.
+- ⚙️ Integrated real-time weight/height data fetching from sensors in the input form.
+- 🛠️ Refactored routing structure for improved dynamic parameter handling ($pesertaId).
+- 🎨 Added helper functions for age calculation and date formatting on detail pages.
+- 🐛 Fixed SVG chart visualization bugs by adding coordinate clamping.
+
 ## [2.4.0] - 2026-07-23
 - ⚡️ Implement API integration for fetching member list and member details from backend
 - ⚙️ Add dynamic routing support for member details using $id parameter

@@ -101,7 +101,7 @@ function MobileView() {
           filteredPeserta.map((child) => (
             <div 
               key={child.id}
-              onClick={() => navigate({ to: `/anggota/detail/${child.id}` as any })}
+              onClick={() => navigate({ to: `/anggota/info/${child.id}` as any })}
               className="relative bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-slate-100/50 overflow-hidden cursor-pointer hover:border-indigo-200 transition-colors"
             >
               {/* Indikator Aktif (Status) */}
