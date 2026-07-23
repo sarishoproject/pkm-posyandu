@@ -1,15 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import React, { useState, useEffect } from "react";
-import { 
-  Search, 
-  ScanLine, 
-  UserPlus, 
-  Ruler, 
-  Home, 
-  Users, 
+import {
+  Home,
+  Loader2,
+  Ruler,
+  ScanLine,
+  Search,
   User,
-  Loader2
-} from 'lucide-react';
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/anggota/")({
   component: MobileView,
@@ -19,8 +19,8 @@ export const Route = createFileRoute("/anggota/")({
 interface Peserta {
   id: number;
   nama_anak: string;
-  nik: string;
   nama_ibu: string | null;
+  nik: string;
   status: string;
 }
 
@@ -34,8 +34,8 @@ function MobileView() {
   useEffect(() => {
     const fetchPeserta = async () => {
       try {
-        const response = await fetch('/api/peserta');
-        if (!response.ok) throw new Error('Gagal mengambil data');
+        const response = await fetch("/api/peserta");
+        if (!response.ok) throw new Error("Gagal mengambil data");
         const data = await response.json();
         setPesertaList(data);
       } catch (error) {
@@ -59,32 +59,32 @@ function MobileView() {
   };
 
   // 3. Filter data berdasarkan pencarian
-  const filteredPeserta = pesertaList.filter(anak => 
-    anak.nama_anak.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    anak.nik.includes(searchQuery)
+  const filteredPeserta = pesertaList.filter(
+    (anak) =>
+      anak.nama_anak.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      anak.nik.includes(searchQuery),
   );
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8F9FA] max-w-md mx-auto relative font-sans text-slate-800 border-x">
-      
       {/* Header & Search Bar */}
       <div className="flex items-center gap-3 p-4 pt-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
           <input
-            type="text"
-            value={searchQuery}
+            className="w-full pl-10 pr-12 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white shadow-sm text-sm"
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari nama atau NIK..."
-            className="w-full pl-10 pr-12 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white shadow-sm text-sm"
+            type="text"
+            value={searchQuery}
           />
           <button className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors">
             <ScanLine className="w-5 h-5" />
           </button>
         </div>
-        
+
         {/* Tombol Tambah Anggota (Revisi link ke /anggota/tambah) */}
-        <Link to="/anggota/tambah" className="flex-shrink-0">
+        <Link className="flex-shrink-0" to="/anggota/tambah">
           <button className="p-3 border border-slate-200 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 transition-colors shadow-sm">
             <UserPlus className="w-5 h-5" />
           </button>
@@ -99,13 +99,15 @@ function MobileView() {
           </div>
         ) : filteredPeserta.length > 0 ? (
           filteredPeserta.map((child) => (
-            <div 
-              key={child.id}
-              onClick={() => navigate({ to: `/anggota/info/${child.id}` as any })}
+            <div
               className="relative bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-slate-100/50 overflow-hidden cursor-pointer hover:border-indigo-200 transition-colors"
+              key={child.id}
+              onClick={() =>
+                navigate({ to: `/anggota/info/${child.id}` as any })
+              }
             >
               {/* Indikator Aktif (Status) */}
-              {child.status.toLowerCase() === 'aktif' && (
+              {child.status.toLowerCase() === "aktif" && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-orange-300 rounded-r-full" />
               )}
 
@@ -125,12 +127,12 @@ function MobileView() {
               </div>
 
               {/* Tombol Input Pengukuran */}
-              <button 
+              <button
+                className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
                 onClick={(e) => {
                   e.stopPropagation(); // Mencegah klik tombol memicu klik kartu (masuk ke detail)
                   navigate({ to: `/anggota/input/${child.id}` as any });
                 }}
-                className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
               >
                 <Ruler className="w-5 h-5" />
               </button>
@@ -145,25 +147,25 @@ function MobileView() {
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 flex justify-around pb-6 pt-3 px-2 z-10 rounded-t-xl">
-        <Link 
-          to="/" 
+        <Link
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
+          to="/"
         >
           <Home className="w-6 h-6" />
           <span className="text-[10px] font-medium">Beranda</span>
         </Link>
-        
-        <Link 
-          to="/anggota" 
+
+        <Link
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
+          to="/anggota"
         >
-          <Users className="w-6 h-6" /> 
+          <Users className="w-6 h-6" />
           <span className="text-[10px] font-medium">Anggota</span>
         </Link>
-        
-        <Link 
-          to="/akun" 
+
+        <Link
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
+          to="/akun"
         >
           <User className="w-6 h-6" />
           <span className="text-[10px] font-medium">Akun</span>

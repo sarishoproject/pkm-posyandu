@@ -1,4 +1,5 @@
 import * as fs from "node:fs";
+import * as os from "node:os";
 import * as path from "node:path";
 import app from "./app/api/index";
 
@@ -40,6 +41,19 @@ function runCmd(cmd: string[]) {
     throw new Error(`Command failed: ${cmd.join(" ")}\n${err}`);
   }
   return new TextDecoder().decode(proc.stdout).trim();
+}
+// ─── Network Helper ─────────────────────────────────────────────────
+function getLocalIP(): string {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      // Ambil IPv4 yang bukan loopback/internal (bukan 127.0.0.1)
+      if (iface.family === "IPv4" && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return "127.0.0.1"; // Fallback safe
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -134,7 +148,7 @@ WantedBy=multi-user.target`;
     console.log(C.bold(C.green("Setup Selesai!")));
     console.log(C.gray("---------------------------------"));
     console.log(
-      `Aplikasi berjalan di: ${C.cyan("http://<ip-raspberry-pi>:3000")}`,
+      `Aplikasi berjalan di: ${C.cyan(`http://${getLocalIP()}:3000`)}`,
     );
     console.log("");
     console.log(C.bold("Perintah berguna:"));
@@ -255,7 +269,7 @@ function startServer() {
   console.log(C.bold(C.green("PKM Posyandu Server Running")));
   console.log(C.gray("---------------------------------"));
   console.log(`  Local:    ${C.cyan(`http://localhost:${port}`)}`);
-  console.log(`  Network:  ${C.cyan(`http://<ip-address>:${port}`)}`);
+  console.log(`  Network:  ${C.cyan(`http://${getLocalIP()}:${port}`)}`);
   console.log(
     `  Mode:     ${_embedded ? C.yellow("Embedded Binary") : C.yellow("Filesystem Dev")}`,
   );

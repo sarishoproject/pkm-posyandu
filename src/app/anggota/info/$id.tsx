@@ -1,38 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, 
-  Pencil, 
-  Plus, 
-  Calendar,
-  Loader2
-} from 'lucide-react';
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Calendar, Loader2, Pencil, Plus } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 // Route dinamis TanStack
-export const Route = createFileRoute('/anggota/info/$id')({
+export const Route = createFileRoute("/anggota/info/$id")({
   component: MemberDetailView,
 });
 
 // Interface response dari Backend
 interface DetailResponse {
   id: number;
+  jenis_kelamin?: string;
   nama_anak: string;
-  nik: string;
   nama_ibu: string | null;
-  status: string;
-  tanggal_lahir?: string; 
-  jenis_kelamin?: string; 
+  nik: string;
   riwayat: {
     id: number;
     tanggal_ukur: string;
     berat: number | null;
     tinggi: number | null;
   }[];
+  status: string;
+  tanggal_lahir?: string;
 }
 
 function MemberDetailView() {
-  const { id } = Route.useParams(); 
-  
+  const { id } = Route.useParams();
+
   const [data, setData] = useState<DetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
@@ -42,12 +36,12 @@ function MemberDetailView() {
     const fetchData = async () => {
       try {
         const response = await fetch(`/api/peserta/${id}`);
-        if (!response.ok) throw new Error('Data tidak ditemukan');
-        
+        if (!response.ok) throw new Error("Data tidak ditemukan");
+
         const json = await response.json();
         setData(json);
       } catch (error) {
-        console.error('Error fetching detail:', error);
+        console.error("Error fetching detail:", error);
       } finally {
         setIsLoading(false);
       }
@@ -68,22 +62,23 @@ function MemberDetailView() {
   const riwayatUrut = [...data.riwayat].reverse();
 
   const graphData = riwayatUrut.map((item, index) => {
-    const spacingX = riwayatUrut.length > 1 ? 360 / (riwayatUrut.length - 1) : 180;
-    const x = 20 + (index * spacingX);
-    
+    const spacingX =
+      riwayatUrut.length > 1 ? 360 / (riwayatUrut.length - 1) : 180;
+    const x = 20 + index * spacingX;
+
     // Kalkulasi Y (vertikal)
     const berat = item.berat || 0;
-    let weightY = 160 - (berat * 5); 
+    let weightY = 160 - berat * 5;
 
     const tinggi = item.tinggi || 0;
-    let heightY = 160 - ((tinggi - 40) * 1.5); 
+    let heightY = 160 - (tinggi - 40) * 1.5;
 
     // PENYELESAIAN BUG 1: Kunci batas Y (Clamp) agar tidak tembus ke atas/bawah jika datanya ekstrem
     weightY = Math.max(15, Math.min(185, weightY));
     heightY = Math.max(15, Math.min(185, heightY));
 
     const dateObj = new Date(item.tanggal_ukur);
-    const shortBulan = dateObj.toLocaleDateString('id-ID', { month: 'short' }); 
+    const shortBulan = dateObj.toLocaleDateString("id-ID", { month: "short" });
     const tahun = dateObj.getFullYear();
 
     return {
@@ -98,25 +93,27 @@ function MemberDetailView() {
     };
   });
 
-  const weightPath = `M ${graphData.map(d => `${d.x} ${d.weightY}`).join(' L ')}`;
-  const heightPath = `M ${graphData.map(d => `${d.x} ${d.heightY}`).join(' L ')}`;
+  const weightPath = `M ${graphData.map((d) => `${d.x} ${d.weightY}`).join(" L ")}`;
+  const heightPath = `M ${graphData.map((d) => `${d.x} ${d.heightY}`).join(" L ")}`;
 
   const dataTerbaru = data.riwayat[0];
   const inisial = data.nama_anak.substring(0, 2).toUpperCase();
 
   // --- FUNGSI HELPER UI ---
   const formatTanggalLahir = (tgl?: string) => {
-    if (!tgl) return '-';
-    return new Date(tgl).toLocaleDateString('id-ID', {
-      day: 'numeric', month: 'long', year: 'numeric'
+    if (!tgl) return "-";
+    return new Date(tgl).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
   const hitungUmur = (tglLahir?: string) => {
-    if (!tglLahir) return '-';
+    if (!tglLahir) return "-";
     const lahir = new Date(tglLahir);
     const sekarang = new Date();
-    
+
     let tahun = sekarang.getFullYear() - lahir.getFullYear();
     let bulan = sekarang.getMonth() - lahir.getMonth();
 
@@ -134,10 +131,12 @@ function MemberDetailView() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-md md:max-w-5xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
-        
         {/* Header */}
         <div className="p-4 md:px-8 md:pt-8 flex items-center md:border-b md:border-slate-100">
-          <Link to="/anggota" className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors">
+          <Link
+            className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors"
+            to="/anggota"
+          >
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <h1 className="hidden md:block ml-2 text-lg font-bold text-slate-800">
@@ -147,10 +146,8 @@ function MemberDetailView() {
 
         <div className="flex-1 overflow-y-auto pb-8 md:p-8">
           <div className="md:grid md:grid-cols-2 md:gap-12">
-            
             {/* KOLOM KIRI (Profil & Grafik) */}
             <div className="flex flex-col px-5 md:px-0">
-              
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-20 h-20 rounded-full bg-[#E0E7FF] text-[#1E1B4B] flex items-center justify-center font-bold text-3xl shrink-0">
                   {inisial}
@@ -160,19 +157,26 @@ function MemberDetailView() {
                     <h2 className="font-bold text-slate-900 text-lg leading-tight truncate">
                       {data.nama_anak}
                     </h2>
-                    <Link 
-                      to={`/anggota/edit/${id}`}
+                    <Link
                       className="flex items-center gap-1.5 text-slate-600 hover:text-[#1E1B4B] transition-colors bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm shrink-0"
+                      to={`/anggota/edit/${id}`}
                     >
                       <Pencil className="w-3 h-3" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">Edit</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        Edit
+                      </span>
                     </Link>
                   </div>
                   <div className="flex flex-col mt-2 space-y-0.5">
-                    <span className="text-xs text-slate-500">NIK: {data.nik}</span>
-                    <span className="text-xs text-slate-500">Tgl Lahir: {formatTanggalLahir(data.tanggal_lahir)}</span>
+                    <span className="text-xs text-slate-500">
+                      NIK: {data.nik}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      Tgl Lahir: {formatTanggalLahir(data.tanggal_lahir)}
+                    </span>
                     <span className="text-xs text-slate-500 font-medium">
-                      {hitungUmur(data.tanggal_lahir)} • {data.jenis_kelamin || 'Laki-laki'}
+                      {hitungUmur(data.tanggal_lahir)} •{" "}
+                      {data.jenis_kelamin || "Laki-laki"}
                     </span>
                   </div>
                 </div>
@@ -180,51 +184,127 @@ function MemberDetailView() {
 
               <div className="mb-8">
                 <div className="mb-4">
-                  <h3 className="font-semibold text-slate-800 text-[15px]">Grafik Pertumbuhan</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Ketuk area titik pada grafik untuk melihat detail angka.</p>
+                  <h3 className="font-semibold text-slate-800 text-[15px]">
+                    Grafik Pertumbuhan
+                  </h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Ketuk area titik pada grafik untuk melihat detail angka.
+                  </p>
                 </div>
 
                 <div className="bg-[#F8F9FA] rounded-2xl p-4 md:border md:border-slate-100 md:shadow-sm">
-                  
                   {graphData.length > 0 ? (
-                    // PENYELESAIAN BUG 2: Gunakan h-[220px] yang konstan, alih-alih aspect-ratio. 
+                    // PENYELESAIAN BUG 2: Gunakan h-[220px] yang konstan, alih-alih aspect-ratio.
                     // Ini memastikan kotak container grafik selalu punya dimensi fisik yang kuat.
                     <div className="relative w-full h-[220px]">
-                      <svg viewBox="0 0 400 200" className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                        
-                        <line x1="0" y1="40" x2="400" y2="40" stroke="#E2E8F0" strokeWidth="1.5" />
-                        <line x1="0" y1="100" x2="400" y2="100" stroke="#E2E8F0" strokeWidth="1.5" />
-                        <line x1="0" y1="160" x2="400" y2="160" stroke="#E2E8F0" strokeWidth="1.5" />
+                      <svg
+                        className="w-full h-full overflow-visible"
+                        preserveAspectRatio="none"
+                        viewBox="0 0 400 200"
+                      >
+                        <line
+                          stroke="#E2E8F0"
+                          strokeWidth="1.5"
+                          x1="0"
+                          x2="400"
+                          y1="40"
+                          y2="40"
+                        />
+                        <line
+                          stroke="#E2E8F0"
+                          strokeWidth="1.5"
+                          x1="0"
+                          x2="400"
+                          y1="100"
+                          y2="100"
+                        />
+                        <line
+                          stroke="#E2E8F0"
+                          strokeWidth="1.5"
+                          x1="0"
+                          x2="400"
+                          y1="160"
+                          y2="160"
+                        />
 
-                        <path d={heightPath} fill="none" stroke="#FDBA74" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d={weightPath} fill="none" stroke="#1E1B4B" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path
+                          d={heightPath}
+                          fill="none"
+                          stroke="#FDBA74"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3.5"
+                        />
+                        <path
+                          d={weightPath}
+                          fill="none"
+                          stroke="#1E1B4B"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3.5"
+                        />
 
                         {graphData.map((d) => {
                           const isSelected = selectedPoint?.id === d.id;
                           return (
-                            <g 
-                              key={d.id} 
-                              className="cursor-pointer outline-none" 
+                            <g
+                              className="cursor-pointer outline-none"
+                              key={d.id}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedPoint(isSelected ? null : d);
                               }}
                             >
                               {/* Invisible hitbox dengan fill="transparent" (bukan rgba) supaya kompatibel */}
-                              <rect x={d.x - 20} y="0" width="40" height="200" fill="transparent" />
+                              <rect
+                                fill="transparent"
+                                height="200"
+                                width="40"
+                                x={d.x - 20}
+                                y="0"
+                              />
 
                               {isSelected && (
-                                <line x1={d.x} y1="20" x2={d.x} y2="160" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="4 4" />
+                                <line
+                                  stroke="#94A3B8"
+                                  strokeDasharray="4 4"
+                                  strokeWidth="1.5"
+                                  x1={d.x}
+                                  x2={d.x}
+                                  y1="20"
+                                  y2="160"
+                                />
                               )}
 
-                              <circle cx={d.x} cy={d.heightY} r={isSelected ? "5" : "3.5"} fill={isSelected ? "#FFF" : "#FDBA74"} stroke="#FDBA74" strokeWidth={isSelected ? "2" : "0"} />
-                              <circle cx={d.x} cy={d.weightY} r={isSelected ? "5" : "3.5"} fill={isSelected ? "#FFF" : "#1E1B4B"} stroke="#1E1B4B" strokeWidth={isSelected ? "2" : "0"} />
+                              <circle
+                                cx={d.x}
+                                cy={d.heightY}
+                                fill={isSelected ? "#FFF" : "#FDBA74"}
+                                r={isSelected ? "5" : "3.5"}
+                                stroke="#FDBA74"
+                                strokeWidth={isSelected ? "2" : "0"}
+                              />
+                              <circle
+                                cx={d.x}
+                                cy={d.weightY}
+                                fill={isSelected ? "#FFF" : "#1E1B4B"}
+                                r={isSelected ? "5" : "3.5"}
+                                stroke="#1E1B4B"
+                                strokeWidth={isSelected ? "2" : "0"}
+                              />
 
-                              <text x={d.x} y="185" fontSize="11" fill={isSelected ? "#1E1B4B" : "#64748B"} textAnchor="middle" fontWeight={isSelected ? "700" : "500"}>
+                              <text
+                                fill={isSelected ? "#1E1B4B" : "#64748B"}
+                                fontSize="11"
+                                fontWeight={isSelected ? "700" : "500"}
+                                textAnchor="middle"
+                                x={d.x}
+                                y="185"
+                              >
                                 {d.date}
                               </text>
                             </g>
-                          )
+                          );
                         })}
                       </svg>
 
@@ -235,7 +315,7 @@ function MemberDetailView() {
                           style={{
                             left: `${(selectedPoint.x / 400) * 100}%`,
                             top: `${(Math.min(selectedPoint.heightY, selectedPoint.weightY) / 200) * 100}%`,
-                            transform: 'translate(-50%, -115%)'
+                            transform: "translate(-50%, -115%)",
                           }}
                         >
                           <span className="text-[11px] font-bold text-slate-800 text-center mb-0.5 border-b border-slate-100 pb-1">
@@ -243,30 +323,39 @@ function MemberDetailView() {
                           </span>
                           <div className="flex items-center justify-between text-[11px] mt-0.5">
                             <span className="text-slate-500">Berat</span>
-                            <span className="font-bold text-[#1E1B4B]">{selectedPoint.weight} kg</span>
+                            <span className="font-bold text-[#1E1B4B]">
+                              {selectedPoint.weight} kg
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-[11px]">
                             <span className="text-slate-500">Tinggi</span>
-                            <span className="font-bold text-[#FDBA74]">{selectedPoint.height} cm</span>
+                            <span className="font-bold text-[#FDBA74]">
+                              {selectedPoint.height} cm
+                            </span>
                           </div>
                         </div>
                       )}
-
                     </div>
                   ) : (
                     <div className="py-12 flex items-center justify-center">
-                      <span className="text-sm text-slate-400">Belum ada data grafik.</span>
+                      <span className="text-sm text-slate-400">
+                        Belum ada data grafik.
+                      </span>
                     </div>
                   )}
 
                   <div className="flex items-center justify-center gap-6 mt-4">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-[#1E1B4B]"></div>
-                      <span className="text-[10px] text-slate-500 font-medium">Berat Badan</span>
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        Berat Badan
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-[#FDBA74]"></div>
-                      <span className="text-[10px] text-slate-500 font-medium">Tinggi Badan</span>
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        Tinggi Badan
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -274,19 +363,22 @@ function MemberDetailView() {
 
               <div className="flex items-center justify-between border-t border-b border-slate-200 py-4 mb-8 md:mb-0">
                 <div className="flex-1 flex flex-col items-center border-r border-slate-200">
-                  <span className="text-[10px] text-slate-500 mb-1">Berat Badan (Terakhir)</span>
+                  <span className="text-[10px] text-slate-500 mb-1">
+                    Berat Badan (Terakhir)
+                  </span>
                   <span className="text-lg font-bold text-slate-800">
-                    {dataTerbaru?.berat ? `${dataTerbaru.berat} kg` : '-'}
+                    {dataTerbaru?.berat ? `${dataTerbaru.berat} kg` : "-"}
                   </span>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
-                  <span className="text-[10px] text-slate-500 mb-1">Tinggi Badan (Terakhir)</span>
+                  <span className="text-[10px] text-slate-500 mb-1">
+                    Tinggi Badan (Terakhir)
+                  </span>
                   <span className="text-lg font-bold text-slate-800">
-                    {dataTerbaru?.tinggi ? `${dataTerbaru.tinggi} cm` : '-'}
+                    {dataTerbaru?.tinggi ? `${dataTerbaru.tinggi} cm` : "-"}
                   </span>
                 </div>
               </div>
-
             </div>
 
             <div className="w-full h-2 bg-slate-100 md:hidden mb-6"></div>
@@ -294,10 +386,12 @@ function MemberDetailView() {
             {/* KOLOM KANAN (Riwayat Pengukuran) */}
             <div className="flex flex-col px-5 md:px-0">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-slate-800 text-[15px]">Riwayat Pengukuran</h3>
-                <Link 
-                  to={`/anggota/input/${id}`}
+                <h3 className="font-semibold text-slate-800 text-[15px]">
+                  Riwayat Pengukuran
+                </h3>
+                <Link
                   className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
+                  to={`/anggota/input/${id}`}
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Tambah
@@ -307,24 +401,40 @@ function MemberDetailView() {
               <div className="space-y-4">
                 {data.riwayat.length > 0 ? (
                   data.riwayat.map((item, index) => (
-                    <div key={item.id} className="flex items-center justify-between bg-white md:bg-slate-50 md:border md:border-slate-100 p-3 rounded-2xl">
+                    <div
+                      className="flex items-center justify-between bg-white md:bg-slate-50 md:border md:border-slate-100 p-3 rounded-2xl"
+                      key={item.id}
+                    >
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                          index === 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'
-                        }`}>
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                            index === 0
+                              ? "bg-indigo-100 text-indigo-700"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
                           <Calendar className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
                           <span className="text-xs font-bold text-slate-800">
-                            {new Date(item.tanggal_ukur).toLocaleDateString('id-ID', {
-                              day: 'numeric', month: 'short', year: 'numeric'
-                            })}
+                            {new Date(item.tanggal_ukur).toLocaleDateString(
+                              "id-ID",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
                           </span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-xs font-bold text-slate-800">{item.berat || '-'} kg</span>
-                        <span className="text-[11px] text-slate-500 mt-0.5">{item.tinggi || '-'} cm</span>
+                        <span className="text-xs font-bold text-slate-800">
+                          {item.berat || "-"} kg
+                        </span>
+                        <span className="text-[11px] text-slate-500 mt-0.5">
+                          {item.tinggi || "-"} cm
+                        </span>
                       </div>
                     </div>
                   ))
@@ -335,7 +445,6 @@ function MemberDetailView() {
                 )}
               </div>
             </div>
-
           </div>
         </div>
       </div>

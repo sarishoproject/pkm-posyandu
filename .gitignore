@@ -31,3 +31,4 @@ data/
 build/
 .tanstack/
 .commit-auth.json
+*.xlsx

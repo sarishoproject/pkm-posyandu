@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.0] - 2026-07-23
+- 📦 Add exceljs library for spreadsheet manipulation
+- ⚙️ Update build scripts to handle Windows executable checks
+- 🎨 Implement new documentation page for ExcelJS
+- 🧹 Configure Biome to exclude HTML files from analysis
+- 🏷️ Update .gitignore to ignore Excel files
+
+
 ## [2.5.0] - 2026-07-23
 - ✨ Added EditMemberForm for updating member details.
 - ⚙️ Integrated real-time weight/height data fetching from sensors in the input form.

@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html class="dark" lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" >
+  <title>ExcelJS</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+
+  <link href="https://fonts.googleapis.com" rel="preconnect" >
+  <link crossorigin href="https://fonts.gstatic.com" rel="preconnect" >
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            exjs: {
+              green: '#57F287',
+              'green-bright': '#7FF3A8',
+              'green-glow': 'rgba(87, 242, 135, 0.12)',
+              'green-border': 'rgba(87, 242, 135, 0.3)',
+              dark: '#0d0e14',
+              darker: '#08090d',
+              card: '#13141b',
+              border: '#1e1f29',
+              'border-light': '#2a2b38',
+              muted: '#8b8d98',
+              dim: '#5d6068',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; color: #e6e7eb; background: #0d0e14; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #232433; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2f3142; }
+    ::selection { color: #fff; background: rgba(87, 242, 135, 0.25); }
+
+    .token.keyword { font-weight: 500; color: #c678dd; }
+    .token.string { color: #57F287; }
+    .token.function { color: #61afef; }
+    .token.comment { font-style: italic; color: #5d6068; }
+    .token.punctuation { color: #abb2bf; }
+    .token.class-name { color: #e5c07b; }
+    .token.number { color: #d19a66; }
+    .token.boolean { color: #d19a66; }
+    .token.operator { color: #56b6c2; }
+    .token.property { color: #e06c75; }
+    .token.tag { color: #e06c75; }
+    .token.attr-name { color: #d19a66; }
+    .token.attr-value { color: #57F287; }
+
+    /* Optimasi Code Block untuk Mobile */
+    .code-wrapper {
+      margin: 1rem 0;
+      overflow: hidden;
+      background: #08090d;
+      border: 1px solid #1e1f29;
+      border-radius: 8px;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: #13141b;
+      border-bottom: 1px solid #1e1f29;
+    }
+    pre[class*="language-"] {
+      background: transparent !important;
+      margin: 0 !important;
+      padding: 16px !important;
+      font-size: 13px !important;
+      line-height: 1.7 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      /* Wajib ada untuk scroll mobile */
+      overflow-x: auto !important;
+      max-width: 100% !important;
+      -webkit-overflow-scrolling: touch;
+    }
+    code[class*="language-"] {
+      padding: 0 !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 13px !important;
+      word-wrap: normal !important;
+      white-space: pre !important;
+      background: transparent !important;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+
+    @keyframes pulseDot {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(87, 242, 135, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(87, 242, 135, 0); }
+    }
+    .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+
+    .anchor-link { opacity: 0; transition: opacity 0.15s; }
+    .anchor-section:hover .anchor-link { opacity: 1; }
+    
+    /* Optimasi Tabel untuk Mobile */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen bg-exjs-dark" id="app" ></div>
+
+  <script>
+    // Icons
+    const I = {
+      search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+      menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
+      chevronDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="6 9 12 15 18 9"/></svg>',
+      chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><polyline points="9 18 15 12 9 6"/></svg>',
+      copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><polyline points="20 6 9 17 4 12"/></svg>',
+      github: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>',
+      book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+      code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+      database: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+      fileText: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+      hash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>',
+      npm: '<svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323L8.264 18.68h3.218V8.526l2.508 10.154h3.218V5.323h-2.485v8.33l-2.508-8.33H8.264v10.154L5.13 5.323z"/></svg>',
+      edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+      x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+    };
+
+    // Navigation Data
+    const navData = [
+      {
+        title: 'Getting Started', icon: 'book', items: [
+          { name: 'Introduction', slug: 'introduction' },
+          { name: 'Installation', slug: 'installation' },
+          { name: 'Importing', slug: 'importing' },
+        ]
+      },
+      {
+        title: 'Interface', icon: 'code', items: [
+          { name: 'Create a Workbook', slug: 'create-a-workbook' },
+          { name: 'Workbook Properties', slug: 'set-workbook-properties' },
+          { name: 'Workbook Views', slug: 'workbook-views' },
+          { name: 'Add a Worksheet', slug: 'add-a-worksheet' },
+          { name: 'Remove a Worksheet', slug: 'remove-a-worksheet' },
+          { name: 'Access Worksheets', slug: 'access-worksheets' },
+          { name: 'Worksheet State', slug: 'worksheet-state' },
+          { name: 'Worksheet Properties', slug: 'worksheet-properties' },
+          { name: 'Page Setup', slug: 'page-setup' },
+          { name: 'Headers and Footers', slug: 'headers-and-footers' },
+          { name: 'Worksheet Views', slug: 'worksheet-views' },
+          { name: 'Auto Filters', slug: 'auto-filters' },
+          { name: 'Columns', slug: 'columns' },
+          { name: 'Rows', slug: 'rows' },
+          { name: 'Add Rows', slug: 'add-rows' },
+          { name: 'Handling Individual Cells', slug: 'handling-individual-cells' },
+          { name: 'Merged Cells', slug: 'merged-cells' },
+          { name: 'Insert Rows', slug: 'insert-rows' },
+          { name: 'Splice', slug: 'splice' },
+          { name: 'Duplicate a Row', slug: 'duplicate-a-row' },
+          { name: 'Defined Names', slug: 'defined-names' },
+          { name: 'Data Validations', slug: 'data-validations' },
+          { name: 'Cell Comments', slug: 'cell-comments' },
+          { name: 'Tables', slug: 'tables' },
+          { name: 'Styles', slug: 'styles' },
+          { name: 'Number Formats', slug: 'number-formats' },
+          { name: 'Fonts', slug: 'fonts' },
+          { name: 'Alignment', slug: 'alignment' },
+          { name: 'Borders', slug: 'borders' },
+          { name: 'Fills', slug: 'fills' },
+          { name: 'Rich Text', slug: 'rich-text' },
+          { name: 'Conditional Formatting', slug: 'conditional-formatting' },
+          { name: 'Outline Levels', slug: 'outline-levels' },
+          { name: 'Images', slug: 'images' },
+          { name: 'Sheet Protection', slug: 'sheet-protection' },
+        ]
+      },
+      {
+        title: 'File I/O', icon: 'database', items: [
+          { name: 'XLSX', slug: 'xlsx' },
+          { name: 'Reading XLSX', slug: 'reading-xlsx' },
+          { name: 'Writing XLSX', slug: 'writing-xlsx' },
+          { name: 'CSV', slug: 'csv' },
+          { name: 'Reading CSV', slug: 'reading-csv' },
+          { name: 'Writing CSV', slug: 'writing-csv' },
+          { name: 'Streaming I/O', slug: 'streaming-io' },
+          { name: 'Streaming XLSX', slug: 'streaming-xlsx' },
+        ]
+      },
+      {
+        title: 'Reference', icon: 'fileText', items: [
+          { name: 'Browser', slug: 'browser' },
+          { name: 'Value Types', slug: 'value-types' },
+          { name: 'Config', slug: 'config' },
+          { name: 'Known Issues', slug: 'known-issues' },
+          { name: 'Release History', slug: 'release-history' },
+        ]
+      },
+    ];
+
+    // Documentation Content Data
+    const contentData = {
+      'introduction': {
+        title: 'ExcelJS',
+        subtitle: 'Read, manipulate and write spreadsheet data and styles to XLSX and JSON.',
+        badge: 'v4.4.0',
+        blocks: [
+          { type: 'paragraph', text: 'ExcelJS is a powerful Node.js module that allows you to interact with Excel spreadsheet files. It can read, manipulate and write spreadsheet data and styles to XLSX and JSON formats. Reverse engineered from Excel spreadsheet files as a project.' },
+          { type: 'heading', level: 2, text: 'Features', id: 'features' },
+          { type: 'list', items: [
+            'Read and write XLSX and CSV files',
+            'Full support for cell styles, fonts, borders, fills, and number formats',
+            'Merge cells, define names, and data validations',
+            'Add images, tables, and conditional formatting',
+            'Streaming I/O for memory-efficient processing of large files',
+            'Works in both Node.js and browser environments',
+          ]},
+          { type: 'heading', level: 2, text: 'Quick Start', id: 'quick-start' },
+          { type: 'code', lang: 'bash', code: 'npm install exceljs' },
+          { type: 'code', lang: 'javascript', code: [
+            "const ExcelJS = require('exceljs');",
+            "",
+            "const workbook = new ExcelJS.Workbook();",
+            "const worksheet = workbook.addWorksheet('My Sheet');",
+            "",
+            "worksheet.columns = [",
+            "  { header: 'Id', key: 'id', width: 10 },",
+            "  { header: 'Name', key: 'name', width: 32 },",
+            "  { header: 'D.O.B.', key: 'dob', width: 10 },",
+            "];",
+            "",
+            "worksheet.addRow({ id: 1, name: 'John Doe', dob: new Date(1970, 1, 1) });",
+            "",
+            "await workbook.xlsx.writeFile('my-file.xlsx');"
+          ].join('\n') },
+          { type: 'callout', variant: 'green', title: 'New Features!', text: 'Merged pivot table support, inlineStr cell type, improved styles rendering for conditional formatting, and many more contributions from the community.' },
+        ]
+      },
+      'installation': {
+        title: 'Installation',
+        blocks: [
+          { type: 'paragraph', text: 'Install ExcelJS using your favorite package manager. The package is available on the npm registry.' },
+          { type: 'code', lang: 'bash', code: '# Using npm\nnpm install exceljs\n\n# Using yarn\nyarn add exceljs\n\n# Using pnpm\npnpm add exceljs' },
+          { type: 'heading', level: 2, text: 'ES5 Imports', id: 'es5-imports' },
+          { type: 'paragraph', text: 'To use the ES5 transpiled code, for example for node.js versions older than 10, use the dist/es5 path.' },
+          { type: 'code', lang: 'javascript', code: "const ExcelJS = require('exceljs/dist/es5');" },
+          { type: 'callout', variant: 'yellow', title: 'Note', text: 'The ES5 build has an implicit dependency on a number of polyfills which are no longer explicitly added by exceljs. You will need to add "core-js" and "regenerator-runtime" to your dependencies.' },
+          { type: 'heading', level: 2, text: 'Browserify', id: 'browserify' },
+          { type: 'paragraph', text: 'ExcelJS publishes two browserified bundles inside the dist/ folder. One with implicit dependencies on core-js polyfills and one without.' },
+          { type: 'code', lang: 'html', code: [
+            '<!-- With polyfills -->',
+            '<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.js"></script>',
+            '<script src="exceljs.js"></script>',
+            '',
+            '<!-- Without polyfills -->',
+            '<script src="--your-project\'s-pollyfills-here--"></script>',
+            '<script src="exceljs.bare.js"></script>'
+          ].join('\n') },
+        ]
+      },
+      'importing': {
+        title: 'Importing',
+        blocks: [
+          { type: 'paragraph', text: 'Import ExcelJS into your project using require or import statements.' },
+          { type: 'code', lang: 'javascript', code: "const ExcelJS = require('exceljs');" },
+          { type: 'heading', level: 2, text: 'ES5 Imports', id: 'es5' },
+          { type: 'paragraph', text: 'To use the ES5 transpiled code, for example for node.js versions older than 10, use the dist/es5 path.' },
+          { type: 'code', lang: 'javascript', code: "const ExcelJS = require('exceljs/dist/es5');" },
+          { type: 'callout', variant: 'yellow', title: 'Note', text: 'The ES5 build requires polyfills. You will need to add "core-js" and "regenerator-runtime" to your dependencies and include the following requires in your code before the exceljs import.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// polyfills required by exceljs",
+            "require('core-js/modules/es.promise');",
+            "require('core-js/modules/es.string.includes');",
+            "require('core-js/modules/es.object.assign');",
+            "require('core-js/modules/es.object.keys');",
+            "require('core-js/modules/es.symbol');",
+            "require('core-js/modules/es.symbol.async-iterator');",
+            "require('regenerator-runtime/runtime');",
+            "",
+            "const ExcelJS = require('exceljs/dist/es5');"
+          ].join('\n') },
+        ]
+      },
+      'create-a-workbook': {
+        title: 'Create a Workbook',
+        blocks: [
+          { type: 'paragraph', text: 'The Workbook is the main container for all Excel data. Create a new workbook instance to get started.' },
+          { type: 'code', lang: 'javascript', code: "const workbook = new ExcelJS.Workbook();" },
+          { type: 'callout', variant: 'green', title: 'Tip', text: 'A workbook can contain multiple worksheets. Each worksheet represents a tab in the Excel file.' },
+        ]
+      },
+      'set-workbook-properties': {
+        title: 'Set Workbook Properties',
+        blocks: [
+          { type: 'paragraph', text: 'Workbooks support a number of properties that control various attributes of the workbook such as creator, creation date, and modification dates.' },
+          { type: 'code', lang: 'javascript', code: [
+            "workbook.creator = 'Me';",
+            "workbook.lastModifiedBy = 'Her';",
+            "workbook.created = new Date(1985, 8, 30);",
+            "workbook.modified = new Date();",
+            "workbook.lastPrinted = new Date(2016, 9, 27);"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Date System', id: 'date-system' },
+          { type: 'paragraph', text: 'Set workbook dates to 1904 date system.' },
+          { type: 'code', lang: 'javascript', code: "workbook.properties.date1904 = true;" },
+          { type: 'heading', level: 2, text: 'Calculation Properties', id: 'calc-properties' },
+          { type: 'code', lang: 'javascript', code: "// Force workbook calculation on load\nworkbook.calcProperties.fullCalcOnLoad = true;" },
+        ]
+      },
+      'workbook-views': {
+        title: 'Workbook Views',
+        blocks: [
+          { type: 'paragraph', text: 'The Workbook views control how many separate windows Excel will open when viewing the workbook.' },
+          { type: 'code', lang: 'javascript', code: [
+            "workbook.views = [",
+            "  {",
+            "    x: 0, y: 0, width: 10000, height: 20000,",
+            "    firstSheet: 0, activeTab: 1, visibility: 'visible'",
+            "  }",
+            "]"
+          ].join('\n') },
+        ]
+      },
+      'add-a-worksheet': {
+        title: 'Add a Worksheet',
+        blocks: [
+          { type: 'paragraph', text: 'Add a new worksheet to the workbook. Use the second parameter of the addWorksheet function to specify options for the worksheet.' },
+          { type: 'code', lang: 'javascript', code: "const sheet = workbook.addWorksheet('My Sheet');" },
+          { type: 'heading', level: 2, text: 'With Options', id: 'with-options' },
+          { type: 'paragraph', text: 'You can customize the worksheet with various options including tab color, grid lines, frozen views, headers, and page setup.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// create a sheet with red tab colour",
+            "const sheet = workbook.addWorksheet('My Sheet', {properties:{tabColor:{argb:'FFC0000'}}});",
+            "",
+            "// create a sheet where the grid lines are hidden",
+            "const sheet = workbook.addWorksheet('My Sheet', {views: [{showGridLines: false}]});",
+            "",
+            "// create a sheet with the first row and column frozen",
+            "const sheet = workbook.addWorksheet('My Sheet', {views:[{state: 'frozen', xSplit: 1, ySplit:1}]});",
+            "",
+            "// Create worksheets with headers and footers",
+            "const sheet = workbook.addWorksheet('My Sheet', {",
+            "  headerFooter:{firstHeader: \"Hello Exceljs\", firstFooter: \"Hello World\"}",
+            "});",
+            "",
+            "// create new sheet with pageSetup settings for A4 - landscape",
+            "const worksheet = workbook.addWorksheet('My Sheet', {",
+            "  pageSetup:{paperSize: 9, orientation:'landscape'}",
+            "});"
+          ].join('\n') },
+        ]
+      },
+      'remove-a-worksheet': {
+        title: 'Remove a Worksheet',
+        blocks: [
+          { type: 'paragraph', text: 'Use the worksheet id to remove the sheet from workbook.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// Create a worksheet",
+            "const sheet = workbook.addWorksheet('My Sheet');",
+            "",
+            "// Remove the worksheet using worksheet id",
+            "workbook.removeWorksheet(sheet.id)"
+          ].join('\n') },
+        ]
+      },
+      'access-worksheets': {
+        title: 'Access Worksheets',
+        blocks: [
+          { type: 'paragraph', text: 'Access worksheets in a workbook through various methods including iteration, by name, or by id.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// Iterate over all sheets",
+            "workbook.eachSheet(function(worksheet, sheetId) {",
+            "  // ...",
+            "});",
+            "",
+            "// fetch sheet by name",
+            "const worksheet = workbook.getWorksheet('My Sheet');",
+            "",
+            "// fetch sheet by id",
+            "const worksheet = workbook.getWorksheet(1);",
+            "",
+            "// access by `worksheets` array:",
+            "workbook.worksheets[0]; // the first one"
+          ].join('\n') },
+          { type: 'callout', variant: 'yellow', title: 'Important', text: "workbook.getWorksheet(1) != Workbook.worksheets[0] and workbook.getWorksheet(1) != Workbook.worksheets[1], because workbook.worksheets[0].id may have any value. It's much safer to assume that ids are random." },
+        ]
+      },
+      'worksheet-state': {
+        title: 'Worksheet State',
+        blocks: [
+          { type: 'paragraph', text: 'Control the visibility of worksheets using the state property.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// make worksheet visible",
+            "worksheet.state = 'visible';",
+            "",
+            "// make worksheet hidden",
+            "worksheet.state = 'hidden';",
+            "",
+            "// make worksheet hidden from 'hide/unhide' dialog",
+            "worksheet.state = 'veryHidden';"
+          ].join('\n') },
+        ]
+      },
+      'worksheet-properties': {
+        title: 'Worksheet Properties',
+        blocks: [
+          { type: 'paragraph', text: 'Worksheets support a property bucket to allow control over some features of the worksheet.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// create new sheet with properties",
+            "const worksheet = workbook.addWorksheet('sheet', {properties:{tabColor:{argb:'FF00FF00'}}});",
+            "",
+            "// adjust properties afterwards",
+            "worksheet.properties.outlineLevelCol = 2;",
+            "worksheet.properties.defaultRowHeight = 15;"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Supported Properties', id: 'supported-properties' },
+          { type: 'table', headers: ['Name', 'Default', 'Description'], rows: [
+            ['tabColor', 'undefined', 'Color of the tabs'],
+            ['outlineLevelCol', '0', 'The worksheet column outline level'],
+            ['outlineLevelRow', '0', 'The worksheet row outline level'],
+            ['defaultRowHeight', '15', 'Default row height'],
+            ['defaultColWidth', '(optional)', 'Default column width'],
+            ['dyDescent', '55', 'TBD'],
+          ]},
+          { type: 'heading', level: 2, text: 'Worksheet Metrics', id: 'worksheet-metrics' },
+          { type: 'table', headers: ['Name', 'Description'], rows: [
+            ['rowCount', 'The total row size of the document. Equal to the row number of the last row that has values.'],
+            ['actualRowCount', 'A count of the number of rows that have values.'],
+            ['columnCount', 'The total column size of the document.'],
+            ['actualColumnCount', 'A count of the number of columns that have values.'],
+          ]},
+        ]
+      },
+      'page-setup': {
+        title: 'Page Setup',
+        blocks: [
+          { type: 'paragraph', text: 'All properties that can affect the printing of a sheet are held in a pageSetup object on the sheet.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// create new sheet with pageSetup settings for A4 - landscape",
+            "const worksheet = workbook.addWorksheet('sheet', {",
+            "  pageSetup:{paperSize: 9, orientation:'landscape'}",
+            "});",
+            "",
+            "// adjust pageSetup settings afterwards",
+            "worksheet.pageSetup.margins = {",
+            "  left: 0.7, right: 0.7,",
+            "  top: 0.75, bottom: 0.75,",
+            "  header: 0.3, footer: 0.3",
+            "};",
+            "",
+            "// Set Print Area for a sheet",
+            "worksheet.pageSetup.printArea = 'A1:G20';",
+            "",
+            "// Set multiple Print Areas",
+            "worksheet.pageSetup.printArea = 'A1:G10&&A11:G20';",
+            "",
+            "// Repeat specific rows on every printed page",
+            "worksheet.pageSetup.printTitlesRow = '1:3';",
+            "",
+            "// Repeat specific columns on every printed page",
+            "worksheet.pageSetup.printTitlesColumn = 'A:C';"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Supported PageSetup Settings', id: 'page-setup-settings' },
+          { type: 'table', headers: ['Name', 'Default', 'Description'], rows: [
+            ['margins', '', 'Whitespace on the borders of the page (inches)'],
+            ['orientation', "'portrait'", 'Orientation of the page'],
+            ['horizontalDpi', '4294967295', 'Horizontal Dots per Inch'],
+            ['verticalDpi', '4294967295', 'Vertical Dots per Inch'],
+            ['fitToPage', '', 'Whether to use fitToWidth and fitToHeight or scale'],
+            ['pageOrder', "'downThenOver'", 'Which order to print the pages'],
+            ['blackAndWhite', 'false', 'Print without colour'],
+            ['draft', 'false', 'Print with less quality (and ink)'],
+            ['scale', '100', 'Percentage value to increase or reduce size'],
+            ['fitToWidth', '1', 'How many pages wide the sheet should print on'],
+            ['fitToHeight', '1', 'How many pages high the sheet should print on'],
+            ['paperSize', '', 'What paper size to use'],
+            ['showGridLines', 'false', 'Whether to show grid lines'],
+          ]},
+          { type: 'heading', level: 2, text: 'Example Paper Sizes', id: 'paper-sizes' },
+          { type: 'table', headers: ['Name', 'Value'], rows: [
+            ['Letter', 'undefined'],
+            ['Legal', '5'],
+            ['Executive', '7'],
+            ['A3', '8'],
+            ['A4', '9'],
+            ['A5', '11'],
+            ['B5 (JIS)', '13'],
+            ['Envelope #10', '20'],
+            ['Envelope DL', '27'],
+          ]},
+        ]
+      },
+      'headers-and-footers': {
+        title: 'Headers and Footers',
+        blocks: [
+          { type: 'paragraph', text: 'Add headers and footers to worksheets. The added content is mainly text, such as time, introduction, file information, etc. You can set different texts for the first page and even pages.' },
+          { type: 'callout', variant: 'yellow', title: 'Note', text: 'Images are not currently supported in headers and footers.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// Create worksheets with headers and footers",
+            "var sheet = workbook.addWorksheet('sheet', {",
+            "  headerFooter:{firstHeader: \"Hello Exceljs\", firstFooter: \"Hello World\"}",
+            "});",
+            "",
+            "// Set footer (default centered), result: \"Page 2 of 16\"",
+            "worksheet.headerFooter.oddFooter = \"Page &P of &N\";",
+            "",
+            "// Set the left footer to 18px and italicize",
+            "worksheet.headerFooter.oddFooter = \"&LPage &P of &N\";",
+            "",
+            "// Set the middle header to gray Arial",
+            "worksheet.headerFooter.oddHeader = \"&C&KCCCCCC&\\\"Arial\\\"52 exceljs\";",
+            "",
+            "// Set the left, center, and right text of the footer",
+            "worksheet.headerFooter.oddFooter = \"&Lexceljs&C&F&RPage &P\";",
+            "",
+            "// Add different header & footer for the first page",
+            "worksheet.headerFooter.differentFirst = true;",
+            "worksheet.headerFooter.firstHeader = \"Hello Exceljs\";",
+            "worksheet.headerFooter.firstFooter = \"Hello World\""
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Script Commands', id: 'script-commands' },
+          { type: 'table', headers: ['Commands', 'Description'], rows: [
+            ['&L', 'Set position to the left'],
+            ['&C', 'Set position to the center'],
+            ['&R', 'Set position to the right'],
+            ['&P', 'The current page number'],
+            ['&N', 'The total number of pages'],
+            ['&D', 'The current date'],
+            ['&T', 'The current time'],
+            ['&A', 'The worksheet name'],
+            ['&F', 'The file name'],
+            ['&B', 'Make text bold'],
+            ['&I', 'Italicize text'],
+            ['&U', 'Underline text'],
+          ]},
+        ]
+      },
+      'worksheet-views': {
+        title: 'Worksheet Views',
+        blocks: [
+          { type: 'paragraph', text: 'Worksheets support a list of views that control how Excel presents the sheet. Views can be frozen or split.' },
+          { type: 'heading', level: 2, text: 'Frozen Views', id: 'frozen-views' },
+          { type: 'paragraph', text: 'Frozen views keep a number of rows and columns to the top and left frozen in place. Only the bottom right section will scroll.' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.views = [",
+            "  {state: 'frozen', xSplit: 2, ySplit: 3, topLeftCell: 'G10', activeCell: 'A1'}",
+            "];"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Split Views', id: 'split-views' },
+          { type: 'paragraph', text: 'Split views split the view into 4 sections, each semi-independently scrollable.' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.views = [",
+            "  {state: 'split', xSplit: 2000, ySplit: 3000, topLeftCell: 'G10', activeCell: 'A1'}",
+            "];"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'View Properties', id: 'view-properties' },
+          { type: 'table', headers: ['Name', 'Default', 'Description'], rows: [
+            ['state', "'normal'", 'Controls the view state - normal, frozen or split'],
+            ['rightToLeft', 'false', 'Sets the worksheet view orientation to right-to-left'],
+            ['activeCell', 'undefined', 'The currently selected cell'],
+            ['showRuler', 'true', 'Shows or hides the ruler in Page Layout'],
+            ['showRowColHeaders', 'true', 'Shows or hides the row and column headers'],
+            ['showGridLines', 'true', 'Shows or hides the gridlines'],
+            ['zoomScale', '100', 'Percentage zoom to use for the view'],
+          ]},
+        ]
+      },
+      'auto-filters': {
+        title: 'Auto Filters',
+        blocks: [
+          { type: 'paragraph', text: 'Apply an auto filter to your worksheet to enable filtering of data.' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.autoFilter = 'A1:C1';",
+            "",
+            "// Set an auto filter using from/to objects",
+            "worksheet.autoFilter = {",
+            "  from: 'A1',",
+            "  to: 'C1',",
+            "}",
+            "",
+            "// Set an auto filter using row and column numbers",
+            "worksheet.autoFilter = {",
+            "  from: {",
+            "    row: 3,",
+            "    column: 1",
+            "  },",
+            "  to: {",
+            "    row: 5,",
+            "    column: 12",
+            "  }",
+            "}"
+          ].join('\n') },
+        ]
+      },
+      'columns': {
+        title: 'Columns',
+        blocks: [
+          { type: 'paragraph', text: 'Add column headers and define column keys and widths. Note: these column structures are a workbook-building convenience only, apart from the column width, they will not be fully persisted.' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.columns = [",
+            "  { header: 'Id', key: 'id', width: 10 },",
+            "  { header: 'Name', key: 'name', width: 32 },",
+            "  { header: 'D.O.B.', key: 'DOB', width: 10, outlineLevel: 1 }",
+            "];",
+            "",
+            "// Access an individual column by key, letter and 1-based column number",
+            "const idCol = worksheet.getColumn('id');",
+            "const nameCol = worksheet.getColumn('B');",
+            "const dobCol = worksheet.getColumn(3);",
+            "",
+            "// set column properties",
+            "dobCol.header = 'Date of Birth';",
+            "dobCol.key = 'dob';",
+            "dobCol.width = 15;",
+            "",
+            "// Hide the column if you'd like",
+            "dobCol.hidden = true;",
+            "",
+            "// iterate over all current cells in this column",
+            "dobCol.eachCell(function(cell, rowNumber) {",
+            "  // ...",
+            "});",
+            "",
+            "// add a column of new values",
+            "worksheet.getColumn(6).values = [1,2,3,4,5];"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Splice Columns', id: 'splice-columns' },
+          { type: 'code', lang: 'javascript', code: [
+            "// cut one or more columns (columns to the right are shifted left)",
+            "worksheet.spliceColumns(3, 2);",
+            "",
+            "// remove one column and insert two more",
+            "const newCol3Values = [1,2,3,4,5];",
+            "const newCol4Values = ['one', 'two', 'three', 'four', 'five'];",
+            "worksheet.spliceColumns(3, 1, newCol3Values, newCol4Values);"
+          ].join('\n') },
+        ]
+      },
+      'rows': {
+        title: 'Rows',
+        blocks: [
+          { type: 'paragraph', text: 'Access and manipulate rows in a worksheet. Rows can be accessed by number and support various properties and methods.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// Get a row object",
+            "const row = worksheet.getRow(5);",
+            "",
+            "// Get multiple row objects",
+            "const rows = worksheet.getRows(5, 2);",
+            "",
+            "// Get the last editable row",
+            "const row = worksheet.lastRow;",
+            "",
+            "// Set a specific row height",
+            "row.height = 42.5;",
+            "",
+            "// make row hidden",
+            "row.hidden = true;",
+            "",
+            "// Set cell values",
+            "row.getCell(1).value = 5;",
+            "row.getCell('name').value = 'Zeb';",
+            "row.getCell('C').value = new Date();",
+            "",
+            "// assign row values by contiguous array",
+            "row.values = [1,2,3];",
+            "",
+            "// assign row values by object, using column keys",
+            "row.values = {",
+            "  id: 13,",
+            "  name: 'Thing 1',",
+            "  dob: new Date()",
+            "};",
+            "",
+            "// Iterate over all rows that have values",
+            "worksheet.eachRow(function(row, rowNumber) {",
+            "  console.log('Row ' + rowNumber + ' = ' + JSON.stringify(row.values));",
+            "});",
+            "",
+            "// Iterate over all non-null cells in a row",
+            "row.eachCell(function(cell, colNumber) {",
+            "  console.log('Cell ' + colNumber + ' = ' + cell.value);",
+            "});"
+          ].join('\n') },
+        ]
+      },
+      'add-rows': {
+        title: 'Add Rows',
+        blocks: [
+          { type: 'paragraph', text: 'Add rows to a worksheet by key-value, contiguous array, or sparse array. You can also add multiple rows at once and control style inheritance.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// Add a couple of Rows by key-value",
+            "worksheet.addRow({id: 1, name: 'John Doe', dob: new Date(1970,1,1)});",
+            "worksheet.addRow({id: 2, name: 'Jane Doe', dob: new Date(1965,1,7)});",
+            "",
+            "// Add a row by contiguous Array",
+            "worksheet.addRow([3, 'Sam', new Date()]);",
+            "",
+            "// Add a row by sparse Array",
+            "const rowValues = [];",
+            "rowValues[1] = 4;",
+            "rowValues[5] = 'Kyle';",
+            "rowValues[9] = new Date();",
+            "worksheet.addRow(rowValues);",
+            "",
+            "// Add a row with inherited style",
+            "const newRow = worksheet.addRow(rowValues, 'i');",
+            "",
+            "// Add an array of rows",
+            "const rows = [",
+            "  [5,'Bob',new Date()],",
+            "  {id:6, name: 'Barbara', dob: new Date()}",
+            "];",
+            "const newRows = worksheet.addRows(rows);"
+          ].join('\n') },
+          { type: 'table', headers: ['Parameter', 'Description', 'Default Value'], rows: [
+            ['value/s', 'The new row/s values', ''],
+            ['style', "'i' for inherit, 'i+' to include empty cells, 'n' for none", "'n'"],
+          ]},
+        ]
+      },
+      'handling-individual-cells': {
+        title: 'Handling Individual Cells',
+        blocks: [
+          { type: 'paragraph', text: 'Access and modify individual cells in a worksheet by address.' },
+          { type: 'code', lang: 'javascript', code: [
+            "const cell = worksheet.getCell('C3');",
+            "",
+            "// Modify/Add individual cell",
+            "cell.value = new Date(1968, 5, 1);",
+            "",
+            "// query a cell's type",
+            "expect(cell.type).toEqual(Excel.ValueType.Date);",
+            "",
+            "// use string value of cell",
+            "myInput.value = cell.text;",
+            "",
+            "// use html-safe string for rendering",
+            "const html = '<div>' + cell.html + '</div>';"
+          ].join('\n') },
+        ]
+      },
+      'merged-cells': {
+        title: 'Merged Cells',
+        blocks: [
+          { type: 'paragraph', text: 'Merge a range of cells. Merged cells are linked and share the same style object.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// merge a range of cells",
+            "worksheet.mergeCells('A4:B5');",
+            "",
+            "// ... merged cells are linked",
+            "worksheet.getCell('B5').value = 'Hello, World!';",
+            "expect(worksheet.getCell('B5').value).toBe(worksheet.getCell('A4').value);",
+            "expect(worksheet.getCell('B5').master).toBe(worksheet.getCell('A4'));",
+            "",
+            "// ... merged cells share the same style object",
+            "expect(worksheet.getCell('B5').style).toBe(worksheet.getCell('A4').style);",
+            "",
+            "// unmerging the cells breaks the style links",
+            "worksheet.unMergeCells('A4');",
+            "",
+            "// merge by top-left, bottom-right",
+            "worksheet.mergeCells('K10', 'M12');",
+            "",
+            "// merge by start row, start column, end row, end column",
+            "worksheet.mergeCells(10,11,12,13);"
+          ].join('\n') },
+        ]
+      },
+      'insert-rows': {
+        title: 'Insert Rows',
+        blocks: [
+          { type: 'paragraph', text: 'Insert rows at a specific position, shifting down existing rows. Supports style inheritance and original style preservation.' },
+          { type: 'code', lang: 'javascript', code: [
+            "insertRow(pos, value, style = 'n')",
+            "insertRows(pos, values, style = 'n')",
+            "",
+            "// Insert a row by key-value, shifting down rows",
+            "worksheet.insertRow(1, {id: 1, name: 'John Doe', dob: new Date(1970,1,1)});",
+            "",
+            "// Insert a row by contiguous Array",
+            "worksheet.insertRow(1, [3, 'Sam', new Date()]);",
+            "",
+            "// Insert a row with inherited style",
+            "const insertedRowInherited = worksheet.insertRow(1, rowValues, 'i');",
+            "",
+            "// Insert a row, keeping original style",
+            "const insertedRowOriginal = worksheet.insertRow(1, rowValues, 'o');",
+            "",
+            "// Insert an array of rows",
+            "var rows = [",
+            "  [5,'Bob',new Date()],",
+            "  {id:6, name: 'Barbara', dob: new Date()}",
+            "];",
+            "const insertedRows = worksheet.insertRows(1, rows);"
+          ].join('\n') },
+          { type: 'table', headers: ['Parameter', 'Description', 'Default Value'], rows: [
+            ['pos', 'Row number where you want to insert', ''],
+            ['value/s', 'The new row/s values', ''],
+            ['style', "'i' inherit, 'o' original style, 'n' none", "'n'"],
+          ]},
+        ]
+      },
+      'splice': {
+        title: 'Splice',
+        blocks: [
+          { type: 'paragraph', text: 'Cut one or more rows or cells, with optional inserts. Rows below are shifted up; cells to the right are shifted left.' },
+          { type: 'callout', variant: 'yellow', title: 'Known Issue', text: 'If a splice causes any merged cells to move, the results may be unpredictable.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// Cut one or more rows (rows below are shifted up)",
+            "worksheet.spliceRows(4, 3);",
+            "",
+            "// remove one row and insert two more",
+            "const newRow3Values = [1, 2, 3, 4, 5];",
+            "const newRow4Values = ['one', 'two', 'three', 'four', 'five'];",
+            "worksheet.spliceRows(3, 1, newRow3Values, newRow4Values);",
+            "",
+            "// Cut one or more cells (cells to the right are shifted left)",
+            "row.splice(3, 2);",
+            "",
+            "// remove one cell and insert two more",
+            "row.splice(4, 1, 'new value 1', 'new value 2');"
+          ].join('\n') },
+          { type: 'table', headers: ['Parameter', 'Description', 'Default Value'], rows: [
+            ['start', 'Starting point to splice from', ''],
+            ['count', 'Number of rows/cells to remove', ''],
+            ['...inserts', 'New row/cell values to insert', ''],
+          ]},
+        ]
+      },
+      'duplicate-a-row': {
+        title: 'Duplicate a Row',
+        blocks: [
+          { type: 'paragraph', text: 'Duplicate a row at a specific position, with options for the number of duplicates and whether to insert or replace.' },
+          { type: 'code', lang: 'javascript', code: [
+            "duplicateRow(start, amount = 1, insert = true)",
+            "",
+            "const wb = new ExcelJS.Workbook();",
+            "const ws = wb.addWorksheet('duplicateTest');",
+            "ws.getCell('A1').value = 'One';",
+            "ws.getCell('A2').value = 'Two';",
+            "ws.getCell('A3').value = 'Three';",
+            "ws.getCell('A4').value = 'Four';",
+            "",
+            "// This will duplicate row 'One' twice",
+            "// but it will replace rows 'Two' and 'Three'",
+            "ws.duplicateRow(1, 2, false);"
+          ].join('\n') },
+          { type: 'table', headers: ['Parameter', 'Description', 'Default Value'], rows: [
+            ['start', 'Row number you want to duplicate', ''],
+            ['amount', 'The times you want to duplicate the row', '1'],
+            ['insert', 'true to insert, false to replace', 'true'],
+          ]},
+        ]
+      },
+      'defined-names': {
+        title: 'Defined Names',
+        blocks: [
+          { type: 'paragraph', text: 'Individual cells (or multiple groups of cells) can have names assigned to them. The names can be used in formulas and data validation.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// assign (or get) a name for a cell",
+            "worksheet.getCell('A1').name = 'PI';",
+            "expect(worksheet.getCell('A1').name).to.equal('PI');",
+            "",
+            "// assign an array of names for a cell",
+            "worksheet.getCell('A1').names = ['thing1', 'thing2'];",
+            "",
+            "// remove a name from a cell",
+            "worksheet.getCell('A1').removeName('thing1');"
+          ].join('\n') },
+        ]
+      },
+      'data-validations': {
+        title: 'Data Validations',
+        blocks: [
+          { type: 'paragraph', text: 'Cells can define what values are valid or not and provide prompting to the user to help guide them.' },
+          { type: 'heading', level: 2, text: 'Validation Types', id: 'validation-types' },
+          { type: 'table', headers: ['Type', 'Description'], rows: [
+            ['list', 'Define a discrete set of valid values with a dropdown'],
+            ['whole', 'The value must be a whole number'],
+            ['decimal', 'The value must be a decimal number'],
+            ['textLength', 'The value may be text but the length is controlled'],
+            ['custom', 'A custom formula controls the valid values'],
+          ]},
+          { type: 'heading', level: 2, text: 'Examples', id: 'validation-examples' },
+          { type: 'code', lang: 'javascript', code: [
+            "// Specify list of valid values",
+            "worksheet.getCell('A1').dataValidation = {",
+            "  type: 'list',",
+            "  allowBlank: true,",
+            "  formulae: ['\"One,Two,Three,Four\"']",
+            "};",
+            "",
+            "// Specify Cell must be a whole number that is not 5",
+            "worksheet.getCell('A1').dataValidation = {",
+            "  type: 'whole',",
+            "  operator: 'notEqual',",
+            "  showErrorMessage: true,",
+            "  formulae: [5],",
+            "  errorStyle: 'error',",
+            "  errorTitle: 'Five',",
+            "  error: 'The value must not be Five'",
+            "};",
+            "",
+            "// Specify Cell must be a decimal number between 1.5 and 7",
+            "worksheet.getCell('A1').dataValidation = {",
+            "  type: 'decimal',",
+            "  operator: 'between',",
+            "  allowBlank: true,",
+            "  showInputMessage: true,",
+            "  formulae: [1.5, 7],",
+            "  promptTitle: 'Decimal',",
+            "  prompt: 'The value must between 1.5 and 7'",
+            "};"
+          ].join('\n') },
+        ]
+      },
+      'cell-comments': {
+        title: 'Cell Comments',
+        blocks: [
+          { type: 'paragraph', text: 'Add old style comments to a cell. Comments can be plain text or colourful formatted notes.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// plain text note",
+            "worksheet.getCell('A1').note = 'Hello, ExcelJS!';",
+            "",
+            "// colourful formatted note",
+            "ws.getCell('B1').note = {",
+            "  texts: [",
+            "    {'font': {'size': 12, 'color': {'theme': 0}, 'name': 'Calibri'}, 'text': 'This is '},",
+            "    {'font': {'italic': true, 'size': 12, 'color': {'theme': 0}, 'name': 'Calibri'}, 'text': 'a'},",
+            "    {'font': {'size': 12, 'color': {'argb': 'FFFF6600'}, 'name': 'Calibri'}, 'text': ' colorful'},",
+            "    {'font': {'bold': true, 'size': 12, 'color': {'theme': 1}, 'name': 'Calibri'}, 'text': ' format'},",
+            "  ],",
+            "  margins: {",
+            "    insetmode: 'custom',",
+            "    inset: [0.25, 0.25, 0.35, 0.35]",
+            "  },",
+            "  editAs: 'twoCells',",
+            "};"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Comment Properties', id: 'comment-properties' },
+          { type: 'table', headers: ['Field', 'Required', 'Default Value', 'Description'], rows: [
+            ['texts', 'Y', '', 'The text of the comment'],
+            ['margins', 'N', '{}', 'Margins for automatic or custom cell comments'],
+            ['protection', 'N', '{}', 'Lock status of objects and object text'],
+            ['editAs', 'N', "'absolute'", 'How the annotation is anchored to the cell'],
+          ]},
+        ]
+      },
+      'tables': {
+        title: 'Tables',
+        blocks: [
+          { type: 'paragraph', text: 'Tables allow for in-sheet manipulation of tabular data. Define a table model and call addTable to add it to a worksheet.' },
+          { type: 'code', lang: 'javascript', code: [
+            "ws.addTable({",
+            "  name: 'MyTable',",
+            "  ref: 'A1',",
+            "  headerRow: true,",
+            "  totalsRow: true,",
+            "  style: {",
+            "    theme: 'TableStyleDark3',",
+            "    showRowStripes: true,",
+            "  },",
+            "  columns: [",
+            "    {name: 'Date', totalsRowLabel: 'Totals:', filterButton: true},",
+            "    {name: 'Amount', totalsRowFunction: 'sum', filterButton: false},",
+            "  ],",
+            "  rows: [",
+            "    [new Date('2019-07-20'), 70.10],",
+            "    [new Date('2019-07-21'), 70.60],",
+            "    [new Date('2019-07-22'), 70.10],",
+            "  ],",
+            "});"
+          ].join('\n') },
+          { type: 'callout', variant: 'yellow', title: 'Note', text: 'Adding a table to a worksheet will modify the sheet by placing headers and row data. Any data covered by the resulting table will be overwritten.' },
+          { type: 'heading', level: 2, text: 'Table Properties', id: 'table-properties' },
+          { type: 'table', headers: ['Property', 'Description', 'Required', 'Default'], rows: [
+            ['name', 'The name of the table', 'Y', ''],
+            ['ref', 'Top left cell of the table', 'Y', ''],
+            ['headerRow', 'Show headers at top of table', 'N', 'true'],
+            ['totalsRow', 'Show totals at bottom of table', 'N', 'false'],
+            ['style', 'Extra style properties', 'N', '{}'],
+            ['columns', 'Column definitions', 'Y', ''],
+            ['rows', 'Rows of data', 'Y', ''],
+          ]},
+          { type: 'heading', level: 2, text: 'Modifying Tables', id: 'modifying-tables' },
+          { type: 'code', lang: 'javascript', code: [
+            "const table = ws.getTable('MyTable');",
+            "",
+            "// turn header row on",
+            "table.headerRow = true;",
+            "",
+            "// table top-left move to D4",
+            "table.ref = 'D4';",
+            "",
+            "// remove first two rows",
+            "table.removeRows(0, 2);",
+            "",
+            "// append new row to bottom of table",
+            "table.addRow([new Date('2019-08-10'), 10, 'End']);",
+            "",
+            "// commit the table changes into the sheet",
+            "table.commit();"
+          ].join('\n') },
+        ]
+      },
+      'styles': {
+        title: 'Styles',
+        blocks: [
+          { type: 'paragraph', text: 'Cells, Rows and Columns each support a rich set of styles and formats that affect how the cells are displayed. Styles are set by assigning properties: numFmt, font, alignment, border, and fill.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// assign a style to a cell",
+            "ws.getCell('A1').numFmt = '0.00%';",
+            "",
+            "// Apply styles to worksheet columns",
+            "ws.columns = [",
+            "  { header: 'Id', key: 'id', width: 10 },",
+            "  { header: 'Name', key: 'name', width: 32, style: { font: { name: 'Arial Black' } } },",
+            "  { header: 'D.O.B.', key: 'DOB', width: 10, style: { numFmt: 'dd/mm/yyyy' } }",
+            "];",
+            "",
+            "// Set Column 3 to Currency Format",
+            "ws.getColumn(3).numFmt = '\"£\"#,##0.00;[Red]\\-\"£\"#,##0.00';",
+            "",
+            "// Set Row 2 to Comic Sans",
+            "ws.getRow(2).font = { name: 'Comic Sans MS', family: 4, size: 16, underline: 'double', bold: true };"
+          ].join('\n') },
+          { type: 'callout', variant: 'green', title: 'Style Inheritance', text: 'When a style is applied to a row or column, it will be applied to all currently existing cells. New cells inherit initial styles from their row and column. If both define a specific style, the cell uses the row style over the column style.' },
+        ]
+      },
+      'number-formats': {
+        title: 'Number Formats',
+        blocks: [
+          { type: 'paragraph', text: 'Control how numeric values are displayed using number format strings.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// display value as '1 3/5'",
+            "ws.getCell('A1').value = 1.6;",
+            "ws.getCell('A1').numFmt = '# ?/?';",
+            "",
+            "// display value as '1.60%'",
+            "ws.getCell('B1').value = 0.016;",
+            "ws.getCell('B1').numFmt = '0.00%';"
+          ].join('\n') },
+        ]
+      },
+      'fonts': {
+        title: 'Fonts',
+        blocks: [
+          { type: 'paragraph', text: 'Control the font properties of cells including name, family, size, color, and style attributes.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// for the wannabe graphic designers out there",
+            "ws.getCell('A1').font = {",
+            "  name: 'Comic Sans MS',",
+            "  family: 4,",
+            "  size: 16,",
+            "  underline: true,",
+            "  bold: true",
+            "};",
+            "",
+            "// for the graduate graphic designers...",
+            "ws.getCell('A2').font = {",
+            "  name: 'Arial Black',",
+            "  color: { argb: 'FF00FF00' },",
+            "  family: 2,",
+            "  size: 14,",
+            "  italic: true",
+            "};",
+            "",
+            "// for the vertical align",
+            "ws.getCell('A3').font = {",
+            "  vertAlign: 'superscript'",
+            "};"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Font Properties', id: 'font-properties' },
+          { type: 'table', headers: ['Property', 'Description', 'Example Values'], rows: [
+            ['name', 'Font name', "'Arial', 'Calibri'"],
+            ['family', 'Font family for fallback', '1 - Serif, 2 - Sans, 3 - Mono'],
+            ['scheme', 'Font scheme', "'minor', 'major', 'none'"],
+            ['size', 'Font size', '9, 10, 12, 16'],
+            ['color', 'Colour with ARGB value', "{ argb: 'FFFF0000' }"],
+            ['bold', 'Font weight', 'true, false'],
+            ['italic', 'Font slope', 'true, false'],
+            ['underline', 'Underline style', "true, 'single', 'double'"],
+            ['strike', 'Strikethrough', 'true, false'],
+            ['vertAlign', 'Vertical align', "'superscript', 'subscript'"],
+          ]},
+        ]
+      },
+      'alignment': {
+        title: 'Alignment',
+        blocks: [
+          { type: 'paragraph', text: 'Control the alignment of cell content including horizontal, vertical, text rotation, and indentation.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// set cell alignment",
+            "ws.getCell('A1').alignment = { vertical: 'top', horizontal: 'left' };",
+            "ws.getCell('B1').alignment = { vertical: 'middle', horizontal: 'center' };",
+            "ws.getCell('C1').alignment = { vertical: 'bottom', horizontal: 'right' };",
+            "",
+            "// set cell to wrap-text",
+            "ws.getCell('D1').alignment = { wrapText: true };",
+            "",
+            "// set cell indent to 1",
+            "ws.getCell('E1').alignment = { indent: 1 };",
+            "",
+            "// set cell text rotation",
+            "ws.getCell('F1').alignment = { textRotation: 30 };",
+            "ws.getCell('G1').alignment = { textRotation: -45 };",
+            "ws.getCell('H1').alignment = { textRotation: 'vertical' };"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Valid Values', id: 'alignment-values' },
+          { type: 'table', headers: ['horizontal', 'vertical', 'wrapText', 'textRotation'], rows: [
+            ['left', 'top', 'true', '0 to 90'],
+            ['center', 'middle', 'false', '-1 to -90'],
+            ['right', 'bottom', '', 'vertical'],
+            ['fill', 'distributed', '', ''],
+            ['justify', 'justify', '', ''],
+            ['distributed', '', '', ''],
+          ]},
+        ]
+      },
+      'borders': {
+        title: 'Borders',
+        blocks: [
+          { type: 'paragraph', text: 'Set borders on cells including top, left, bottom, right, and diagonal borders with various styles and colors.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// set single thin border around A1",
+            "ws.getCell('A1').border = {",
+            "  top: {style:'thin'},",
+            "  left: {style:'thin'},",
+            "  bottom: {style:'thin'},",
+            "  right: {style:'thin'}",
+            "};",
+            "",
+            "// set double thin green border around A3",
+            "ws.getCell('A3').border = {",
+            "  top: {style:'double', color: {argb:'FF00FF00'}},",
+            "  left: {style:'double', color: {argb:'FF00FF00'}},",
+            "  bottom: {style:'double', color: {argb:'FF00FF00'}},",
+            "  right: {style:'double', color: {argb:'FF00FF00'}}",
+            "};",
+            "",
+            "// set thick red cross in A5",
+            "ws.getCell('A5').border = {",
+            "  diagonal: {up: true, down: true, style:'thick', color: {argb:'FFFF0000'}}",
+            "};"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Valid Border Styles', id: 'border-styles' },
+          { type: 'list', items: [
+            'thin', 'dotted', 'dashDot', 'hair', 'dashDotDot',
+            'slantDashDot', 'mediumDashed', 'mediumDashDotDot',
+            'mediumDashDot', 'medium', 'double', 'thick'
+          ]},
+        ]
+      },
+      'fills': {
+        title: 'Fills',
+        blocks: [
+          { type: 'paragraph', text: 'Fill cells with patterns or gradients. Pattern fills support various predefined patterns, while gradient fills support angle and path gradients.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// fill A1 with red darkVertical stripes",
+            "ws.getCell('A1').fill = {",
+            "  type: 'pattern',",
+            "  pattern:'darkVertical',",
+            "  fgColor:{argb:'FFFF0000'}",
+            "};",
+            "",
+            "// fill A3 with solid coral",
+            "ws.getCell('A3').fill = {",
+            "  type: 'pattern',",
+            "  pattern:'solid',",
+            "  fgColor:{argb:'F08080'},",
+            "};",
+            "",
+            "// fill A4 with blue-white-blue gradient from left to right",
+            "ws.getCell('A4').fill = {",
+            "  type: 'gradient',",
+            "  gradient: 'angle',",
+            "  degree: 0,",
+            "  stops: [",
+            "    {position:0, color:{argb:'FF0000FF'}},",
+            "    {position:0.5, color:{argb:'FFFFFFFF'}},",
+            "    {position:1, color:{argb:'FF0000FF'}}",
+            "  ]",
+            "};"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Pattern Fills', id: 'pattern-fills' },
+          { type: 'table', headers: ['Property', 'Required', 'Description'], rows: [
+            ['type', 'Y', "Value: 'pattern'"],
+            ['pattern', 'Y', 'Specifies type of pattern'],
+            ['fgColor', 'N', 'Pattern foreground color (default: black)'],
+            ['bgColor', 'N', 'Pattern background color (default: white)'],
+          ]},
+          { type: 'heading', level: 2, text: 'Valid Pattern Types', id: 'pattern-types' },
+          { type: 'list', items: [
+            'none', 'solid', 'darkGray', 'mediumGray', 'lightGray',
+            'gray125', 'gray0625', 'darkHorizontal', 'darkVertical',
+            'darkDown', 'darkUp', 'darkGrid', 'darkTrellis',
+            'lightHorizontal', 'lightVertical', 'lightDown',
+            'lightUp', 'lightGrid', 'lightTrellis'
+          ]},
+        ]
+      },
+      'rich-text': {
+        title: 'Rich Text',
+        blocks: [
+          { type: 'paragraph', text: 'Individual cells support rich text or in-cell formatting. Rich text values can control the font properties of any number of sub-strings within the text value.' },
+          { type: 'code', lang: 'javascript', code: [
+            "ws.getCell('A1').value = {",
+            "  'richText': [",
+            "    {'font': {'size': 12,'color': {'theme': 0},'name': 'Calibri'},'text': 'This is '},",
+            "    {'font': {'italic': true,'size': 12,'color': {'theme': 0},'name': 'Calibri'},'text': 'a'},",
+            "    {'font': {'size': 12,'color': {'argb': 'FFFF6600'},'name': 'Calibri'},'text': ' colorful'},",
+            "    {'font': {'size': 12,'color': {'argb': 'FFCCFFCC'},'name': 'Calibri'},'text': ' with'},",
+            "    {'font': {'bold': true,'size': 12,'color': {'theme': 1},'name': 'Calibri'},'text': ' format'}",
+            "  ]",
+            "};",
+            "",
+            "expect(ws.getCell('A1').text).to.equal('This is a colorful with format');",
+            "expect(ws.getCell('A1').type).to.equal(Excel.ValueType.RichText);"
+          ].join('\n') },
+        ]
+      },
+      'conditional-formatting': {
+        title: 'Conditional Formatting',
+        blocks: [
+          { type: 'paragraph', text: 'Conditional formatting allows a sheet to show specific styles, icons, etc depending on cell values or any arbitrary formula. Rules are added at the sheet level and typically cover a range of cells.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// add a checkerboard pattern to A1:E7",
+            "worksheet.addConditionalFormatting({",
+            "  ref: 'A1:E7',",
+            "  rules: [",
+            "    {",
+            "      type: 'expression',",
+            "      formulae: ['MOD(ROW()+COLUMN(),2)=0'],",
+            "      style: {fill: {type: 'pattern', pattern: 'solid', bgColor: {argb: 'FF00FF00'}}},",
+            "    }",
+            "  ]",
+            "})"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Supported Rule Types', id: 'cf-rule-types' },
+          { type: 'table', headers: ['Type', 'Description'], rows: [
+            ['expression', 'Any custom function may be used to activate the rule'],
+            ['cellIs', 'Compares cell value with supplied formula using specified operator'],
+            ['top10', 'Applies formatting to cells with values in top (or bottom) ranges'],
+            ['aboveAverage', 'Applies formatting to cells with values above (or below) average'],
+            ['colorScale', 'Applies a coloured background based on value range position'],
+            ['iconSet', 'Adds icons to cells based on value'],
+            ['containsText', 'Applies formatting based on whether cell contains specific text'],
+            ['timePeriod', 'Applies formatting based on datetime value range'],
+          ]},
+        ]
+      },
+      'outline-levels': {
+        title: 'Outline Levels',
+        blocks: [
+          { type: 'paragraph', text: 'Excel supports outlining where rows or columns can be expanded or collapsed depending on what level of detail the user wishes to view.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// define in column setup",
+            "worksheet.columns = [",
+            "  { header: 'Id', key: 'id', width: 10 },",
+            "  { header: 'Name', key: 'name', width: 32 },",
+            "  { header: 'D.O.B.', key: 'DOB', width: 10, outlineLevel: 1 }",
+            "];",
+            "",
+            "// or directly on the row or column",
+            "worksheet.getColumn(3).outlineLevel = 1;",
+            "worksheet.getRow(3).outlineLevel = 1;",
+            "",
+            "// set sheet outline levels",
+            "worksheet.properties.outlineLevelCol = 1;",
+            "worksheet.properties.outlineLevelRow = 1;",
+            "",
+            "// set outline properties",
+            "worksheet.properties.outlineProperties = {",
+            "  summaryBelow: false,",
+            "  summaryRight: false,",
+            "};"
+          ].join('\n') },
+        ]
+      },
+      'images': {
+        title: 'Images',
+        blocks: [
+          { type: 'paragraph', text: 'Adding images to a worksheet is a two-step process. First, the image is added to the workbook via addImage() which returns an imageId. Then, using the imageId, the image can be added as a background or covering a cell range.' },
+          { type: 'callout', variant: 'yellow', title: 'Note', text: 'As of this version, adjusting or transforming the image is not supported and images are not supported in streaming mode.' },
+          { type: 'heading', level: 2, text: 'Add Image to Workbook', id: 'add-image' },
+          { type: 'code', lang: 'javascript', code: [
+            "// add image to workbook by filename",
+            "const imageId1 = workbook.addImage({",
+            "  filename: 'path/to/image.jpg',",
+            "  extension: 'jpeg',",
+            "});",
+            "",
+            "// add image to workbook by buffer",
+            "const imageId2 = workbook.addImage({",
+            "  buffer: fs.readFileSync('path/to/image.png'),",
+            "  extension: 'png',",
+            "});",
+            "",
+            "// add image to workbook by base64",
+            "const imageId3 = workbook.addImage({",
+            "  base64: myBase64Image,",
+            "  extension: 'png',",
+            "});"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Add Image to Worksheet', id: 'add-image-ws' },
+          { type: 'code', lang: 'javascript', code: [
+            "// set background",
+            "worksheet.addBackgroundImage(imageId1);",
+            "",
+            "// insert an image over B2:D6",
+            "worksheet.addImage(imageId2, 'B2:D6');",
+            "",
+            "// insert an image over part of B2:D6",
+            "worksheet.addImage(imageId2, {",
+            "  tl: { col: 1.5, row: 1.5 },",
+            "  br: { col: 3.5, row: 5.5 }",
+            "});",
+            "",
+            "// add an image to a cell with width and height",
+            "worksheet.addImage(imageId2, {",
+            "  tl: { col: 0, row: 0 },",
+            "  ext: { width: 500, height: 200 }",
+            "});",
+            "",
+            "// add image with hyperlinks",
+            "worksheet.addImage(imageId2, {",
+            "  tl: { col: 0, row: 0 },",
+            "  ext: { width: 500, height: 200 },",
+            "  hyperlinks: {",
+            "    hyperlink: 'http://www.somewhere.com',",
+            "    tooltip: 'http://www.somewhere.com'",
+            "  }",
+            "});"
+          ].join('\n') },
+        ]
+      },
+      'sheet-protection': {
+        title: 'Sheet Protection',
+        blocks: [
+          { type: 'paragraph', text: 'Worksheets can be protected from modification by adding a password.' },
+          { type: 'code', lang: 'javascript', code: [
+            "await worksheet.protect('the-password', options);",
+            "",
+            "// Worksheet protection can also be removed:",
+            "worksheet.unprotect();"
+          ].join('\n') },
+          { type: 'callout', variant: 'yellow', title: 'Note', text: 'While the protect() function returns a Promise, the current implementation runs on the main thread and will use approx 600ms on an average CPU. This can be adjusted by setting the spinCount.' },
+          { type: 'heading', level: 2, text: 'Protection Options', id: 'protection-options' },
+          { type: 'table', headers: ['Field', 'Default', 'Description'], rows: [
+            ['selectLockedCells', 'true', 'Lets the user select locked cells'],
+            ['selectUnlockedCells', 'true', 'Lets the user select unlocked cells'],
+            ['formatCells', 'false', 'Lets the user format cells'],
+            ['formatColumns', 'false', 'Lets the user format columns'],
+            ['formatRows', 'false', 'Lets the user format rows'],
+            ['insertRows', 'false', 'Lets the user insert rows'],
+            ['insertColumns', 'false', 'Lets the user insert columns'],
+            ['deleteRows', 'false', 'Lets the user delete rows'],
+            ['deleteColumns', 'false', 'Lets the user delete columns'],
+            ['sort', 'false', 'Lets the user sort data'],
+            ['autoFilter', 'false', 'Lets the user filter data in tables'],
+            ['spinCount', '100000', 'Number of hash iterations performed'],
+          ]},
+        ]
+      },
+      'xlsx': {
+        title: 'XLSX',
+        blocks: [
+          { type: 'paragraph', text: 'ExcelJS supports reading and writing XLSX files. The XLSX format is the default Excel format and supports all features including styles, images, and formulas.' },
+          { type: 'heading', level: 2, text: 'Supported Options', id: 'xlsx-options' },
+          { type: 'table', headers: ['Field', 'Required', 'Type', 'Description'], rows: [
+            ['ignoreNodes', 'N', 'Array', 'A list of node names to ignore while loading. Improves performance in some situations.'],
+          ]},
+        ]
+      },
+      'reading-xlsx': {
+        title: 'Reading XLSX',
+        blocks: [
+          { type: 'paragraph', text: 'Read XLSX files from a file path, stream, or buffer.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// read from a file",
+            "const workbook = new Excel.Workbook();",
+            "await workbook.xlsx.readFile(filename);",
+            "// ... use workbook",
+            "",
+            "// read from a stream",
+            "const workbook = new Excel.Workbook();",
+            "await workbook.xlsx.read(stream);",
+            "// ... use workbook",
+            "",
+            "// load from buffer",
+            "const workbook = new Excel.Workbook();",
+            "await workbook.xlsx.load(data);",
+            "// ... use workbook",
+            "",
+            "// using additional options",
+            "const workbook = new Excel.Workbook();",
+            "await workbook.xlsx.load(data, {",
+            "  ignoreNodes: [",
+            "    'dataValidations' // ignores the workbook's Data Validations",
+            "  ],",
+            "});"
+          ].join('\n') },
+        ]
+      },
+      'writing-xlsx': {
+        title: 'Writing XLSX',
+        blocks: [
+          { type: 'paragraph', text: 'Write XLSX files to a file path, stream, or buffer.' },
+          { type: 'code', lang: 'javascript', code: [
+            "// write to a file",
+            "const workbook = createAndFillWorkbook();",
+            "await workbook.xlsx.writeFile(filename);",
+            "",
+            "// write to a stream",
+            "await workbook.xlsx.write(stream);",
+            "",
+            "// write to a new buffer",
+            "const buffer = await workbook.xlsx.writeBuffer();"
+          ].join('\n') },
+        ]
+      },
+      'csv': {
+        title: 'CSV',
+        blocks: [
+          { type: 'paragraph', text: 'ExcelJS supports reading and writing CSV files using the fast-csv library. Dates are parsed and formatted using dayjs.' },
+        ]
+      },
+      'reading-csv': {
+        title: 'Reading CSV',
+        blocks: [
+          { type: 'paragraph', text: 'Read CSV files from a file path or stream with optional parsing configuration.' },
+          { type: 'table', headers: ['Field', 'Required', 'Type', 'Description'], rows: [
+            ['dateFormats', 'N', 'Array', 'Specify the date encoding format of dayjs'],
+            ['map', 'N', 'Function', 'Custom map callback for processing data'],
+            ['sheetName', 'N', 'String', 'Specify worksheet name'],
+            ['parserOptions', 'N', 'Object', 'fast-csv parsing options'],
+          ]},
+          { type: 'code', lang: 'javascript', code: [
+            "// read from a file",
+            "const workbook = new Excel.Workbook();",
+            "const worksheet = await workbook.csv.readFile(filename);",
+            "",
+            "// read from a stream",
+            "const workbook = new Excel.Workbook();",
+            "const worksheet = await workbook.csv.read(stream);",
+            "",
+            "// read from a file with European Dates",
+            "const options = {",
+            "  dateFormats: ['DD/MM/YYYY']",
+            "};",
+            "const worksheet = await workbook.csv.readFile(filename, options);",
+            "",
+            "// read from a file with custom value parsing",
+            "const options = {",
+            "  map(value, index) {",
+            "    switch(index) {",
+            "      case 0: return value;",
+            "      case 1: return new Date(value);",
+            "      case 2: return JSON.parse(value);",
+            "      default: return parseFloat(value);",
+            "    }",
+            "  },",
+            "  parserOptions: { delimiter: '\\t', quote: false },",
+            "};",
+            "const worksheet = await workbook.csv.readFile(filename, options);"
+          ].join('\n') },
+        ]
+      },
+      'writing-csv': {
+        title: 'Writing CSV',
+        blocks: [
+          { type: 'paragraph', text: 'Write CSV files to a file path, stream, or buffer with optional formatting configuration.' },
+          { type: 'table', headers: ['Field', 'Required', 'Type', 'Description'], rows: [
+            ['dateFormat', 'N', 'String', 'Specify the date encoding format'],
+            ['dateUTC', 'N', 'Boolean', 'Use dayjs.utc() for timezone conversion'],
+            ['encoding', 'N', 'String', 'Specify file encoding format'],
+            ['includeEmptyRows', 'N', 'Boolean', 'Whether empty rows can be written'],
+            ['map', 'N', 'Function', 'Custom map callback for row values'],
+            ['sheetName', 'N', 'String', 'Specify worksheet name'],
+            ['formatterOptions', 'N', 'Object', 'fast-csv formatting options'],
+          ]},
+          { type: 'code', lang: 'javascript', code: [
+            "// write to a file",
+            "const workbook = createAndFillWorkbook();",
+            "await workbook.csv.writeFile(filename);",
+            "",
+            "// write to a stream",
+            "await workbook.csv.write(stream, { sheetName: 'Page name' });",
+            "",
+            "// write to a file with European Date-Times",
+            "const options = {",
+            "  dateFormat: 'DD/MM/YYYY HH:mm:ss',",
+            "  dateUTC: true,",
+            "};",
+            "await workbook.csv.writeFile(filename, options);",
+            "",
+            "// write to a new buffer",
+            "const buffer = await workbook.csv.writeBuffer();"
+          ].join('\n') },
+        ]
+      },
+      'streaming-io': {
+        title: 'Streaming I/O',
+        blocks: [
+          { type: 'paragraph', text: 'The File I/O requires that an entire workbook is built up in memory before the file can be written. A streaming writer (or reader) processes the workbook data as it is generated, converting it into file form as it goes. This is much more efficient on memory.' },
+          { type: 'callout', variant: 'green', title: 'Key Differences', text: 'Once a worksheet is added to a streaming workbook, it cannot be removed. Once a row is committed, it is no longer accessible. unMergeCells() is not supported.' },
+        ]
+      },
+      'streaming-xlsx': {
+        title: 'Streaming XLSX',
+        blocks: [
+          { type: 'heading', level: 2, text: 'Streaming XLSX Writer', id: 'streaming-writer' },
+          { type: 'paragraph', text: 'The streaming XLSX workbook writer is available in the ExcelJS.stream.xlsx namespace.' },
+          { type: 'table', headers: ['Field', 'Description'], rows: [
+            ['stream', 'Specifies a writable stream to write the XLSX workbook to'],
+            ['filename', 'If stream not specified, path to a file to write to'],
+            ['useSharedStrings', 'Whether to use shared strings (default: false)'],
+            ['useStyles', 'Whether to add style information (default: false)'],
+            ['zip', 'Zip options passed to Archiver'],
+          ]},
+          { type: 'code', lang: 'javascript', code: [
+            "// construct a streaming XLSX workbook writer",
+            "const options = {",
+            "  filename: './streamed-workbook.xlsx',",
+            "  useStyles: true,",
+            "  useSharedStrings: true",
+            "};",
+            "const workbook = new Excel.stream.xlsx.WorkbookWriter(options);",
+            "",
+            "// Commit rows as they are ready",
+            "worksheet.addRow({",
+            "   id: i,",
+            "   name: theName,",
+            "   etc: someOtherDetail",
+            "}).commit();",
+            "",
+            "// Commit the worksheet",
+            "worksheet.commit();",
+            "",
+            "// Commit the workbook",
+            "await workbook.commit();"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Streaming XLSX Reader', id: 'streaming-reader' },
+          { type: 'paragraph', text: 'The streaming XLSX workbook reader is also available in the ExcelJS.stream.xlsx namespace.' },
+          { type: 'code', lang: 'javascript', code: [
+            "const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader('./file.xlsx');",
+            "for await (const worksheetReader of workbookReader) {",
+            "  for await (const row of worksheetReader) {",
+            "    // ...",
+            "  }",
+            "}"
+          ].join('\n') },
+        ]
+      },
+      'browser': {
+        title: 'Browser',
+        blocks: [
+          { type: 'paragraph', text: 'A portion of this library has been isolated and tested for use within a browser environment. Due to the streaming nature of the workbook reader and writer, these have not been included. Only the document based workbook may be used.' },
+          { type: 'heading', level: 2, text: 'Prebundled', id: 'prebundled' },
+          { type: 'paragraph', text: 'The following files are pre-bundled and included inside the dist folder:' },
+          { type: 'list', items: ['exceljs.js', 'exceljs.min.js'] },
+        ]
+      },
+      'value-types': {
+        title: 'Value Types',
+        blocks: [
+          { type: 'paragraph', text: 'The following value types are supported in ExcelJS cells.' },
+          { type: 'heading', level: 2, text: 'Null Value', id: 'null-value' },
+          { type: 'code', lang: 'javascript', code: "worksheet.getCell('A1').value = null;" },
+          { type: 'heading', level: 2, text: 'Number Value', id: 'number-value' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.getCell('A1').value = 5;",
+            "worksheet.getCell('A2').value = 3.14159;"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'String Value', id: 'string-value' },
+          { type: 'code', lang: 'javascript', code: "worksheet.getCell('A1').value = 'Hello, World!';" },
+          { type: 'heading', level: 2, text: 'Date Value', id: 'date-value' },
+          { type: 'code', lang: 'javascript', code: "worksheet.getCell('A1').value = new Date(2017, 2, 15);" },
+          { type: 'heading', level: 2, text: 'Hyperlink Value', id: 'hyperlink-value' },
+          { type: 'code', lang: 'javascript', code: [
+            "// link to web",
+            "worksheet.getCell('A1').value = {",
+            "  text: 'www.mylink.com',",
+            "  hyperlink: 'http://www.mylink.com',",
+            "  tooltip: 'www.mylink.com'",
+            "};",
+            "",
+            "// internal link",
+            "worksheet.getCell('A1').value = { text: 'Sheet2', hyperlink: '#\\'Sheet2\\'!A1' };"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Formula Value', id: 'formula-value' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.getCell('A3').value = { formula: 'A1+A2', result: 7 };",
+            "worksheet.getCell('A3').value = { formula: 'SUM(A1,A2)', result: 7 };"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Boolean Value', id: 'boolean-value' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.getCell('A1').value = true;",
+            "worksheet.getCell('A2').value = false;"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Error Value', id: 'error-value' },
+          { type: 'code', lang: 'javascript', code: [
+            "worksheet.getCell('A1').value = { error: '#N/A' };",
+            "worksheet.getCell('A2').value = { error: '#VALUE!' };"
+          ].join('\n') },
+          { type: 'heading', level: 2, text: 'Valid Error Values', id: 'error-values' },
+          { type: 'table', headers: ['Name', 'Value'], rows: [
+            ['NotApplicable', '#N/A'],
+            ['Ref', '#REF!'],
+            ['Name', '#NAME?'],
+            ['DivZero', '#DIV/0!'],
+            ['Null', '#NULL!'],
+            ['Value', '#VALUE!'],
+            ['Num', '#NUM!'],
+          ]},
+        ]
+      },
+      'config': {
+        title: 'Config',
+        blocks: [
+          { type: 'paragraph', text: 'ExcelJS supports dependency injection for the promise library. You can restore Bluebird promises by including the following code in your module.' },
+          { type: 'code', lang: 'javascript', code: "ExcelJS.config.setValue('promise', require('bluebird'));" },
+          { type: 'callout', variant: 'yellow', title: 'Note', text: 'This has been tested with bluebird specifically. From the tests done it will not work with Q.' },
+        ]
+      },
+      'known-issues': {
+        title: 'Known Issues',
+        blocks: [
+          { type: 'heading', level: 2, text: 'Testing with Puppeteer', id: 'testing-puppeteer' },
+          { type: 'paragraph', text: 'The test suite includes a small script executed in a headless browser to validate the bundled packages. This test does not play nicely in the Windows Linux subsystem.' },
+          { type: 'code', lang: 'bash', code: 'sudo apt-get install libfontconfig' },
+          { type: 'heading', level: 2, text: 'Splice vs Merge', id: 'splice-vs-merge' },
+          { type: 'paragraph', text: 'If any splice operation affects a merged cell, the merge group will not be moved correctly.' },
+        ]
+      },
+      'release-history': {
+        title: 'Release History',
+        blocks: [
+          { type: 'paragraph', text: 'ExcelJS has evolved significantly over its lifetime. Here are some notable releases.' },
+          { type: 'table', headers: ['Version', 'Key Changes'], rows: [
+            ['4.4.0', 'Pivot table support, inlineStr cell type, improved conditional formatting'],
+            ['4.0.1', 'Major version: migrated from streams API to Async Iterators'],
+            ['3.6.0', 'Conditional Formatting completed with dataBar and iconSet types'],
+            ['3.0.0', 'Main export is now original JavaScript source, ES5 still included'],
+            ['2.0.1', 'Major version: introduced async/await, native Promises only'],
+            ['1.0.0', 'Added Node 8/9 support, inlineStr including rich text'],
+            ['0.5.0', 'Fixed right-to-left issues'],
+            ['0.4.0', 'Added Boolean and Error value types'],
+          ]},
+        ]
+      },
+    };
+
+    // Vanilla JS App Controller
+    const App = {
+      state: {
+        activeSlug: 'introduction',
+        sidebarOpen: false,
+        searchQuery: '',
+        expanded: {}
+      },
+
+      init() {
+        navData.forEach(s => { this.state.expanded[s.title] = true; });
+        this.renderLayout();
+        this.attachEvents();
+        this.renderPage();
+      },
+
+      renderLayout() {
+        document.getElementById('app').innerHTML = `
+          <header id="header" class="sticky top-0 z-50 border-b border-exjs-border bg-exjs-dark/90 backdrop-blur-md"></header>
+          <div class="flex">
+            <aside id="sidebar" class="fixed md:sticky top-14 left-0 z-40 h-[calc(100vh-3.5rem)] w-[85%] max-w-[18rem] md:w-72 shrink-0 bg-exjs-darker border-r border-exjs-border overflow-y-auto transform transition-transform duration-300 -translate-x-full md:translate-x-0"></aside>
+            <main class="flex-1 min-w-0 w-full">
+              <div class="max-w-[1400px] mx-auto px-4 md:px-8 py-8 md:py-12">
+                <div class="flex gap-8">
+                  <div id="main-content" class="flex-1 min-w-0 max-w-full"></div>
+                  <div id="toc" class="hidden xl:block w-56 shrink-0"></div>
+                </div>
+              </div>
+            </main>
+          </div>
+          <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/60 z-30 hidden"></div>
+        `;
+        this.renderHeader();
+        this.renderSidebar();
+      },
+
+      renderHeader() {
+        document.getElementById('header').innerHTML = `
+          <div class="flex h-14 items-center justify-between px-4 md:px-6">
+            <div class="flex items-center gap-3">
+              <button id="menu-btn" class="md:hidden text-exjs-muted hover:text-exjs-green p-2 -ml-2">${I.menu}</button>
+              <a href="#" class="flex items-center gap-2.5 group">
+                <div class="relative">
+                  <div class="absolute inset-0 bg-exjs-green blur-md opacity-30 group-hover:opacity-60 transition-opacity"></div>
+                  <svg class="relative w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="#57F287" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="3" y1="15" x2="21" y2="15"/>
+                    <line x1="12" y1="3" x2="12" y2="21"/>
+                  </svg>
+                </div>
+                <span class="font-bold text-lg text-gray-100">Excel<span class="text-exjs-green">JS</span></span>
+              </a>
+              <span class="hidden sm:flex items-center gap-1.5 ml-2 px-2 py-0.5 text-xs text-exjs-muted border border-exjs-border-light rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full bg-exjs-green pulse-dot"></span>
+                v4.4.0
+              </span>
+            </div>
+
+            <div class="flex-1 max-w-md mx-4 hidden md:block">
+              <div class="relative">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-exjs-dim">${I.search}</div>
+                <input
+                  id="search-input"
+                  type="text"
+                  placeholder="Search docs..."
+                  class="w-full pl-9 pr-12 py-1.5 text-sm bg-exjs-card border border-exjs-border rounded-lg focus:outline-none focus:border-exjs-green focus:ring-1 focus:ring-exjs-green/30 transition-all placeholder:text-exjs-dim"
+                />
+                <kbd class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-exjs-dim border border-exjs-border-light rounded px-1.5 py-0.5 font-mono">⌘K</kbd>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <a href="#" class="hidden sm:flex p-2 text-exjs-muted hover:text-exjs-green transition-colors">${I.github}</a>
+              <a href="#" class="hidden sm:flex p-2 text-exjs-muted hover:text-exjs-green transition-colors">${I.npm}</a>
+              <div class="hidden sm:block w-px h-5 bg-exjs-border"></div>
+              <button class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-200 hover:text-exjs-green border border-exjs-border hover:border-exjs-green/30 rounded-lg transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full bg-exjs-green"></span>
+                <span class="hidden sm:inline">Guide</span>
+              </button>
+            </div>
+          </div>
+        `;
+      },
+
+      renderSidebar() {
+        const searchQuery = this.state.searchQuery.toLowerCase();
+        const filtered = navData.map(section => ({
+          ...section,
+          items: section.items.filter(item =>
+            item.name.toLowerCase().includes(searchQuery)
+          )
+        })).filter(s => s.items.length > 0);
+
+        const iconMap = {
+          'book': I.book, 'code': I.code, 'database': I.database, 'fileText': I.fileText,
+        };
+
+        let html = '<nav class="p-4 pb-16">';
+        
+        if (filtered.length === 0) {
+          html += '<div class="text-center text-exjs-dim text-sm py-8">No results found</div>';
+        }
+
+        filtered.forEach(section => {
+          const isExpanded = this.state.expanded[section.title];
+          html += `
+            <div class="mb-6">
+              <button data-section="${section.title}" class="flex items-center justify-between w-full px-2 py-2 text-xs font-bold uppercase tracking-wider text-exjs-muted hover:text-gray-200 transition-colors">
+                <span class="flex items-center gap-2">${iconMap[section.icon] || I.book}${section.title}</span>
+                <span class="transition-transform ${isExpanded ? '' : '-rotate-90'}">${I.chevronDown}</span>
+              </button>
+              ${isExpanded ? `
+                <ul class="mt-2 space-y-1">
+                  ${section.items.map(item => {
+                    const isActive = this.state.activeSlug === item.slug;
+                    return `
+                      <li>
+                        <button data-slug="${item.slug}" class="relative flex items-center w-full pl-3 pr-2 py-2.5 md:py-2 text-sm rounded-md transition-all text-left ${isActive ? 'bg-exjs-green-glow text-exjs-green font-medium' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'}">
+                          ${isActive ? '<span class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-exjs-green rounded-r shadow-[0_0_8px_#57F287]"></span>' : ''}
+                          ${item.name}
+                        </button>
+                      </li>
+                    `;
+                  }).join('')}
+                </ul>
+              ` : ''}
+            </div>
+          `;
+        });
+
+        html += `
+          <div class="mt-8 pt-6 border-t border-exjs-border">
+            <div class="px-2 text-xs text-exjs-dim mb-3">Resources</div>
+            <a href="#" class="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-400 hover:text-exjs-green hover:bg-white/5 rounded-md transition-colors">
+              ${I.github} GitHub Repository
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-400 hover:text-exjs-green hover:bg-white/5 rounded-md transition-colors">
+              ${I.npm} npm Package
+            </a>
+            <a href="#" class="flex items-center gap-2 px-3 py-2.5 text-sm text-gray-400 hover:text-exjs-green hover:bg-white/5 rounded-md transition-colors">
+              ${I.code} TypeScript Types
+            </a>
+          </div>
+        </nav>`;
+
+        document.getElementById('sidebar').innerHTML = html;
+      },
+
+      renderBlock(block) {
+        switch (block.type) {
+          case 'paragraph':
+            return `<p class="text-gray-300 leading-relaxed mb-4 text-sm md:text-base">${block.text}</p>`;
+          
+          case 'heading': {
+            const sizes = {
+              2: 'text-xl md:text-2xl font-bold mt-8 md:mt-10 mb-3 md:mb-4',
+              3: 'text-lg md:text-xl font-semibold mt-6 mb-3',
+            };
+            return `
+              <h${block.level} id="${block.id}" class="anchor-section flex items-center gap-2 text-gray-100 scroll-mt-20 ${sizes[block.level]}">
+                <span class="w-1 h-5 md:h-6 bg-exjs-green rounded-full"></span>
+                ${block.text}
+                <a href="#${block.id}" class="anchor-link text-exjs-dim hover:text-exjs-green">${I.hash}</a>
+              </h${block.level}>
+            `;
+          }
+
+          case 'code': {
+            const lang = block.lang || 'javascript';
+            const highlighted = Prism.highlight(block.code, Prism.languages[lang] || Prism.languages.javascript, lang);
+            const encodedCode = btoa(block.code);
+            // Struktur pembungkus baru untuk memastikan scroll berfungsi
+            return `
+              <div class="code-wrapper">
+                <div class="code-header">
+                  <span class="text-xs font-mono text-exjs-muted uppercase tracking-wider">${lang}</span>
+                  <button class="copy-btn flex items-center gap-1.5 text-xs text-exjs-muted hover:text-exjs-green transition-colors" data-code="${encodedCode}">
+                    <span class="copy-icon">${I.copy}</span>
+                    <span class="copy-text">Copy</span>
+                  </button>
+                </div>
+                <pre><code class="language-${lang}">${highlighted}</code></pre>
+              </div>
+            `;
+          }
+
+          case 'list':
+            return `
+              <ul class="mb-4 space-y-2">
+                ${block.items.map(item => `
+                  <li class="flex items-start gap-2 text-gray-300 text-sm md:text-base">
+                    <span class="text-exjs-green mt-1.5 shrink-0">▸</span>
+                    <span>${item}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            `;
+
+          case 'table':
+            return `
+              <div class="my-4 border border-exjs-border rounded-lg table-wrap">
+                <table class="w-full min-w-[400px]">
+                  <thead class="bg-exjs-card border-b border-exjs-border">
+                    <tr>
+                      ${block.headers.map(h => `<th class="text-left text-xs font-semibold uppercase tracking-wider text-exjs-muted px-4 py-2.5">${h}</th>`).join('')}
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-exjs-border">
+                    ${block.rows.map(row => `
+                      <tr class="hover:bg-white/[0.02] transition-colors">
+                        ${row.map((cell, ci) => `<td class="px-4 py-3 text-sm ${ci === 0 ? 'font-mono text-amber-300 whitespace-nowrap' : 'text-gray-400'}">${cell}</td>`).join('')}
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+
+          case 'callout': {
+            const variants = {
+              green: { bg: 'bg-exjs-green-glow', border: 'border-exjs-green-border', text: 'text-exjs-green', icon: I.check },
+              yellow: { bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', text: 'text-yellow-400', icon: I.chevronRight },
+              red: { bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400', icon: I.x },
+            };
+            const v = variants[block.variant] || variants.green;
+            return `
+              <div class="my-4 border ${v.border} ${v.bg} rounded-lg p-4 flex gap-3">
+                <div class="${v.text} shrink-0 mt-0.5">${v.icon}</div>
+                <div>
+                  ${block.title ? `<div class="font-semibold ${v.text} mb-1">${block.title}</div>` : ''}
+                  <div class="text-gray-300 text-sm leading-relaxed">${block.text}</div>
+                </div>
+              </div>
+            `;
+          }
+
+          default:
+            return '';
+        }
+      },
+
+      renderTOC() {
+        const data = contentData[this.state.activeSlug];
+        if (!data) return;
+        
+        const headings = data.blocks.filter(b => b.type === 'heading' && b.level === 2);
+        if (headings.length === 0) {
+          document.getElementById('toc').innerHTML = '';
+          return;
+        }
+
+        document.getElementById('toc').innerHTML = `
+          <div class="sticky top-20">
+            <div class="text-xs font-bold uppercase tracking-wider text-exjs-muted mb-3 px-2">On this page</div>
+            <ul class="space-y-1">
+              ${headings.map(h => `
+                <li>
+                  <a href="#${h.id}" class="block px-2 py-1 text-sm text-gray-400 hover:text-exjs-green transition-colors truncate">${h.text}</a>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      },
+
+      renderPage() {
+        const slug = this.state.activeSlug;
+        const data = contentData[slug];
+        const mainContent = document.getElementById('main-content');
+
+        if (!data) {
+          mainContent.innerHTML = `
+            <div class="animate-fade-in">
+              <h1 class="text-2xl md:text-3xl font-bold text-gray-100 mb-4">Page not found</h1>
+              <p class="text-gray-400">The page you're looking for doesn't exist.</p>
+            </div>
+          `;
+          return;
+        }
+
+        let currentSection = '';
+        for (const section of navData) {
+          if (section.items.some(i => i.slug === slug)) {
+            currentSection = section.title;
+            break;
+          }
+        }
+
+        mainContent.innerHTML = `
+          <div class="animate-fade-in">
+            <div class="flex items-center gap-2 text-sm text-exjs-muted mb-4 flex-wrap">
+              <a href="#" class="hover:text-exjs-green transition-colors">Home</a>
+              ${I.chevronRight}
+              <span class="hover:text-exjs-green transition-colors">${currentSection}</span>
+              ${I.chevronRight}
+              <span class="text-gray-300">${data.title}</span>
+            </div>
+
+            <div class="flex items-center gap-3 mb-3 flex-wrap">
+              <h1 class="text-2xl md:text-4xl font-bold text-gray-100">${data.title}</h1>
+              ${data.badge ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded border bg-exjs-green-glow text-exjs-green border-exjs-green-border">${data.badge}</span>` : ''}
+            </div>
+
+            ${data.subtitle ? `<p class="text-base md:text-lg text-gray-400 leading-relaxed mb-8 max-w-3xl">${data.subtitle}</p>` : ''}
+
+            <div class="max-w-4xl min-w-0">
+              ${data.blocks.map(block => this.renderBlock(block)).join('')}
+            </div>
+
+            <div class="mt-16 pt-8 border-t border-exjs-border flex items-center justify-between text-sm">
+              <a href="#" class="flex items-center gap-2 text-gray-400 hover:text-exjs-green transition-colors">
+                ${I.edit} Edit this page on GitHub
+              </a>
+              <span class="text-exjs-dim">Last updated: March 2025</span>
+            </div>
+          </div>
+        `;
+
+        this.renderTOC();
+        window.scrollTo(0, 0);
+      },
+
+      attachEvents() {
+        document.getElementById('menu-btn').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.remove('-translate-x-full');
+          document.getElementById('mobile-overlay').classList.remove('hidden');
+        });
+
+        document.getElementById('mobile-overlay').addEventListener('click', () => {
+          document.getElementById('sidebar').classList.add('-translate-x-full');
+          document.getElementById('mobile-overlay').classList.add('hidden');
+        });
+
+        const searchInput = document.getElementById('search-input');
+        if(searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            this.state.searchQuery = e.target.value;
+            this.renderSidebar();
+          });
+        }
+
+        document.addEventListener('keydown', (e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            if(searchInput) searchInput.focus();
+          }
+        });
+
+        document.getElementById('sidebar').addEventListener('click', (e) => {
+          const sectionBtn = e.target.closest('[data-section]');
+          if (sectionBtn) {
+            const title = sectionBtn.dataset.section;
+            this.state.expanded[title] = !this.state.expanded[title];
+            this.renderSidebar();
+            return;
+          }
+
+          const linkBtn = e.target.closest('[data-slug]');
+          if (linkBtn) {
+            this.state.activeSlug = linkBtn.dataset.slug;
+            this.renderSidebar();
+            this.renderPage();
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.add('hidden');
+          }
+        });
+
+        document.getElementById('main-content').addEventListener('click', (e) => {
+          const btn = e.target.closest('.copy-btn');
+          if (btn) {
+            const encodedCode = btn.dataset.code;
+            try {
+              const decodedCode = atob(encodedCode);
+              navigator.clipboard.writeText(decodedCode).then(() => {
+                const textEl = btn.querySelector('.copy-text');
+                const iconEl = btn.querySelector('.copy-icon');
+                const originalText = textEl.textContent;
+                const originalIcon = iconEl.innerHTML;
+                
+                textEl.textContent = 'Copied!';
+                iconEl.innerHTML = I.check;
+                
+                setTimeout(() => {
+                  textEl.textContent = originalText;
+                  iconEl.innerHTML = originalIcon;
+                }, 2000);
+              });
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
+          }
+        });
+
+        window.addEventListener('hashchange', () => {
+          if (window.location.hash) {
+            const id = window.location.hash.slice(1);
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
+    };
+
+    App.init();
+  </script>
+</body>
+</html>
