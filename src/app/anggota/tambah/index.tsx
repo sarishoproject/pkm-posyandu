@@ -62,7 +62,7 @@ function AddMemberForm() {
 
       // 3. Berikan feedback dan arahkan kembali
       alert("Data anggota baru berhasil disimpan!");
-      navigate({ to: "/anggota/" });
+      navigate({ to: "/anggota" });
     } catch (error) {
       console.error("Error:", error);
       alert("Terjadi kesalahan saat menyimpan data.");
@@ -77,7 +77,7 @@ function AddMemberForm() {
         <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
           <Link
             className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
-            to="/anggota/"
+            to="/anggota"
           >
             <X className="w-6 h-6" />
           </Link>
@@ -92,7 +92,10 @@ function AddMemberForm() {
             onSubmit={handleSubmit}
           >
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="nama" className="text-[11px] font-semibold text-slate-600">
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="nama"
+              >
                 Nama Anak
               </label>
               <input
@@ -108,7 +111,10 @@ function AddMemberForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="nik" className="text-[11px] font-semibold text-slate-600">
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="nik"
+              >
                 NIK (Nomor Induk Kependudukan)
               </label>
               <input
@@ -129,7 +135,10 @@ function AddMemberForm() {
 
             {/* JENIS KELAMIN - Hanya untuk UI */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="jenis_kelamin" className="text-[11px] font-semibold text-slate-600">
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="jenis_kelamin"
+              >
                 Jenis Kelamin
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -165,7 +174,10 @@ function AddMemberForm() {
 
             {/* TANGGAL LAHIR - Hanya untuk UI */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="tanggal_lahir" className="text-[11px] font-semibold text-slate-600">
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="tanggal_lahir"
+              >
                 Tanggal Lahir Anak
               </label>
               <div className="grid grid-cols-[1fr_1fr_1fr] gap-2">
@@ -178,8 +190,7 @@ function AddMemberForm() {
                 >
                   <option value="">Tgl</option>
                   {Array.from({ length: 31 }, (_, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                      <option key={i + 1} value={i + 1}>
+                    <option key={++i} value={i + 1}>
                       {i + 1}
                     </option>
                   ))}
@@ -222,7 +233,10 @@ function AddMemberForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="nama_ibu" className="text-[11px] font-semibold text-slate-600">
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="nama_ibu"
+              >
                 Nama Ibu Kandung
               </label>
               <input

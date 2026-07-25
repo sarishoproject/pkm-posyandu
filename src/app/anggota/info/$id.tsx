@@ -1,13 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
-import  { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  Calendar,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
-// Route dinamis TanStack
 export const Route = createFileRoute("/anggota/info/$id")({
   component: MemberDetailView,
 });
 
-// Interface response dari Backend (Ditambah field detail pengukuran)
 interface DetailResponse {
   id: number;
   jenis_kelamin?: string;
@@ -19,13 +24,26 @@ interface DetailResponse {
     tanggal_ukur: string;
     berat: number | null;
     tinggi: number | null;
-    lingkar_kepala?: number | null; // Data tambahan
-    lila?: number | null; // Data tambahan
-    cara_ukur?: string | null; // Data tambahan
-    pitting_edema?: string | null; // Data tambahan
+    lingkar_kepala?: number | null;
+    lila?: number | null;
+    cara_ukur?: string | null;
+    pitting_edema?: string | null;
   }[];
   status: string;
   tanggal_lahir?: string;
+}
+
+type RiwayatItem = DetailResponse["riwayat"][number];
+
+interface GraphPoint {
+  date: string;
+  fullDate: string;
+  height: number;
+  heightY: number;
+  id: number;
+  weight: number;
+  weightY: number;
+  x: number;
 }
 
 function MemberDetailView() {
@@ -34,16 +52,13 @@ function MemberDetailView() {
 
   const [data, setData] = useState<DetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedPoint, setSelectedPoint] = useState<any>(null);
-
-  // STATE BARU: Untuk mengontrol Pop-up Detail Riwayat
-  const [selectedHistory, setSelectedHistory] = useState<any>(null);
+  const [selectedPoint, setSelectedPoint] = useState<GraphPoint | null>(null);
+  const [selectedHistory, setSelectedHistory] = useState<RiwayatItem | null>(
+    null,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch data dari backend
   useEffect(() => {
-    // Fungsi untuk mengeksekusi hapus data
-
     const fetchData = async () => {
       try {
         const response = await fetch(`/api/peserta/${id}`);
@@ -69,15 +84,13 @@ function MemberDetailView() {
     );
   }
 
-  // --- LOGIKA GRAFIK DINAMIS ---
   const riwayatUrut = [...data.riwayat].reverse();
 
-  const graphData = riwayatUrut.map((item, index) => {
+  const graphData: GraphPoint[] = riwayatUrut.map((item, index) => {
     const spacingX =
       riwayatUrut.length > 1 ? 360 / (riwayatUrut.length - 1) : 180;
     const x = 20 + index * spacingX;
 
-    // Kalkulasi Y (vertikal)
     const berat = item.berat || 0;
     let weightY = 160 - berat * 5;
 
@@ -109,7 +122,6 @@ function MemberDetailView() {
   const dataTerbaru = data.riwayat[0];
   const inisial = data.nama_anak.substring(0, 2).toUpperCase();
 
-  // --- FUNGSI HELPER UI ---
   const formatTanggalLahir = (tgl?: string) => {
     if (!tgl) return "-";
     return new Date(tgl).toLocaleDateString("id-ID", {
@@ -139,19 +151,17 @@ function MemberDetailView() {
   };
 
   const handleDeleteHistory = async (idRiwayat: number) => {
-    // 1. Konfirmasi ke user (Alert bawaan browser)
     if (
       !window.confirm(
         "Yakin ingin menghapus data pengukuran ini? Data yang dihapus tidak bisa dikembalikan.",
       )
     ) {
-      return; // Batalkan jika user pilih "Cancel"
+      return;
     }
 
     setIsDeleting(true);
 
     try {
-      // 2. Panggil API DELETE ke backend
       const response = await fetch(`/api/pendataan/${idRiwayat}`, {
         method: "DELETE",
       });
@@ -160,17 +170,14 @@ function MemberDetailView() {
         throw new Error("Gagal menghapus data dari server");
       }
 
-      // 3. Update state lokal (Hapus data dari UI tanpa perlu refresh halaman)
       setData((prevData) => {
         if (!prevData) return prevData;
         return {
           ...prevData,
-          // Saring (filter) riwayat: buang item yang ID-nya sama dengan yang baru saja dihapus
           riwayat: prevData.riwayat.filter((item) => item.id !== idRiwayat),
         };
       });
 
-      // 4. Tutup Pop-up dan beritahu user
       setSelectedHistory(null);
       alert("Data pengukuran berhasil dihapus!");
     } catch (error) {
@@ -184,7 +191,6 @@ function MemberDetailView() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center relative">
       <div className="w-full max-w-md md:max-w-5xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
-        {/* Header */}
         <div className="p-4 md:px-8 md:pt-8 flex items-center md:border-b md:border-slate-100">
           <Link
             className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors"
@@ -199,7 +205,7 @@ function MemberDetailView() {
 
         <div className="flex-1 overflow-y-auto pb-8 md:p-8">
           <div className="md:grid md:grid-cols-2 md:gap-12">
-            {/* KOLOM KIRI (Profil & Grafik) */}
+            {/* KOLOM KIRI */}
             <div className="flex flex-col px-5 md:px-0">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-20 h-20 rounded-full bg-[#E0E7FF] text-[#1E1B4B] flex items-center justify-center font-bold text-3xl shrink-0">
@@ -212,7 +218,8 @@ function MemberDetailView() {
                     </h2>
                     <Link
                       className="flex items-center gap-1.5 text-slate-600 hover:text-[#1E1B4B] transition-colors bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm shrink-0"
-                      to={`/anggota/edit/${id}`}
+                      params={{ editId: id }}
+                      to="/anggota/edit/$editId"
                     >
                       <Pencil className="w-3 h-3" />
                       <span className="text-[10px] font-bold uppercase tracking-wider">
@@ -247,16 +254,13 @@ function MemberDetailView() {
 
                 <div className="bg-[#F8F9FA] rounded-2xl p-4 md:border md:border-slate-100 md:shadow-sm">
                   {graphData.length > 0 ? (
-                    // PENYELESAIAN BUG 2: Gunakan h-[220px] yang konstan, alih-alih aspect-ratio.
-                    // Ini memastikan kotak container grafik selalu punya dimensi fisik yang kuat.
                     <div className="relative w-full h-[220px]">
                       <svg
-                        role="img"
-                        aria-label="grafik pertumbuhan tinggi badan anak"
                         className="w-full h-full overflow-visible"
                         preserveAspectRatio="none"
                         viewBox="0 0 400 200"
                       >
+                        <title>Grafik Pertumbuhan Anak</title>
                         <line
                           stroke="#E2E8F0"
                           strokeWidth="1.5"
@@ -301,9 +305,10 @@ function MemberDetailView() {
 
                         {graphData.map((d) => {
                           const isSelected = selectedPoint?.id === d.id;
+
                           return (
-                            // biome-ignore lint/a11y/noStaticElementInteractions: <explanation>
-<g
+                            // biome-ignore lint/a11y/noStaticElementInteractions: SVG chart point
+                            <g
                               className="cursor-pointer outline-none"
                               key={d.id}
                               onClick={(e) => {
@@ -311,7 +316,6 @@ function MemberDetailView() {
                                 setSelectedPoint(isSelected ? null : d);
                               }}
                             >
-                              {/* Invisible hitbox dengan fill="transparent" (bukan rgba) supaya kompatibel */}
                               <rect
                                 fill="transparent"
                                 height="200"
@@ -364,7 +368,6 @@ function MemberDetailView() {
                         })}
                       </svg>
 
-                      {/* Tooltip Popup Grafik */}
                       {selectedPoint && (
                         <div
                           className="absolute bg-white shadow-lg border border-slate-100 rounded-xl p-2.5 flex flex-col gap-1 w-28 pointer-events-none transition-all duration-200 z-20"
@@ -439,7 +442,7 @@ function MemberDetailView() {
 
             <div className="w-full h-2 bg-slate-100 md:hidden mb-6"></div>
 
-            {/* KOLOM KANAN (Riwayat Pengukuran) */}
+            {/* KOLOM KANAN */}
             <div className="flex flex-col px-5 md:px-0">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold text-slate-800 text-[15px]">
@@ -447,7 +450,8 @@ function MemberDetailView() {
                 </h3>
                 <Link
                   className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
-                  to={`/anggota/input/${id}`}
+                  params={{ pesertaId: id }}
+                  to="/anggota/input/$pesertaId"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Tambah
@@ -457,21 +461,13 @@ function MemberDetailView() {
               <div className="space-y-4">
                 {data.riwayat.length > 0 ? (
                   data.riwayat.map((item, index) => (
-                    // biome-ignore lint/a11y/noStaticElementInteractions: <explanation>
-// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
-                      <div
-                      
+                    <div
                       className="flex items-center justify-between bg-white md:bg-slate-50 md:border md:border-slate-100 p-3 rounded-2xl"
                       key={item.id}
-                      onClick={() => setSelectedHistory(item)}
                     >
                       <div className="flex items-center gap-4">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                            index === 0
-                              ? "bg-indigo-100 text-indigo-700"
-                              : "bg-slate-100 text-slate-500"
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${index === 0 ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-500"}`}
                         >
                           <Calendar className="w-4 h-4" />
                         </div>
@@ -512,14 +508,15 @@ function MemberDetailView() {
       {/* MODAL POP-UP DETAIL RIWAYAT */}
       {selectedHistory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: Modal container requires onClick to stop propagation */}
-          {/* biome-ignore lint/a11y/useKeyWithClickEvents: No keyboard action needed for stopPropagation */}
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()} // Mencegah klik tembus ke belakang
-          >
+          {/* Tombol backdrop transparan untuk menutup modal (tanpa melanggar a11y) */}
+          <button
+            aria-label="Tutup detail"
+            className="absolute inset-0 z-10 cursor-default"
+            onClick={() => setSelectedHistory(null)}
+            type="button"
+          />
+
+          <div className="relative z-20 bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             {/* Header Modal */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-[#F8F9FA]">
               <h3 className="font-bold text-slate-800 text-[15px]">
@@ -598,25 +595,25 @@ function MemberDetailView() {
               </div>
             </div>
 
-            {/* Area Tombol Aksi */}
             <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
               <button
-                type="button"
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors shadow-sm"
                 onClick={() =>
                   navigate({
-                    to: `/anggota/edit-pengukuran/${selectedHistory.id}` as any,
+                    to: "/anggota/edit-pengukuran/$pengukuranId",
+                    params: { pengukuranId: String(selectedHistory.id) },
                   })
                 }
+                type="button"
               >
                 <Pencil className="w-4 h-4" /> Edit
               </button>
 
               <button
-                type="button"
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                 disabled={isDeleting}
                 onClick={() => handleDeleteHistory(selectedHistory.id)}
+                type="button"
               >
                 {isDeleting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -628,9 +625,9 @@ function MemberDetailView() {
             </div>
             <div className="pt-2 pb-2 px-5">
               <button
-                type="button"
                 className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-md"
                 onClick={() => setSelectedHistory(null)}
+                type="button"
               >
                 Batal
               </button>

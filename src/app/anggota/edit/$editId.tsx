@@ -1,66 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Loader2, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
-export const Route = createFileRoute('/anggota/edit/$editId')({
+export const Route = createFileRoute("/anggota/edit/$editId")({
   component: EditMemberForm,
 });
 
 function EditMemberForm() {
-  // Mengambil parameter editId dari URL TanStack Router
   const { editId } = Route.useParams();
   const navigate = useNavigate();
-  
+
   const [isFetching, setIsFetching] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // State disesuaikan dengan Form UI
   const [formData, setFormData] = useState({
-    nama_anak: '',
-    nik: '',
-    nama_ibu: '',
-    // UI Only (Karena belum ada di DB)
-    jenis_kelamin: '',
-    tgl_lahir: '',
-    bulan_lahir: '',
-    tahun_lahir: '',
+    nama_anak: "",
+    nik: "",
+    nama_ibu: "",
+    jenis_kelamin: "",
+    tgl_lahir: "",
+    bulan_lahir: "",
+    tahun_lahir: "",
   });
 
-  // Fetch data lama saat komponen pertama kali dimuat
-useEffect(() => {
+  useEffect(() => {
     const fetchExistingData = async () => {
       try {
         const response = await fetch(`/api/peserta/${editId}`);
-        if (!response.ok) throw new Error('Data tidak ditemukan');
-        
+        if (!response.ok) throw new Error("Data tidak ditemukan");
+
         const data = await response.json();
-        
-        // Memecah format YYYY-MM-DD menjadi bagian-bagian terpisah
-        let tgl = '', bln = '', thn = '';
+
+        let tgl = "",
+          bln = "",
+          thn = "";
         if (data.tanggal_lahir) {
-          const parts = data.tanggal_lahir.split('-'); // ["2024", "05", "12"]
+          const parts = data.tanggal_lahir.split("-");
           if (parts.length === 3) {
             thn = parts[0];
-            // Gunakan parseInt untuk menghilangkan angka 0 di depan agar cocok dengan value di <option>
-            bln = parseInt(parts[1], 10).toString(); // "05" menjadi "5"
-            tgl = parseInt(parts[2], 10).toString(); // "12" menjadi "12"
+            bln = parseInt(parts[1], 10).toString();
+            tgl = parseInt(parts[2], 10).toString();
           }
         }
-        
-        // Memasukkan data lama ke dalam state form
-        setFormData(prev => ({
+
+        setFormData((prev) => ({
           ...prev,
-          nama_anak: data.nama_anak || '',
-          nik: data.nik || '',
-          nama_ibu: data.nama_ibu || '',
-          jenis_kelamin: data.jenis_kelamin || 'Laki-laki',
+          nama_anak: data.nama_anak || "",
+          nik: data.nik || "",
+          nama_ibu: data.nama_ibu || "",
+          jenis_kelamin: data.jenis_kelamin || "Laki-laki",
           tgl_lahir: tgl,
           bulan_lahir: bln,
           tahun_lahir: thn,
         }));
       } catch (error) {
-        console.error('Error fetching detail:', error);
-        alert('Gagal memuat data anggota.');
+        console.error("Error fetching detail:", error);
+        alert("Gagal memuat data anggota.");
       } finally {
         setIsFetching(false);
       }
@@ -72,19 +68,20 @@ useEffect(() => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const tahunInput = parseInt(formData.tahun_lahir, 10);
-    const tahunSekarang = new Date().getFullYear(); // Otomatis mengambil tahun saat ini (misal: 2026)
+    const tahunSekarang = new Date().getFullYear();
 
     if (!tahunInput || tahunInput < 2000 || tahunInput > tahunSekarang) {
-      alert(`Tahun lahir tidak valid! Harap masukkan tahun antara 2000 - ${tahunSekarang}.`);
-      return; // Menghentikan eksekusi, form tidak akan dikirim
+      alert(
+        `Tahun lahir tidak valid! Harap masukkan tahun antara 2000 - ${tahunSekarang}.`,
+      );
+      return;
     }
     setIsLoading(true);
-    const formatBulan = formData.bulan_lahir.padStart(2, '0');
-  const formatTgl = formData.tgl_lahir.padStart(2, '0');
-  const fullTanggalLahir = `${formData.tahun_lahir}-${formatBulan}-${formatTgl}`;
+    const formatBulan = formData.bulan_lahir.padStart(2, "0");
+    const formatTgl = formData.tgl_lahir.padStart(2, "0");
+    const fullTanggalLahir = `${formData.tahun_lahir}-${formatBulan}-${formatTgl}`;
 
     try {
-      // 1. Siapkan payload sesuai kolom yang ada di DB saat ini
       const payload = {
         nama_anak: formData.nama_anak,
         nik: formData.nik,
@@ -93,32 +90,28 @@ useEffect(() => {
         tanggal_lahir: fullTanggalLahir,
       };
 
-      // 2. Kirim ke API endpoint (Pastikan backend Anda sudah punya method PUT/PATCH untuk update)
       const response = await fetch(`/api/peserta/${editId}`, {
-        method: 'PUT', 
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error('Gagal menyimpan perubahan');
+        throw new Error("Gagal menyimpan perubahan");
       }
 
-      alert('Data anggota berhasil diperbarui!');
-      // Arahkan kembali ke halaman info detail anak tersebut
-      navigate({ to: `/anggota/info/${editId}` });
-      
+      alert("Data anggota berhasil diperbarui!");
+      navigate({ to: "/anggota/info/$id", params: { id: editId } });
     } catch (error) {
-      console.error('Error:', error);
-      alert('Terjadi kesalahan saat memperbarui data.');
+      console.error("Error:", error);
+      alert("Terjadi kesalahan saat memperbarui data.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Tampilkan loading screen saat sedang menarik data dari database
   if (isFetching) {
     return (
       <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
@@ -129,13 +122,12 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
-      
       <div className="w-full max-w-md mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
-        
         <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
-          <Link 
-            to={`/anggota/info/${editId}`}
+          <Link
             className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+            params={{ id: editId }}
+            to="/anggota/info/$id"
           >
             <X className="w-6 h-6" />
           </Link>
@@ -145,82 +137,115 @@ useEffect(() => {
         </div>
 
         <div className="px-5 pt-2 pb-8 flex-1 flex flex-col md:px-8">
-          <form onSubmit={handleSubmit} className="space-y-5 flex-1 flex flex-col">
-            
+          <form
+            className="space-y-5 flex-1 flex flex-col"
+            onSubmit={handleSubmit}
+          >
             <div className="flex flex-col gap-1.5">
-              <label htmlFor='Nama' className="text-[11px] font-semibold text-slate-600">Nama Anak</label>
-              <input 
-                type="text" 
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="nama"
+              >
+                Nama Anak
+              </label>
+              <input
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+                id="nama"
+                onChange={(e) =>
+                  setFormData({ ...formData, nama_anak: e.target.value })
+                }
+                placeholder="Masukkan nama lengkap anak"
                 required
+                type="text"
                 value={formData.nama_anak}
-                onChange={(e) => setFormData({ ...formData, nama_anak: e.target.value })}
-                placeholder="Masukkan nama lengkap anak" 
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor='NIK' className="text-[11px] font-semibold text-slate-600">NIK (Nomor Induk Kependudukan)</label>
-              <input 
-                type="text" 
-                required
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="nik"
+              >
+                NIK (Nomor Induk Kependudukan)
+              </label>
+              <input
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+                id="nik"
                 maxLength={16}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    nik: e.target.value.replace(/\D/g, ""),
+                  })
+                }
+                placeholder="16 digit NIK"
+                required
+                type="text"
                 value={formData.nik}
-                onChange={(e) => setFormData({ ...formData, nik: e.target.value.replace(/\D/g, '') })}
-                placeholder="16 digit NIK" 
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
               />
             </div>
 
-            {/* JENIS KELAMIN - Hanya untuk UI */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor='Jenis Kelamin' className="text-[11px] font-semibold text-slate-600">Jenis Kelamin</label>
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="jenis_kelamin"
+              >
+                Jenis Kelamin
+              </label>
               <div className="grid grid-cols-2 gap-3">
-                <button 
+                <button
+                  className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${formData.jenis_kelamin === "Laki-laki" ? "border-indigo-400 bg-indigo-50 text-indigo-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                  onClick={() =>
+                    setFormData({ ...formData, jenis_kelamin: "Laki-laki" })
+                  }
                   type="button"
-                  onClick={() => setFormData({ ...formData, jenis_kelamin: 'Laki-laki' })}
-                  className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
-                    formData.jenis_kelamin === 'Laki-laki' 
-                      ? 'border-indigo-400 bg-indigo-50 text-indigo-700' 
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
                 >
                   <span className="text-lg leading-none">♂</span> Laki-laki
                 </button>
-                
-                <button 
+
+                <button
+                  className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${formData.jenis_kelamin === "Perempuan" ? "border-pink-400 bg-pink-50 text-pink-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                  onClick={() =>
+                    setFormData({ ...formData, jenis_kelamin: "Perempuan" })
+                  }
                   type="button"
-                  onClick={() => setFormData({ ...formData, jenis_kelamin: 'Perempuan' })}
-                  className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
-                    formData.jenis_kelamin === 'Perempuan' 
-                      ? 'border-pink-400 bg-pink-50 text-pink-700' 
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
                 >
                   <span className="text-lg leading-none">♀</span> Perempuan
                 </button>
               </div>
             </div>
 
-            {/* TANGGAL LAHIR - Hanya untuk UI */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor='Tanggal Lahir' className="text-[11px] font-semibold text-slate-600">Tanggal Lahir Anak</label>
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="tanggal_lahir"
+              >
+                Tanggal Lahir Anak
+              </label>
               <div className="grid grid-cols-[1fr_1fr_1fr] gap-2">
-                <select 
-                  value={formData.tgl_lahir}
-                  onChange={(e) => setFormData({ ...formData, tgl_lahir: e.target.value })}
+                <select
                   className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
+                  id="tgl_lahir"
+                  onChange={(e) =>
+                    setFormData({ ...formData, tgl_lahir: e.target.value })
+                  }
+                  value={formData.tgl_lahir}
                 >
                   <option value="">Tgl</option>
                   {Array.from({ length: 31 }, (_, i) => (
-                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                    <option key={`tgl-${++i}`} value={String(i + 1)}>
+                      {i + 1}
+                    </option>
                   ))}
                 </select>
 
-                <select 
-                  value={formData.bulan_lahir}
-                  onChange={(e) => setFormData({ ...formData, bulan_lahir: e.target.value })}
+                <select
                   className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
+                  id="bulan_lahir"
+                  onChange={(e) =>
+                    setFormData({ ...formData, bulan_lahir: e.target.value })
+                  }
+                  value={formData.bulan_lahir}
                 >
                   <option value="">Bulan</option>
                   <option value="1">Januari</option>
@@ -237,34 +262,45 @@ useEffect(() => {
                   <option value="12">Desember</option>
                 </select>
 
-                <input 
-                  type="number" 
-                  min="2000" // Batas minimal
-                  max={new Date().getFullYear()}
-                  value={formData.tahun_lahir}
-                  onChange={(e) => setFormData({ ...formData, tahun_lahir: e.target.value })}
-                  placeholder="Tahun" 
+                <input
                   className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+                  id="tahun_lahir"
+                  max={new Date().getFullYear()}
+                  min="2000"
+                  onChange={(e) =>
+                    setFormData({ ...formData, tahun_lahir: e.target.value })
+                  }
+                  placeholder="Tahun"
+                  type="number"
+                  value={formData.tahun_lahir}
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor='Nama Ibu' className="text-[11px] font-semibold text-slate-600">Nama Ibu Kandung</label>
-              <input 
+              <label
+                className="text-[11px] font-semibold text-slate-600"
+                htmlFor="nama_ibu"
+              >
+                Nama Ibu Kandung
+              </label>
+              <input
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+                id="nama_ibu"
+                onChange={(e) =>
+                  setFormData({ ...formData, nama_ibu: e.target.value })
+                }
+                placeholder="Masukkan nama ibu"
                 type="text"
                 value={formData.nama_ibu}
-                onChange={(e) => setFormData({ ...formData, nama_ibu: e.target.value })}
-                placeholder="Masukkan nama ibu" 
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
               />
             </div>
 
             <div className="mt-auto pt-8">
-              <button 
-                type="submit"
-                disabled={isLoading}
+              <button
                 className="w-full flex items-center justify-center py-4 rounded-xl bg-[#23257B] text-white font-medium text-sm hover:bg-[#1a1c5e] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                disabled={isLoading}
+                type="submit"
               >
                 {isLoading ? (
                   <>
@@ -272,14 +308,12 @@ useEffect(() => {
                     Menyimpan...
                   </>
                 ) : (
-                  'Simpan Perubahan'
+                  "Simpan Perubahan"
                 )}
               </button>
             </div>
-
           </form>
         </div>
-
       </div>
     </div>
   );

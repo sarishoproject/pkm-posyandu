@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.7.0] - 2026-07-25
+- 🎨 [UI] Standardized component layouts and improved accessibility labels using htmlFor attributes.
+- ⚙️ [Code] Refactored TanStack Router navigation logic to use explicit params for better type safety.
+- 🧹 [Refactor] Simplified state management and improved error handling for sensor data fetching and form submissions.
+- ⚡️ [Optimization] Added descriptive types and cleaned up redundant imports and whitespace.
+- ✨ [Feature] Added placeholder Akun page for future account settings implementation.
+
+
 ## [2.6.1] - 2026-07-25
 - 🎨 Refactor React components in edit measurement and edit member forms for better readability.
 - ⚙️ Update error handling in data fetching to provide more informative feedback when server requests fail.
@@ -9,7 +17,6 @@
 ### [2026-07-25]
 - 🧹 Delete obsolete edit component for anggota module
 - ⚙️ Clean up project structure by removing unused route file
-
 
 ## [2.6.0] - 2026-07-25
 - ✨ Implement sensor data integration for weight and height in measurement forms

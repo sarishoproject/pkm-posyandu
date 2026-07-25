@@ -57,10 +57,13 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
       message: "Data berhasil diupdate.",
       data: updated,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error PUT pendataan:", error);
     return NextResponse.json(
-      { error: error.message || "Gagal memperbarui data di database." },
+      {
+        error:
+          (error as Error).message || "Gagal memperbarui data di database.",
+      },
       { status: 500 },
     );
   }
@@ -69,14 +72,14 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
 export const GET: NextRouteHandler<{ id: string }> = async (req) => {
   try {
     const { id } = req.params;
-    
+
     // Tarik 1 baris data dari database berdasarkan ID
     const data = db.prepare("SELECT * FROM pendataan WHERE id = ?").get(id);
 
     if (!data) {
       return NextResponse.json(
         { error: "Data pendataan tidak ditemukan." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -86,7 +89,7 @@ export const GET: NextRouteHandler<{ id: string }> = async (req) => {
     console.error("Error GET pendataan:", error);
     return NextResponse.json(
       { error: "Gagal mengambil data dari server." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };
