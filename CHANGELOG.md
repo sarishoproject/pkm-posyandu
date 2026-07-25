@@ -1,5 +1,10 @@
 # Changelog
 
+### [2026-07-25]
+- 🧹 Delete obsolete edit component for anggota module
+- ⚙️ Clean up project structure by removing unused route file
+
+
 ## [2.6.0] - 2026-07-25
 - ✨ Implement sensor data integration for weight and height in measurement forms
 - ⚙️ Add manual inputs for head and arm circumference, measurement method, and pitting edema
