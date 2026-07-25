@@ -17,7 +17,15 @@ export const POST: NextRouteHandler<
   PesertaInput
 > = async (req) => {
   const body = await req.json();
-  const { nik, nama_anak, nama_ibu, qr_code, status } = body;
+  const {
+    nik,
+    nama_anak,
+    nama_ibu,
+    qr_code,
+    status,
+    jenis_kelamin,
+    tanggal_lahir,
+  } = body;
 
   if (!nik || !nama_anak) {
     return NextResponse.json(
@@ -26,10 +34,17 @@ export const POST: NextRouteHandler<
     );
   }
 
+  if (jenis_kelamin && !["Laki-laki", "Perempuan"].includes(jenis_kelamin)) {
+    return NextResponse.json(
+      { error: "Jenis kelamin harus 'Laki-laki' atau 'Perempuan'." },
+      { status: 400 },
+    );
+  }
+
   try {
     const stmt = db.prepare(
-      `INSERT INTO peserta (nik, nama_anak, nama_ibu, qr_code, status) 
-       VALUES (?, ?, ?, ?, ?) RETURNING *`,
+      `INSERT INTO peserta (nik, nama_anak, nama_ibu, qr_code, status , jenis_kelamin , tanggal_lahir) 
+       VALUES (?, ?, ?, ?, ? , ?, ?) RETURNING *`,
     );
     const newPeserta = stmt.get(
       nik,
@@ -37,6 +52,8 @@ export const POST: NextRouteHandler<
       nama_ibu || null,
       qr_code || null,
       status || "aktif",
+      jenis_kelamin || null,
+      tanggal_lahir || null,
     ) as Peserta;
 
     return NextResponse.json(newPeserta, { status: 201 });

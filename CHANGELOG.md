@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.0] - 2026-07-25
+- ✨ Implement sensor data integration for weight and height in measurement forms
+- ⚙️ Add manual inputs for head and arm circumference, measurement method, and pitting edema
+- 🛠️ Add validation for birth year in participant editing to ensure valid date ranges
+- 🎨 Improve UI layout for measurement and edit forms with responsive design
+- 🧹 Refactor form state management and data formatting logic for dates
+- 📝 Add delete functionality and improved navigation across member info pages
+
 ## [2.5.0] - 2026-07-23
 - ✨ Added EditMemberForm for updating member details.
 - ⚙️ Integrated real-time weight/height data fetching from sensors in the input form.
