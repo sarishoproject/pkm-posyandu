@@ -2,7 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Loader2, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
+export const Route = createFileRoute("/anggota/edit/$editId")({
 export const Route = createFileRoute("/anggota/edit/$editId")({
   component: EditMemberForm,
 });
@@ -12,11 +17,15 @@ function EditMemberForm() {
   const { editId } = Route.useParams();
   const navigate = useNavigate();
 
+
   const [isFetching, setIsFetching] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   // State disesuaikan dengan Form UI
   const [formData, setFormData] = useState({
+    nama_anak: "",
+    nik: "",
+    nama_ibu: "",
     nama_anak: "",
     nik: "",
     nama_ibu: "",
@@ -32,6 +41,8 @@ function EditMemberForm() {
     const fetchExistingData = async () => {
       try {
         const response = await fetch(`/api/peserta/${editId}`);
+        if (!response.ok) throw new Error("Data tidak ditemukan");
+
         if (!response.ok) throw new Error("Data tidak ditemukan");
 
         const data = await response.json();
@@ -52,6 +63,7 @@ function EditMemberForm() {
 
         // Memasukkan data lama ke dalam state form
         setFormData((prev) => ({
+        setFormData((prev) => ({
           ...prev,
           nama_anak: data.nama_anak || "",
           nik: data.nik || "",
@@ -62,6 +74,8 @@ function EditMemberForm() {
           tahun_lahir: thn,
         }));
       } catch (error) {
+        console.error("Error fetching detail:", error);
+        alert("Gagal memuat data anggota.");
         console.error("Error fetching detail:", error);
         alert("Gagal memuat data anggota.");
       } finally {
@@ -101,7 +115,9 @@ function EditMemberForm() {
       // 2. Kirim ke API endpoint (Pastikan backend Anda sudah punya method PUT/PATCH untuk update)
       const response = await fetch(`/api/peserta/${editId}`, {
         method: "PUT",
+        method: "PUT",
         headers: {
+          "Content-Type": "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -109,12 +125,16 @@ function EditMemberForm() {
 
       if (!response.ok) {
         throw new Error("Gagal menyimpan perubahan");
+        throw new Error("Gagal menyimpan perubahan");
       }
 
+      alert("Data anggota berhasil diperbarui!");
       alert("Data anggota berhasil diperbarui!");
       // Arahkan kembali ke halaman info detail anak tersebut
       navigate({ to: `/anggota/info/${editId}` });
     } catch (error) {
+      console.error("Error:", error);
+      alert("Terjadi kesalahan saat memperbarui data.");
       console.error("Error:", error);
       alert("Terjadi kesalahan saat memperbarui data.");
     } finally {
@@ -136,7 +156,9 @@ function EditMemberForm() {
       <div className="w-full max-w-md mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
         <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
           <Link
+          <Link
             className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+            to={`/anggota/info/${editId}`}
             to={`/anggota/info/${editId}`}
           >
             <X className="w-6 h-6" />
@@ -151,7 +173,20 @@ function EditMemberForm() {
             className="space-y-5 flex-1 flex flex-col"
             onSubmit={handleSubmit}
           >
+          <form
+            className="space-y-5 flex-1 flex flex-col"
+            onSubmit={handleSubmit}
+          >
             <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold text-slate-600">
+                Nama Anak
+              </label>
+              <input
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+                onChange={(e) =>
+                  setFormData({ ...formData, nama_anak: e.target.value })
+                }
+                placeholder="Masukkan nama lengkap anak"
               <label className="text-[11px] font-semibold text-slate-600">
                 Nama Anak
               </label>
@@ -163,6 +198,7 @@ function EditMemberForm() {
                 placeholder="Masukkan nama lengkap anak"
                 required
                 type="text"
+                type="text"
                 value={formData.nama_anak}
               />
             </div>
@@ -173,7 +209,21 @@ function EditMemberForm() {
               </label>
               <input
                 className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+              <label className="text-[11px] font-semibold text-slate-600">
+                NIK (Nomor Induk Kependudukan)
+              </label>
+              <input
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
                 maxLength={16}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    nik: e.target.value.replace(/\D/g, ""),
+                  })
+                }
+                placeholder="16 digit NIK"
+                required
+                type="text"
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -192,13 +242,24 @@ function EditMemberForm() {
               <label className="text-[11px] font-semibold text-slate-600">
                 Jenis Kelamin
               </label>
+              <label className="text-[11px] font-semibold text-slate-600">
+                Jenis Kelamin
+              </label>
               <div className="grid grid-cols-2 gap-3">
+                <button
                 <button
                   className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
                     formData.jenis_kelamin === "Laki-laki"
                       ? "border-indigo-400 bg-indigo-50 text-indigo-700"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    formData.jenis_kelamin === "Laki-laki"
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                   }`}
+                  onClick={() =>
+                    setFormData({ ...formData, jenis_kelamin: "Laki-laki" })
+                  }
+                  type="button"
                   onClick={() =>
                     setFormData({ ...formData, jenis_kelamin: "Laki-laki" })
                   }
@@ -208,11 +269,20 @@ function EditMemberForm() {
                 </button>
 
                 <button
+
+                <button
                   className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
                     formData.jenis_kelamin === "Perempuan"
                       ? "border-pink-400 bg-pink-50 text-pink-700"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    formData.jenis_kelamin === "Perempuan"
+                      ? "border-pink-400 bg-pink-50 text-pink-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                   }`}
+                  onClick={() =>
+                    setFormData({ ...formData, jenis_kelamin: "Perempuan" })
+                  }
+                  type="button"
                   onClick={() =>
                     setFormData({ ...formData, jenis_kelamin: "Perempuan" })
                   }
@@ -228,9 +298,17 @@ function EditMemberForm() {
               <label className="text-[11px] font-semibold text-slate-600">
                 Tanggal Lahir Anak
               </label>
+              <label className="text-[11px] font-semibold text-slate-600">
+                Tanggal Lahir Anak
+              </label>
               <div className="grid grid-cols-[1fr_1fr_1fr] gap-2">
                 <select
+                <select
                   className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
+                  onChange={(e) =>
+                    setFormData({ ...formData, tgl_lahir: e.target.value })
+                  }
+                  value={formData.tgl_lahir}
                   onChange={(e) =>
                     setFormData({ ...formData, tgl_lahir: e.target.value })
                   }
@@ -241,11 +319,19 @@ function EditMemberForm() {
                     <option key={i + 1} value={String(i + 1)}>
                       {i + 1}
                     </option>
+                    <option key={i + 1} value={String(i + 1)}>
+                      {i + 1}
+                    </option>
                   ))}
                 </select>
 
                 <select
+                <select
                   className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
+                  onChange={(e) =>
+                    setFormData({ ...formData, bulan_lahir: e.target.value })
+                  }
+                  value={formData.bulan_lahir}
                   onChange={(e) =>
                     setFormData({ ...formData, bulan_lahir: e.target.value })
                   }
@@ -290,6 +376,15 @@ function EditMemberForm() {
                   setFormData({ ...formData, nama_ibu: e.target.value })
                 }
                 placeholder="Masukkan nama ibu"
+              <label className="text-[11px] font-semibold text-slate-600">
+                Nama Ibu Kandung
+              </label>
+              <input
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+                onChange={(e) =>
+                  setFormData({ ...formData, nama_ibu: e.target.value })
+                }
+                placeholder="Masukkan nama ibu"
                 type="text"
                 value={formData.nama_ibu}
               />
@@ -297,7 +392,10 @@ function EditMemberForm() {
 
             <div className="mt-auto pt-8">
               <button
+              <button
                 className="w-full flex items-center justify-center py-4 rounded-xl bg-[#23257B] text-white font-medium text-sm hover:bg-[#1a1c5e] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                disabled={isLoading}
+                type="submit"
                 disabled={isLoading}
                 type="submit"
               >
@@ -308,6 +406,7 @@ function EditMemberForm() {
                   </>
                 ) : (
                   "Simpan Perubahan"
+                  "Simpan Perubahan"
                 )}
               </button>
             </div>
@@ -317,3 +416,4 @@ function EditMemberForm() {
     </div>
   );
 }
+

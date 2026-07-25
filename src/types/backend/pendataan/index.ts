@@ -9,7 +9,7 @@ export interface Pendataan {
   mbg: string | null;
   peserta_id: number;
   pitting_edema: string | null;
-  tanggal_ukur: string; // Format: YYYY-MM-DD
+  tanggal_ukur: string;
   tinggi: number | null;
   vita: string | null;
 }

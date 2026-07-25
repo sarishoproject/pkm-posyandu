@@ -1,13 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  Calendar,
-  Loader2,
-  Pencil,
-  Plus,
-  Trash2, // Icon baru untuk tombol Hapus
-  X, // Icon baru untuk tombol tutup Pop-up
-} from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Calendar, Loader2, Pencil, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 // Route dinamis TanStack
@@ -38,7 +30,6 @@ interface DetailResponse {
 
 function MemberDetailView() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
 
   const [data, setData] = useState<DetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,6 +76,7 @@ function MemberDetailView() {
       riwayatUrut.length > 1 ? 360 / (riwayatUrut.length - 1) : 180;
     const x = 20 + index * spacingX;
 
+    // Kalkulasi Y (vertikal)
     const berat = item.berat || 0;
     let weightY = 160 - berat * 5;
 
@@ -254,6 +246,8 @@ function MemberDetailView() {
 
                 <div className="bg-[#F8F9FA] rounded-2xl p-4 md:border md:border-slate-100 md:shadow-sm">
                   {graphData.length > 0 ? (
+                    // PENYELESAIAN BUG 2: Gunakan h-[220px] yang konstan, alih-alih aspect-ratio.
+                    // Ini memastikan kotak container grafik selalu punya dimensi fisik yang kuat.
                     <div className="relative w-full h-[220px]">
                       <svg
                         className="w-full h-full overflow-visible"
@@ -313,6 +307,7 @@ function MemberDetailView() {
                                 setSelectedPoint(isSelected ? null : d);
                               }}
                             >
+                              {/* Invisible hitbox dengan fill="transparent" (bukan rgba) supaya kompatibel */}
                               <rect
                                 fill="transparent"
                                 height="200"
@@ -320,6 +315,7 @@ function MemberDetailView() {
                                 x={d.x - 20}
                                 y="0"
                               />
+
                               {isSelected && (
                                 <line
                                   stroke="#94A3B8"
@@ -331,6 +327,7 @@ function MemberDetailView() {
                                   y2="160"
                                 />
                               )}
+
                               <circle
                                 cx={d.x}
                                 cy={d.heightY}
@@ -347,6 +344,7 @@ function MemberDetailView() {
                                 stroke="#1E1B4B"
                                 strokeWidth={isSelected ? "2" : "0"}
                               />
+
                               <text
                                 fill={isSelected ? "#1E1B4B" : "#64748B"}
                                 fontSize="11"
@@ -455,11 +453,9 @@ function MemberDetailView() {
               <div className="space-y-4">
                 {data.riwayat.length > 0 ? (
                   data.riwayat.map((item, index) => (
-                    // PERUBAHAN: Menjadikan div ini bisa diklik dan merubah kursor
                     <div
-                      className="flex items-center justify-between bg-white md:bg-slate-50 md:border md:border-slate-100 p-3 rounded-2xl cursor-pointer hover:bg-slate-50 md:hover:bg-slate-100 transition-colors"
+                      className="flex items-center justify-between bg-white md:bg-slate-50 md:border md:border-slate-100 p-3 rounded-2xl"
                       key={item.id}
-                      onClick={() => setSelectedHistory(item)}
                     >
                       <div className="flex items-center gap-4">
                         <div
@@ -481,9 +477,6 @@ function MemberDetailView() {
                                 year: "numeric",
                               },
                             )}
-                          </span>
-                          <span className="text-[10px] text-slate-500 mt-0.5">
-                            Ketuk untuk detail
                           </span>
                         </div>
                       </div>

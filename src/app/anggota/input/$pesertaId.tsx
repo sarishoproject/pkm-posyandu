@@ -235,7 +235,6 @@ function MeasurementForm() {
                         })
                       }
                       placeholder="Contoh: 45.5"
-                      required
                       step="0.1"
                       type="number"
                       value={formData.lingkar_kepala}
@@ -251,7 +250,6 @@ function MeasurementForm() {
                         setFormData({ ...formData, lila: e.target.value })
                       }
                       placeholder="Contoh: 14.5"
-                      required
                       step="0.1"
                       type="number"
                       value={formData.lila}
@@ -301,8 +299,7 @@ function MeasurementForm() {
               <div className="mt-10 md:mt-auto pt-4 md:pt-8">
                 <button
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#373895] text-white font-semibold hover:bg-indigo-800 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
-                  // GANTI BARIS INI: Disable jika sedang loading ATAU form belum komplit
-                  disabled={isLoading || !isFormComplete}
+                  disabled={isLoading || (!formData.berat && !formData.tinggi)} // Disable jika belum ukur
                   type="submit"
                 >
                   {isLoading ? (
@@ -314,7 +311,7 @@ function MeasurementForm() {
                   isFormComplete ? (
                     "Simpan Data Pengukuran"
                   ) : (
-                    "Lengkapi Data Dahulu"
+                    "Simpan Data Pengukuran"
                   )}
                 </button>
               </div>
