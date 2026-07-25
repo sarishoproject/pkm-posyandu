@@ -65,3 +65,28 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
     );
   }
 };
+
+export const GET: NextRouteHandler<{ id: string }> = async (req) => {
+  try {
+    const { id } = req.params;
+    
+    // Tarik 1 baris data dari database berdasarkan ID
+    const data = db.prepare("SELECT * FROM pendataan WHERE id = ?").get(id);
+
+    if (!data) {
+      return NextResponse.json(
+        { error: "Data pendataan tidak ditemukan." },
+        { status: 404 }
+      );
+    }
+
+    // Kembalikan datanya ke frontend
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Error GET pendataan:", error);
+    return NextResponse.json(
+      { error: "Gagal mengambil data dari server." },
+      { status: 500 }
+    );
+  }
+};

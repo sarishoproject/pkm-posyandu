@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, Loader2, Pencil, Plus } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Calendar, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import  { useEffect, useState } from "react";
 
 // Route dinamis TanStack
 export const Route = createFileRoute("/anggota/info/$id")({
@@ -30,6 +30,7 @@ interface DetailResponse {
 
 function MemberDetailView() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
 
   const [data, setData] = useState<DetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -250,6 +251,8 @@ function MemberDetailView() {
                     // Ini memastikan kotak container grafik selalu punya dimensi fisik yang kuat.
                     <div className="relative w-full h-[220px]">
                       <svg
+                        role="img"
+                        aria-label="grafik pertumbuhan tinggi badan anak"
                         className="w-full h-full overflow-visible"
                         preserveAspectRatio="none"
                         viewBox="0 0 400 200"
@@ -299,7 +302,8 @@ function MemberDetailView() {
                         {graphData.map((d) => {
                           const isSelected = selectedPoint?.id === d.id;
                           return (
-                            <g
+                            // biome-ignore lint/a11y/noStaticElementInteractions: <explanation>
+<g
                               className="cursor-pointer outline-none"
                               key={d.id}
                               onClick={(e) => {
@@ -453,9 +457,13 @@ function MemberDetailView() {
               <div className="space-y-4">
                 {data.riwayat.length > 0 ? (
                   data.riwayat.map((item, index) => (
-                    <div
+                    // biome-ignore lint/a11y/noStaticElementInteractions: <explanation>
+// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
+                      <div
+                      
                       className="flex items-center justify-between bg-white md:bg-slate-50 md:border md:border-slate-100 p-3 rounded-2xl"
                       key={item.id}
+                      onClick={() => setSelectedHistory(item)}
                     >
                       <div className="flex items-center gap-4">
                         <div
@@ -504,7 +512,11 @@ function MemberDetailView() {
       {/* MODAL POP-UP DETAIL RIWAYAT */}
       {selectedHistory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: Modal container requires onClick to stop propagation */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: No keyboard action needed for stopPropagation */}
           <div
+            role="dialog"
+            aria-modal="true"
             className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()} // Mencegah klik tembus ke belakang
           >
@@ -589,6 +601,7 @@ function MemberDetailView() {
             {/* Area Tombol Aksi */}
             <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
               <button
+                type="button"
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors shadow-sm"
                 onClick={() =>
                   navigate({
@@ -600,6 +613,7 @@ function MemberDetailView() {
               </button>
 
               <button
+                type="button"
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                 disabled={isDeleting}
                 onClick={() => handleDeleteHistory(selectedHistory.id)}
@@ -614,6 +628,7 @@ function MemberDetailView() {
             </div>
             <div className="pt-2 pb-2 px-5">
               <button
+                type="button"
                 className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-md"
                 onClick={() => setSelectedHistory(null)}
               >

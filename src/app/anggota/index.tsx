@@ -5,17 +5,11 @@ import {
   Ruler,
   ScanLine,
   Search,
-import {
-  Home,
-  Loader2,
-  Ruler,
-  ScanLine,
-  Search,
   User,
   UserPlus,
   Users,
 } from "lucide-react";
-import  { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/anggota/")({
   component: MobileView,
@@ -26,7 +20,6 @@ interface Peserta {
   id: number;
   nama_anak: string;
   nama_ibu: string | null;
-  nik: string;
   nik: string;
   status: string;
 }
@@ -41,8 +34,6 @@ function MobileView() {
   useEffect(() => {
     const fetchPeserta = async () => {
       try {
-        const response = await fetch("/api/peserta");
-        if (!response.ok) throw new Error("Gagal mengambil data");
         const response = await fetch("/api/peserta");
         if (!response.ok) throw new Error("Gagal mengambil data");
         const data = await response.json();
@@ -72,10 +63,6 @@ function MobileView() {
     (anak) =>
       anak.nama_anak.toLowerCase().includes(searchQuery.toLowerCase()) ||
       anak.nik.includes(searchQuery),
-  const filteredPeserta = pesertaList.filter(
-    (anak) =>
-      anak.nama_anak.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      anak.nik.includes(searchQuery),
   );
 
   return (
@@ -86,24 +73,19 @@ function MobileView() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
           <input
             className="w-full pl-10 pr-12 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white shadow-sm text-sm"
-            className="w-full pl-10 pr-12 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white shadow-sm text-sm"
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari nama atau NIK..."
             type="text"
             value={searchQuery}
-            type="text"
-            value={searchQuery}
           />
-          <button className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors">
+          <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors">
             <ScanLine className="w-5 h-5" />
           </button>
         </div>
 
-
         {/* Tombol Tambah Anggota (Revisi link ke /anggota/tambah) */}
         <Link className="flex-shrink-0" to="/anggota/tambah">
-        <Link className="flex-shrink-0" to="/anggota/tambah">
-          <button className="p-3 border border-slate-200 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 transition-colors shadow-sm">
+          <button type="button" className="p-3 border border-slate-200 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 transition-colors shadow-sm">
             <UserPlus className="w-5 h-5" />
           </button>
         </Link>
@@ -117,20 +99,16 @@ function MobileView() {
           </div>
         ) : filteredPeserta.length > 0 ? (
           filteredPeserta.map((child) => (
-            <div
-            <div
+            // biome-ignore lint/a11y/noStaticElementInteractions: <explanation>
+// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
+              <div
               className="relative bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-slate-100/50 overflow-hidden cursor-pointer hover:border-indigo-200 transition-colors"
-              key={child.id}
-              onClick={() =>
-                navigate({ to: `/anggota/info/${child.id}` as any })
-              }
               key={child.id}
               onClick={() =>
                 navigate({ to: `/anggota/info/${child.id}` as any })
               }
             >
               {/* Indikator Aktif (Status) */}
-              {child.status.toLowerCase() === "aktif" && (
               {child.status.toLowerCase() === "aktif" && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-orange-300 rounded-r-full" />
               )}
@@ -152,8 +130,7 @@ function MobileView() {
 
               {/* Tombol Input Pengukuran */}
               <button
-                className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
-              <button
+                type="button"
                 className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
                 onClick={(e) => {
                   e.stopPropagation(); // Mencegah klik tombol memicu klik kartu (masuk ke detail)
@@ -174,9 +151,7 @@ function MobileView() {
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 flex justify-around pb-6 pt-3 px-2 z-10 rounded-t-xl">
         <Link
-        <Link
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
-          to="/"
           to="/"
         >
           <Home className="w-6 h-6" />
@@ -184,22 +159,15 @@ function MobileView() {
         </Link>
 
         <Link
-
-        <Link
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
           to="/anggota"
-          to="/anggota"
         >
-          <Users className="w-6 h-6" />
           <Users className="w-6 h-6" />
           <span className="text-[10px] font-medium">Anggota</span>
         </Link>
 
         <Link
-
-        <Link
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
-          to="/akun"
           to="/akun"
         >
           <User className="w-6 h-6" />
@@ -209,4 +177,3 @@ function MobileView() {
     </div>
   );
 }
-

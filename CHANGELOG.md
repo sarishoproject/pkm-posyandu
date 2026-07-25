@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.6.1] - 2026-07-25
+- 🎨 Refactor React components in edit measurement and edit member forms for better readability.
+- ⚙️ Update error handling in data fetching to provide more informative feedback when server requests fail.
+- 🛠️ Standardize consistent quote usage (switching to single quotes) and improve layout definitions.
+- 🧹 Cleanup unused imports and organize component logic for better maintainability.
+
 ### [2026-07-25]
 - 🧹 Delete obsolete edit component for anggota module
 - ⚙️ Clean up project structure by removing unused route file

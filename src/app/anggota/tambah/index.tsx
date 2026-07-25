@@ -2,12 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { X } from "lucide-react";
-import type React from "react";
-import { useState } from "react";
 
-export const Route = createFileRoute("/anggota/tambah/")({
 export const Route = createFileRoute("/anggota/tambah/")({
   component: AddMemberForm,
 });
@@ -55,10 +50,7 @@ function AddMemberForm() {
       // 2. Kirim ke API endpoint yang sudah Anda buat
       const response = await fetch("/api/peserta", {
         method: "POST",
-      const response = await fetch("/api/peserta", {
-        method: "POST",
         headers: {
-          "Content-Type": "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
@@ -66,15 +58,12 @@ function AddMemberForm() {
 
       if (!response.ok) {
         throw new Error("Gagal menyimpan data");
-        throw new Error("Gagal menyimpan data");
       }
 
       // 3. Berikan feedback dan arahkan kembali
       alert("Data anggota baru berhasil disimpan!");
       navigate({ to: "/anggota/" });
     } catch (error) {
-      console.error("Error:", error);
-      alert("Terjadi kesalahan saat menyimpan data.");
       console.error("Error:", error);
       alert("Terjadi kesalahan saat menyimpan data.");
     } finally {
@@ -86,7 +75,6 @@ function AddMemberForm() {
     <div className="min-h-screen bg-[#F9FAFB] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-md mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
         <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
-          <Link
           <Link
             className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
             to="/anggota/"
@@ -103,21 +91,8 @@ function AddMemberForm() {
             className="space-y-5 flex-1 flex flex-col"
             onSubmit={handleSubmit}
           >
-          <form
-            className="space-y-5 flex-1 flex flex-col"
-            onSubmit={handleSubmit}
-          >
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-semibold text-slate-600">
-                Nama Anak
-              </label>
-              <input
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
-                onChange={(e) =>
-                  setFormData({ ...formData, nama_anak: e.target.value })
-                }
-                placeholder="Masukkan nama lengkap anak"
-              <label className="text-[11px] font-semibold text-slate-600">
+              <label htmlFor="nama" className="text-[11px] font-semibold text-slate-600">
                 Nama Anak
               </label>
               <input
@@ -127,33 +102,18 @@ function AddMemberForm() {
                 }
                 placeholder="Masukkan nama lengkap anak"
                 required
-                type="text"
                 type="text"
                 value={formData.nama_anak}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-semibold text-slate-600">
-                NIK (Nomor Induk Kependudukan)
-              </label>
-              <input
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
-              <label className="text-[11px] font-semibold text-slate-600">
+              <label htmlFor="nik" className="text-[11px] font-semibold text-slate-600">
                 NIK (Nomor Induk Kependudukan)
               </label>
               <input
                 className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
                 maxLength={16}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    nik: e.target.value.replace(/\D/g, ""),
-                  })
-                } // Hanya angka
-                placeholder="16 digit NIK"
-                required
-                type="text"
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -169,27 +129,16 @@ function AddMemberForm() {
 
             {/* JENIS KELAMIN - Hanya untuk UI */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-semibold text-slate-600">
-                Jenis Kelamin
-              </label>
-              <label className="text-[11px] font-semibold text-slate-600">
+              <label htmlFor="jenis_kelamin" className="text-[11px] font-semibold text-slate-600">
                 Jenis Kelamin
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <button
                 <button
                   className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
                     formData.jenis_kelamin === "Laki-laki"
                       ? "border-indigo-400 bg-indigo-50 text-indigo-700"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                    formData.jenis_kelamin === "Laki-laki"
-                      ? "border-indigo-400 bg-indigo-50 text-indigo-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                   }`}
-                  onClick={() =>
-                    setFormData({ ...formData, jenis_kelamin: "Laki-laki" })
-                  }
-                  type="button"
                   onClick={() =>
                     setFormData({ ...formData, jenis_kelamin: "Laki-laki" })
                   }
@@ -199,20 +148,11 @@ function AddMemberForm() {
                 </button>
 
                 <button
-
-                <button
                   className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
                     formData.jenis_kelamin === "Perempuan"
                       ? "border-pink-400 bg-pink-50 text-pink-700"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                    formData.jenis_kelamin === "Perempuan"
-                      ? "border-pink-400 bg-pink-50 text-pink-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                   }`}
-                  onClick={() =>
-                    setFormData({ ...formData, jenis_kelamin: "Perempuan" })
-                  }
-                  type="button"
                   onClick={() =>
                     setFormData({ ...formData, jenis_kelamin: "Perempuan" })
                   }
@@ -225,20 +165,12 @@ function AddMemberForm() {
 
             {/* TANGGAL LAHIR - Hanya untuk UI */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-semibold text-slate-600">
-                Tanggal Lahir Anak
-              </label>
-              <label className="text-[11px] font-semibold text-slate-600">
+              <label htmlFor="tanggal_lahir" className="text-[11px] font-semibold text-slate-600">
                 Tanggal Lahir Anak
               </label>
               <div className="grid grid-cols-[1fr_1fr_1fr] gap-2">
                 <select
-                <select
                   className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
-                  onChange={(e) =>
-                    setFormData({ ...formData, tgl_lahir: e.target.value })
-                  }
-                  value={formData.tgl_lahir}
                   onChange={(e) =>
                     setFormData({ ...formData, tgl_lahir: e.target.value })
                   }
@@ -246,22 +178,15 @@ function AddMemberForm() {
                 >
                   <option value="">Tgl</option>
                   {Array.from({ length: 31 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {i + 1}
-                    </option>
-                    <option key={i + 1} value={i + 1}>
+                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                      <option key={i + 1} value={i + 1}>
                       {i + 1}
                     </option>
                   ))}
                 </select>
 
                 <select
-                <select
                   className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
-                  onChange={(e) =>
-                    setFormData({ ...formData, bulan_lahir: e.target.value })
-                  }
-                  value={formData.bulan_lahir}
                   onChange={(e) =>
                     setFormData({ ...formData, bulan_lahir: e.target.value })
                   }
@@ -297,16 +222,7 @@ function AddMemberForm() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-semibold text-slate-600">
-                Nama Ibu Kandung
-              </label>
-              <input
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
-                onChange={(e) =>
-                  setFormData({ ...formData, nama_ibu: e.target.value })
-                }
-                placeholder="Masukkan nama ibu"
-              <label className="text-[11px] font-semibold text-slate-600">
+              <label htmlFor="nama_ibu" className="text-[11px] font-semibold text-slate-600">
                 Nama Ibu Kandung
               </label>
               <input
@@ -322,14 +238,10 @@ function AddMemberForm() {
 
             <div className="mt-auto pt-8">
               <button
-              <button
                 className="w-full py-4 rounded-xl bg-[#23257B] text-white font-medium text-sm hover:bg-[#1a1c5e] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
                 disabled={isLoading}
                 type="submit"
-                disabled={isLoading}
-                type="submit"
               >
-                {isLoading ? "Menyimpan..." : "Simpan Data"}
                 {isLoading ? "Menyimpan..." : "Simpan Data"}
               </button>
             </div>
@@ -339,4 +251,3 @@ function AddMemberForm() {
     </div>
   );
 }
-
