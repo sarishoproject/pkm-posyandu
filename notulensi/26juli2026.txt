@@ -1,0 +1,9 @@
+item harus ada buktinya (fisik/digital)
+- kalau yang front end nanti teko dikasih yang link gdrive dari animasterlib nya itu
+- yang backend sama excel nanti dibikin repo baru misal ErzyshDev/excel plugin sama ErzyshDev/backendTemplate
+
+untuk yang backend sama excel nanti aku (rizqi) bikin product baru di shopee:
+- product 1 = excel
+- product 2 = backendTemplate
+
+RAB kayanya bakal dibahas ulang pas ketemuan sama fadhlan dan SHR full team

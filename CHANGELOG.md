@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.0] - 2026-07-26
+- ⚙️ Updated GitHub Actions workflow to support cross-compilation for Linux x64, macOS ARM64, and macOS x64.
+- 📦 Streamlined build artifact compression using tar and zip utilities.
+- 🧹 Cleaned up build directory management to ensure clean environments per job.
+- 🚀 Added multi-platform artifacts to the GitHub release configuration.
+- 📝 Added meeting minutes regarding project architecture and product distribution plans.
+
+
 ## [2.7.0] - 2026-07-25
 - 🎨 [UI] Standardized component layouts and improved accessibility labels using htmlFor attributes.
 - ⚙️ [Code] Refactored TanStack Router navigation logic to use explicit params for better type safety.
