@@ -8,6 +8,8 @@ import {
   User,
   UserPlus,
   Users,
+  Mars,
+  Venus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -21,6 +23,9 @@ interface Peserta {
   nama_ibu: string | null;
   nik: string;
   status: string;
+  jenis_kelamin?: string;
+  tanggal_lahir?: string;
+  sudah_diperiksa?: number;
 }
 
 function MobileView() {
@@ -28,6 +33,16 @@ function MobileView() {
   const [pesertaList, setPesertaList] = useState<Peserta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAdmin(localStorage.getItem("isLoggedIn") === "true");
+    };
+    checkAuth();
+    window.addEventListener("auth-change", checkAuth);
+    return () => window.removeEventListener("auth-change", checkAuth);
+  }, []);
 
   useEffect(() => {
     const fetchPeserta = async () => {
@@ -55,6 +70,26 @@ function MobileView() {
     return name.substring(0, 2).toUpperCase();
   };
 
+  const calculateAgeInMonths = (birthDateStr?: string) => {
+    if (!birthDateStr) return "Umur -";
+    const birth = new Date(birthDateStr);
+    const now = new Date();
+    let months = (now.getFullYear() - birth.getFullYear()) * 12;
+    months -= birth.getMonth();
+    months += now.getMonth();
+    
+    if (months < 0) return "0 Bulan";
+    
+    if (months >= 12) {
+      const years = Math.floor(months / 12);
+      const remainingMonths = months % 12;
+      return remainingMonths > 0 
+        ? `${years} Tahun ${remainingMonths} Bulan` 
+        : `${years} Tahun`;
+    }
+    return `${months} Bulan`;
+  };
+
   const filteredPeserta = pesertaList.filter(
     (anak) =>
       anak.nama_anak.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,7 +97,7 @@ function MobileView() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8F9FA] max-w-md mx-auto relative font-sans text-slate-800 border-x">
+    <div className="w-full max-w-md md:max-w-5xl mx-auto flex flex-col flex-1 px-4 md:px-8">
       <div className="flex items-center gap-3 p-4 pt-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
@@ -81,17 +116,19 @@ function MobileView() {
           </button>
         </div>
 
-        <Link className="flex-shrink-0" to="/anggota/tambah">
-          <button
-            className="p-3 border border-slate-200 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 transition-colors shadow-sm"
-            type="button"
-          >
-            <UserPlus className="w-5 h-5" />
-          </button>
-        </Link>
+        {isAdmin && (
+          <Link className="flex-shrink-0" to="/anggota/tambah">
+            <button
+              className="p-3 border border-slate-200 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 transition-colors shadow-sm"
+              type="button"
+            >
+              <UserPlus className="w-5 h-5" />
+            </button>
+          </Link>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 pb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-max items-start">
         {isLoading ? (
           <div className="flex justify-center items-center py-10">
             <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
@@ -104,9 +141,12 @@ function MobileView() {
               params={{ id: String(child.id) }}
               to="/anggota/info/$id"
             >
-              {child.status.toLowerCase() === "aktif" && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-orange-300 rounded-r-full" />
-              )}
+              {/* Left indicator border based on checked status */}
+              <div 
+                className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 rounded-r-full transition-colors ${
+                  child.sudah_diperiksa ? "bg-green-500" : "bg-orange-400"
+                }`} 
+              />
 
               <div className="flex items-center gap-4 pl-1">
                 <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0 tracking-wider">
@@ -116,26 +156,33 @@ function MobileView() {
                   <span className="font-semibold text-slate-900 text-[15px] line-clamp-1">
                     {child.nama_anak}
                   </span>
-                  <span className="text-xs text-slate-500 mt-0.5">
-                    NIK: {child.nik}
-                  </span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1 font-medium">
+                    {child.jenis_kelamin?.toUpperCase() === "L" || child.jenis_kelamin?.toUpperCase() === "LAKI-LAKI" || child.jenis_kelamin?.toUpperCase() === "LAKI_LAKI" ? (
+                      <Mars className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    ) : (
+                      <Venus className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    )}
+                    <span>{calculateAgeInMonths(child.tanggal_lahir)}</span>
+                  </div>
                 </div>
               </div>
 
-              <button
-                className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  navigate({
-                    to: "/anggota/input/$pesertaId",
-                    params: { pesertaId: String(child.id) },
-                  });
-                }}
-                type="button"
-              >
-                <Ruler className="w-5 h-5" />
-              </button>
+              {isAdmin && (
+                <button
+                  className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate({
+                      to: "/anggota/input/$pesertaId",
+                      params: { pesertaId: String(child.id) },
+                    });
+                  }}
+                  type="button"
+                >
+                  <Ruler className="w-5 h-5" />
+                </button>
+              )}
             </Link>
           ))
         ) : (
@@ -143,32 +190,6 @@ function MobileView() {
             Tidak ada data anggota ditemukan.
           </div>
         )}
-      </div>
-
-      <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 flex justify-around pb-6 pt-3 px-2 z-10 rounded-t-xl">
-        <Link
-          className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
-          to="/"
-        >
-          <Home className="w-6 h-6" />
-          <span className="text-[10px] font-medium">Beranda</span>
-        </Link>
-
-        <Link
-          className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
-          to="/anggota"
-        >
-          <Users className="w-6 h-6" />
-          <span className="text-[10px] font-medium">Anggota</span>
-        </Link>
-
-        <Link
-          className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
-          to="/akun"
-        >
-          <User className="w-6 h-6" />
-          <span className="text-[10px] font-medium">Akun</span>
-        </Link>
       </div>
     </div>
   );

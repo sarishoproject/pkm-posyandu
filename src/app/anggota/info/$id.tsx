@@ -1,11 +1,12 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Calendar,
   Loader2,
-  Pencil,
   Plus,
   Trash2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -48,7 +49,6 @@ interface GraphPoint {
 
 function MemberDetailView() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
 
   const [data, setData] = useState<DetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,6 +57,17 @@ function MemberDetailView() {
     null,
   );
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAdmin(localStorage.getItem("isLoggedIn") === "true");
+    };
+    checkAuth();
+    window.addEventListener("auth-change", checkAuth);
+    return () => window.removeEventListener("auth-change", checkAuth);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -151,11 +162,10 @@ function MemberDetailView() {
   };
 
   const handleDeleteHistory = async (idRiwayat: number) => {
-    if (
-      !window.confirm(
-        "Yakin ingin menghapus data pengukuran ini? Data yang dihapus tidak bisa dikembalikan.",
-      )
-    ) {
+    const confirmed = await window.showCustomConfirm(
+      "Yakin ingin menghapus data pengukuran ini? Data yang dihapus tidak bisa dikembalikan."
+    );
+    if (!confirmed) {
       return;
     }
 
@@ -179,29 +189,28 @@ function MemberDetailView() {
       });
 
       setSelectedHistory(null);
-      alert("Data pengukuran berhasil dihapus!");
+      await window.showCustomAlert("Data pengukuran berhasil dihapus!");
     } catch (error) {
       console.error("Error deleting history:", error);
-      alert("Terjadi kesalahan saat menghapus data pengukuran.");
+      await window.showCustomAlert("Terjadi kesalahan saat menghapus data pengukuran.");
     } finally {
       setIsDeleting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center relative">
-      <div className="w-full max-w-md md:max-w-5xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
-        <div className="p-4 md:px-8 md:pt-8 flex items-center md:border-b md:border-slate-100">
-          <Link
-            className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors"
-            to="/anggota"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          <h1 className="hidden md:block ml-2 text-lg font-bold text-slate-800">
-            Detail Anggota
-          </h1>
-        </div>
+    <div className="w-full max-w-md md:max-w-5xl mx-auto flex flex-col relative min-h-screen pb-10 px-4 md:px-8">
+      <div className="sticky top-0 bg-[#F8F9FA]/90 backdrop-blur-md py-4 flex items-center border-b border-slate-100 z-20">
+        <Link
+          className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors"
+          to="/anggota"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </Link>
+        <span className="ml-2 text-base font-bold text-slate-800 truncate">
+          {data.nama_anak}
+        </span>
+      </div>
 
         <div className="flex-1 overflow-y-auto pb-8 md:p-8">
           <div className="md:grid md:grid-cols-2 md:gap-12">
@@ -216,27 +225,17 @@ function MemberDetailView() {
                     <h2 className="font-bold text-slate-900 text-lg leading-tight truncate">
                       {data.nama_anak}
                     </h2>
-                    <Link
-                      className="flex items-center gap-1.5 text-slate-600 hover:text-[#1E1B4B] transition-colors bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm shrink-0"
-                      params={{ editId: id }}
-                      to="/anggota/edit/$editId"
-                    >
-                      <Pencil className="w-3 h-3" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider">
-                        Edit
-                      </span>
-                    </Link>
+
                   </div>
                   <div className="flex flex-col mt-2 space-y-0.5">
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-500 font-semibold">
                       NIK: {data.nik}
                     </span>
                     <span className="text-xs text-slate-500">
                       Tgl Lahir: {formatTanggalLahir(data.tanggal_lahir)}
                     </span>
                     <span className="text-xs text-slate-500 font-medium">
-                      {hitungUmur(data.tanggal_lahir)} •{" "}
-                      {data.jenis_kelamin || "Laki-laki"}
+                      {hitungUmur(data.tanggal_lahir)} &bull; {data.jenis_kelamin || "Laki-laki"}
                     </span>
                   </div>
                 </div>
@@ -420,22 +419,45 @@ function MemberDetailView() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t border-b border-slate-200 py-4 mb-8 md:mb-0">
-                <div className="flex-1 flex flex-col items-center border-r border-slate-200">
-                  <span className="text-[10px] text-slate-500 mb-1">
-                    Berat Badan (Terakhir)
-                  </span>
-                  <span className="text-lg font-bold text-slate-800">
-                    {dataTerbaru?.berat ? `${dataTerbaru.berat} kg` : "-"}
-                  </span>
+              <div className="border-t border-b border-slate-200 divide-y divide-slate-100 mb-8 md:mb-0">
+                {/* Row 1: Berat & Tinggi */}
+                <div className="flex items-center justify-between py-4">
+                  <div className="flex-1 flex flex-col items-center border-r border-slate-200">
+                    <span className="text-[10px] text-slate-500 mb-1">
+                      Berat Badan (Terakhir)
+                    </span>
+                    <span className="text-lg font-bold text-slate-800">
+                      {dataTerbaru?.berat ? `${dataTerbaru.berat} kg` : "-"}
+                    </span>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center">
+                    <span className="text-[10px] text-slate-500 mb-1">
+                      Tinggi Badan (Terakhir)
+                    </span>
+                    <span className="text-lg font-bold text-slate-800">
+                      {dataTerbaru?.tinggi ? `${dataTerbaru.tinggi} cm` : "-"}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-col items-center">
-                  <span className="text-[10px] text-slate-500 mb-1">
-                    Tinggi Badan (Terakhir)
-                  </span>
-                  <span className="text-lg font-bold text-slate-800">
-                    {dataTerbaru?.tinggi ? `${dataTerbaru.tinggi} cm` : "-"}
-                  </span>
+
+                {/* Row 2: Lingkar Kepala & LILA */}
+                <div className="flex items-center justify-between py-4">
+                  <div className="flex-1 flex flex-col items-center border-r border-slate-200">
+                    <span className="text-[10px] text-slate-500 mb-1">
+                      Lingkar Kepala (Terakhir)
+                    </span>
+                    <span className="text-lg font-bold text-slate-800">
+                      {dataTerbaru?.lingkar_kepala ? `${dataTerbaru.lingkar_kepala} cm` : "-"}
+                    </span>
+                  </div>
+                  <div className="flex-1 flex flex-col items-center">
+                    <span className="text-[10px] text-slate-500 mb-1">
+                      LILA (Terakhir)
+                    </span>
+                    <span className="text-lg font-bold text-slate-800">
+                      {dataTerbaru?.lila ? `${dataTerbaru.lila} cm` : "-"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -448,52 +470,96 @@ function MemberDetailView() {
                 <h3 className="font-semibold text-slate-800 text-[15px]">
                   Riwayat Pengukuran
                 </h3>
-                <Link
-                  className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
-                  params={{ pesertaId: id }}
-                  to="/anggota/input/$pesertaId"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah
-                </Link>
+                {isAdmin && (
+                  <Link
+                    className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
+                    params={{ pesertaId: id }}
+                    to="/anggota/input/$pesertaId"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Tambah
+                  </Link>
+                )}
               </div>
 
               <div className="space-y-4">
                 {data.riwayat.length > 0 ? (
-                  data.riwayat.map((item, index) => (
-                    <div
-                      className="flex items-center justify-between bg-white md:bg-slate-50 md:border md:border-slate-100 p-3 rounded-2xl"
-                      key={item.id}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${index === 0 ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-500"}`}
+                  data.riwayat.map((item, index) => {
+                    const isExpanded = expandedHistoryId === item.id;
+                    return (
+                      <div
+                        className="bg-white md:bg-slate-50 md:border md:border-slate-100 rounded-2xl overflow-hidden transition-all duration-200 border border-slate-100/80 shadow-sm"
+                        key={item.id}
+                      >
+                        {/* Accordion Header (Core Metrics) */}
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between p-4 cursor-pointer text-left hover:bg-slate-50/50 transition-colors"
+                          onClick={() => setExpandedHistoryId(isExpanded ? null : item.id)}
                         >
-                          <Calendar className="w-4 h-4" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-slate-800">
-                            {new Date(item.tanggal_ukur).toLocaleDateString(
-                              "id-ID",
-                              {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              },
+                          <div className="flex items-center gap-3">
+                            <Calendar className={`w-4 h-4 shrink-0 ${index === 0 ? "text-indigo-650 font-bold" : "text-slate-400"}`} />
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-800">
+                                {new Date(item.tanggal_ukur).toLocaleDateString(
+                                  "id-ID",
+                                  { day: "numeric", month: "short", year: "numeric" },
+                                )}
+                              </span>
+                              {index === 0 && (
+                                <span className="text-[7.5px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 mt-0.5 rounded-md font-bold uppercase tracking-wider w-max">
+                                  Terbaru
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 text-right">
+                              <div className="flex flex-col">
+                                <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Berat</span>
+                                <span className="text-xs font-bold text-slate-800">{item.berat || "-"} kg</span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Tinggi</span>
+                                <span className="text-xs font-bold text-slate-800">{item.tinggi || "-"} cm</span>
+                              </div>
+                            </div>
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                             )}
-                          </span>
-                        </div>
+                          </div>
+                        </button>
+
+                        {/* Accordion Body (Extra Metrics & Actions) */}
+                        {isExpanded && (
+                          <div className="p-4 bg-slate-50/60 border-t border-slate-100/80 space-y-3.5 animate-in slide-in-from-top-1 duration-150">
+                            {/* Extra parameters */}
+                            <div className="grid grid-cols-2 gap-3 text-center">
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+                                <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Lingkar Kepala</span>
+                                <span className="text-xs font-bold text-slate-800">{item.lingkar_kepala || "-"} cm</span>
+                              </div>
+                              <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+                                <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">LILA</span>
+                                <span className="text-xs font-bold text-slate-800">{item.lila || "-"} cm</span>
+                              </div>
+                            </div>
+
+                            {/* Cara Ukur & Edema */}
+                            <div className="flex justify-between items-center text-[10px] text-slate-550 font-semibold px-1 py-0.5">
+                              <span>Cara Ukur: <span className="text-slate-800 font-bold">{item.cara_ukur || "Berdiri"}</span></span>
+                              <span>Pitting Edema: <span className={item.pitting_edema === "Ya" ? "text-red-650 font-black" : "text-slate-800 font-bold"}>{item.pitting_edema || "Tidak"}</span></span>
+                            </div>
+
+
+                          </div>
+                        )}
                       </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-xs font-bold text-slate-800">
-                          {item.berat || "-"} kg
-                        </span>
-                        <span className="text-[11px] text-slate-500 mt-0.5">
-                          {item.tinggi || "-"} cm
-                        </span>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center py-6 text-slate-500 text-sm">
                     Belum ada riwayat pengukuran.
@@ -503,7 +569,6 @@ function MemberDetailView() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* MODAL POP-UP DETAIL RIWAYAT */}
       {selectedHistory && (
@@ -595,34 +660,23 @@ function MemberDetailView() {
               </div>
             </div>
 
-            <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
-              <button
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors shadow-sm"
-                onClick={() =>
-                  navigate({
-                    to: "/anggota/edit-pengukuran/$pengukuranId",
-                    params: { pengukuranId: String(selectedHistory.id) },
-                  })
-                }
-                type="button"
-              >
-                <Pencil className="w-4 h-4" /> Edit
-              </button>
-
-              <button
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-                disabled={isDeleting}
-                onClick={() => handleDeleteHistory(selectedHistory.id)}
-                type="button"
-              >
-                {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-                {isDeleting ? "Menghapus..." : "Hapus"}
-              </button>
-            </div>
+            {isAdmin && (
+              <div className="p-5 bg-slate-50 border-t border-slate-100">
+                <button
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  disabled={isDeleting}
+                  onClick={() => handleDeleteHistory(selectedHistory.id)}
+                  type="button"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  {isDeleting ? "Menghapus..." : "Hapus"}
+                </button>
+              </div>
+            )}
             <div className="pt-2 pb-2 px-5">
               <button
                 className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-md"

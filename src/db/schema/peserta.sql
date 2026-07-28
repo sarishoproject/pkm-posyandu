@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS peserta (
   nik TEXT UNIQUE NOT NULL,
   nama_anak TEXT NOT NULL,
   nama_ibu TEXT,
+  jenis_kelamin TEXT,
+  tanggal_lahir TEXT,
   -- Status bisa: 'aktif', 'pindah', 'lolos' (berdasarkan Excel)
   status TEXT DEFAULT 'aktif',
   -- Data ASI Eksklusif (0-6 bulan) disimpan di sini karena sifatnya master data

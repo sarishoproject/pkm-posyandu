@@ -4,10 +4,24 @@ import type { NextRouteHandler, Peserta, PesertaInput } from "@/types";
 
 // GET /api/peserta — Ambil semua peserta
 export const GET: NextRouteHandler = async () => {
+  const now = new Date();
+  const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
   const pesertaList = db
-    .query("SELECT * FROM peserta ORDER BY nama_anak ASC")
-    .all();
-  return NextResponse.json(pesertaList as Peserta[]);
+    .query(`
+      SELECT 
+        p.*,
+        EXISTS(
+          SELECT 1 FROM pendataan d 
+          WHERE d.peserta_id = p.id 
+            AND strftime('%Y-%m', d.tanggal_ukur) = ?
+        ) as sudah_diperiksa
+      FROM peserta p
+      ORDER BY p.nama_anak ASC
+    `)
+    .all(currentYearMonth);
+
+  return NextResponse.json(pesertaList as any[]);
 };
 
 // POST /api/peserta — Tambah peserta baru

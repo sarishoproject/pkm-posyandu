@@ -27,8 +27,8 @@ function AddMemberForm() {
     const tahunSekarang = new Date().getFullYear();
 
     if (!tahunInput || tahunInput < 2000 || tahunInput > tahunSekarang) {
-      alert(
-        `Tahun lahir tidak valid! Harap masukkan tahun antara 2000 - ${tahunSekarang}.`,
+      await window.showCustomAlert(
+        `Tahun lahir tidak valid! Harap masukkan tahun antara 2000 - ${tahunSekarang}.`
       );
       return;
     }
@@ -61,30 +61,29 @@ function AddMemberForm() {
       }
 
       // 3. Berikan feedback dan arahkan kembali
-      alert("Data anggota baru berhasil disimpan!");
+      await window.showCustomAlert("Data anggota baru berhasil disimpan!");
       navigate({ to: "/anggota" });
     } catch (error) {
       console.error("Error:", error);
-      alert("Terjadi kesalahan saat menyimpan data.");
+      await window.showCustomAlert("Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
-      <div className="w-full max-w-md mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
-        <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
-          <Link
-            className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
-            to="/anggota"
-          >
-            <X className="w-6 h-6" />
-          </Link>
-          <h1 className="text-[17px] font-medium text-slate-800">
-            Tambah Anggota Baru
-          </h1>
-        </div>
+    <div className="w-full max-w-md mx-auto flex flex-col flex-1 pb-10 px-4">
+      <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
+        <Link
+          className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+          to="/anggota"
+        >
+          <X className="w-6 h-6" />
+        </Link>
+        <h1 className="text-[17px] font-medium text-slate-800">
+          Tambah Anggota Baru
+        </h1>
+      </div>
 
         <div className="px-5 pt-2 pb-8 flex-1 flex flex-col md:px-8">
           <form
@@ -261,7 +260,6 @@ function AddMemberForm() {
             </div>
           </form>
         </div>
-      </div>
     </div>
   );
 }

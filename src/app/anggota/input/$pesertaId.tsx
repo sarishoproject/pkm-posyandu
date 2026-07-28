@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Mendefinisikan route dinamis berdasarkan nama file $pesertaId.tsx
 export const Route = createFileRoute("/anggota/input/$pesertaId")({
@@ -16,6 +16,30 @@ function MeasurementForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSensorLoading, setIsSensorLoading] = useState(false);
+  const [child, setChild] = useState<any | null>(null);
+
+  useEffect(() => {
+    const fetchChild = async () => {
+      try {
+        const response = await fetch(`/api/peserta/${pesertaId}`);
+        if (!response.ok) throw new Error("Gagal mengambil data");
+        const data = await response.json();
+        setChild(data);
+      } catch (error) {
+        console.error("Error fetching child:", error);
+      }
+    };
+    fetchChild();
+  }, [pesertaId]);
+
+  const getInitials = (name: string) => {
+    if (!name) return "AN";
+    const words = name.trim().split(" ");
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   // State form sesuai dengan interface PendataanInput di backend
   const [formData, setFormData] = useState({
@@ -65,9 +89,9 @@ function MeasurementForm() {
       }));
     } catch (error) {
       console.error("Error membaca sensor:", error);
-      alert(
+      await window.showCustomAlert(
         (error as Error).message ||
-          "Gagal mengambil data dari sensor otomatis.",
+          "Gagal mengambil data dari sensor otomatis."
       );
     } finally {
       setIsSensorLoading(false);
@@ -103,14 +127,14 @@ function MeasurementForm() {
         throw new Error(errData.error || "Gagal menyimpan data");
       }
 
-      alert("Data pengukuran berhasil disimpan!");
+      await window.showCustomAlert("Data pengukuran berhasil disimpan!");
       // Arahkan kembali ke halaman info/detail anggota
-      navigate({ to: `/anggota/info/$id`, params: { id: pesertaId } });
+      navigate({ to: "/anggota/info/$id", params: { id: pesertaId } });
     } catch (error) {
       console.error("Error submit data:", error);
-      alert(
+      await window.showCustomAlert(
         (error as Error).message ||
-          "Terjadi kesalahan pada sistem saat menyimpan data.",
+          "Terjadi kesalahan pada sistem saat menyimpan data."
       );
     } finally {
       setIsLoading(false);
@@ -140,18 +164,18 @@ function MeasurementForm() {
           >
             {/* ================= KOLOM KIRI (Profil & Sensor) ================= */}
             <div className="flex flex-col">
-              {/* Card Profil Anak (Bisa di-fetch dari API nantinya, sementara statis) */}
+              {/* Card Profil Anak */}
               <div className="relative bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 mb-8 overflow-hidden md:border-slate-200 md:shadow-md">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-orange-300 rounded-r-full" />
-                <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0 ml-1">
-                  ID: {pesertaId}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-indigo-500 rounded-r-full" />
+                <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0 ml-1 text-sm tracking-wider">
+                  {child ? getInitials(child.nama_anak) : `ID: ${pesertaId}`}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-slate-900 text-[16px]">
-                    Data Peserta
+                  <span className="font-bold text-slate-900 text-[16px] line-clamp-1">
+                    {child ? child.nama_anak : "Data Peserta"}
                   </span>
-                  <span className="text-sm text-slate-500 mt-0.5">
-                    Input pengukuran baru
+                  <span className="text-xs text-slate-400 mt-0.5 font-semibold uppercase tracking-wider">
+                    {child ? `NIK: ${child.nik}` : "Memuat data peserta..."}
                   </span>
                 </div>
               </div>

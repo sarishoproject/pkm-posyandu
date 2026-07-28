@@ -33,7 +33,10 @@ for (const path in modules) {
   const wrapHandler = (handler: NextRouteHandler) => async (c: Context) => {
     try {
       const req = new NextRequest(c);
-      const res = await handler(req);
+      const res = await handler(req) as any;
+      if (res instanceof Response) {
+        return res;
+      }
       return c.json(
         res.data,
         res.status as ContentfulStatusCode,
