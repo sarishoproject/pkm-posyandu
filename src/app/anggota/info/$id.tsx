@@ -3,10 +3,10 @@ import {
   ArrowLeft,
   Calendar,
   Loader2,
+  Pencil,
   Plus,
   Trash2,
-  ChevronDown,
-  ChevronUp,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -58,7 +58,20 @@ function MemberDetailView() {
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [expandedHistoryId, setExpandedHistoryId] = useState<number | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const scrollTop =
+        target === document || target === document.documentElement
+          ? window.scrollY
+          : target.scrollTop;
+      setIsScrolled(scrollTop > 40);
+    };
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, []);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -163,7 +176,7 @@ function MemberDetailView() {
 
   const handleDeleteHistory = async (idRiwayat: number) => {
     const confirmed = await window.showCustomConfirm(
-      "Yakin ingin menghapus data pengukuran ini? Data yang dihapus tidak bisa dikembalikan."
+      "Yakin ingin menghapus data pengukuran ini? Data yang dihapus tidak bisa dikembalikan.",
     );
     if (!confirmed) {
       return;
@@ -192,7 +205,9 @@ function MemberDetailView() {
       await window.showCustomAlert("Data pengukuran berhasil dihapus!");
     } catch (error) {
       console.error("Error deleting history:", error);
-      await window.showCustomAlert("Terjadi kesalahan saat menghapus data pengukuran.");
+      await window.showCustomAlert(
+        "Terjadi kesalahan saat menghapus data pengukuran.",
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -201,374 +216,371 @@ function MemberDetailView() {
   return (
     <div className="w-full max-w-md md:max-w-5xl mx-auto flex flex-col relative min-h-screen pb-10 px-4 md:px-8">
       <div className="sticky top-0 bg-[#F8F9FA]/90 backdrop-blur-md py-4 flex items-center border-b border-slate-100 z-20">
-        <Link
-          className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors"
-          to="/anggota"
+        <button
+          className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+          onClick={() => window.history.back()}
+          type="button"
         >
           <ArrowLeft className="w-6 h-6" />
-        </Link>
-        <span className="ml-2 text-base font-bold text-slate-800 truncate">
+        </button>
+        <span
+          className={`ml-2 text-base font-bold text-slate-800 truncate transition-all duration-300 transform ${isScrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}`}
+        >
           {data.nama_anak}
         </span>
       </div>
 
-        <div className="flex-1 overflow-y-auto pb-8 md:p-8">
-          <div className="md:grid md:grid-cols-2 md:gap-12">
-            {/* KOLOM KIRI */}
-            <div className="flex flex-col px-5 md:px-0">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-20 h-20 rounded-full bg-[#E0E7FF] text-[#1E1B4B] flex items-center justify-center font-bold text-3xl shrink-0">
-                  {inisial}
-                </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <h2 className="font-bold text-slate-900 text-lg leading-tight truncate">
-                      {data.nama_anak}
-                    </h2>
-
-                  </div>
-                  <div className="flex flex-col mt-2 space-y-0.5">
-                    <span className="text-xs text-slate-500 font-semibold">
-                      NIK: {data.nik}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      Tgl Lahir: {formatTanggalLahir(data.tanggal_lahir)}
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium">
-                      {hitungUmur(data.tanggal_lahir)} &bull; {data.jenis_kelamin || "Laki-laki"}
-                    </span>
-                  </div>
-                </div>
+      <div className="flex-1 overflow-y-auto pb-8 md:p-8">
+        <div className="md:grid md:grid-cols-2 md:gap-12">
+          {/* KOLOM KIRI */}
+          <div className="flex flex-col px-5 md:px-0">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-20 h-20 rounded-full bg-[#E0E7FF] text-[#1E1B4B] flex items-center justify-center font-bold text-3xl shrink-0">
+                {inisial}
               </div>
-
-              <div className="mb-8">
-                <div className="mb-4">
-                  <h3 className="font-semibold text-slate-800 text-[15px]">
-                    Grafik Pertumbuhan
-                  </h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
-                    Ketuk area titik pada grafik untuk melihat detail angka.
-                  </p>
-                </div>
-
-                <div className="bg-[#F8F9FA] rounded-2xl p-4 md:border md:border-slate-100 md:shadow-sm">
-                  {graphData.length > 0 ? (
-                    <div className="relative w-full h-[220px]">
-                      <svg
-                        className="w-full h-full overflow-visible"
-                        preserveAspectRatio="none"
-                        viewBox="0 0 400 200"
-                      >
-                        <title>Grafik Pertumbuhan Anak</title>
-                        <line
-                          stroke="#E2E8F0"
-                          strokeWidth="1.5"
-                          x1="0"
-                          x2="400"
-                          y1="40"
-                          y2="40"
-                        />
-                        <line
-                          stroke="#E2E8F0"
-                          strokeWidth="1.5"
-                          x1="0"
-                          x2="400"
-                          y1="100"
-                          y2="100"
-                        />
-                        <line
-                          stroke="#E2E8F0"
-                          strokeWidth="1.5"
-                          x1="0"
-                          x2="400"
-                          y1="160"
-                          y2="160"
-                        />
-
-                        <path
-                          d={heightPath}
-                          fill="none"
-                          stroke="#FDBA74"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3.5"
-                        />
-                        <path
-                          d={weightPath}
-                          fill="none"
-                          stroke="#1E1B4B"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3.5"
-                        />
-
-                        {graphData.map((d) => {
-                          const isSelected = selectedPoint?.id === d.id;
-
-                          return (
-                            // biome-ignore lint/a11y/noStaticElementInteractions: SVG chart point
-                            <g
-                              className="cursor-pointer outline-none"
-                              key={d.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPoint(isSelected ? null : d);
-                              }}
-                            >
-                              <rect
-                                fill="transparent"
-                                height="200"
-                                width="40"
-                                x={d.x - 20}
-                                y="0"
-                              />
-
-                              {isSelected && (
-                                <line
-                                  stroke="#94A3B8"
-                                  strokeDasharray="4 4"
-                                  strokeWidth="1.5"
-                                  x1={d.x}
-                                  x2={d.x}
-                                  y1="20"
-                                  y2="160"
-                                />
-                              )}
-
-                              <circle
-                                cx={d.x}
-                                cy={d.heightY}
-                                fill={isSelected ? "#FFF" : "#FDBA74"}
-                                r={isSelected ? "5" : "3.5"}
-                                stroke="#FDBA74"
-                                strokeWidth={isSelected ? "2" : "0"}
-                              />
-                              <circle
-                                cx={d.x}
-                                cy={d.weightY}
-                                fill={isSelected ? "#FFF" : "#1E1B4B"}
-                                r={isSelected ? "5" : "3.5"}
-                                stroke="#1E1B4B"
-                                strokeWidth={isSelected ? "2" : "0"}
-                              />
-
-                              <text
-                                fill={isSelected ? "#1E1B4B" : "#64748B"}
-                                fontSize="11"
-                                fontWeight={isSelected ? "700" : "500"}
-                                textAnchor="middle"
-                                x={d.x}
-                                y="185"
-                              >
-                                {d.date}
-                              </text>
-                            </g>
-                          );
-                        })}
-                      </svg>
-
-                      {selectedPoint && (
-                        <div
-                          className="absolute bg-white shadow-lg border border-slate-100 rounded-xl p-2.5 flex flex-col gap-1 w-28 pointer-events-none transition-all duration-200 z-20"
-                          style={{
-                            left: `${(selectedPoint.x / 400) * 100}%`,
-                            top: `${(Math.min(selectedPoint.heightY, selectedPoint.weightY) / 200) * 100}%`,
-                            transform: "translate(-50%, -115%)",
-                          }}
-                        >
-                          <span className="text-[11px] font-bold text-slate-800 text-center mb-0.5 border-b border-slate-100 pb-1">
-                            {selectedPoint.fullDate}
-                          </span>
-                          <div className="flex items-center justify-between text-[11px] mt-0.5">
-                            <span className="text-slate-500">Berat</span>
-                            <span className="font-bold text-[#1E1B4B]">
-                              {selectedPoint.weight} kg
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-slate-500">Tinggi</span>
-                            <span className="font-bold text-[#FDBA74]">
-                              {selectedPoint.height} cm
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="py-12 flex items-center justify-center">
-                      <span className="text-sm text-slate-400">
-                        Belum ada data grafik.
-                      </span>
-                    </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 w-full">
+                  <h2 className="font-bold text-slate-900 text-lg leading-tight truncate">
+                    {data.nama_anak}
+                  </h2>
+                  {isAdmin && (
+                    <Link
+                      className="flex items-center gap-1 text-indigo-800 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full text-xs font-semibold transition-colors shrink-0 hover:bg-indigo-100"
+                      params={{ editId: id }}
+                      to="/anggota/edit/$editId"
+                    >
+                      <Pencil className="w-3 h-3" />
+                      Edit
+                    </Link>
                   )}
-
-                  <div className="flex items-center justify-center gap-6 mt-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#1E1B4B]"></div>
-                      <span className="text-[10px] text-slate-500 font-medium">
-                        Berat Badan
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-[#FDBA74]"></div>
-                      <span className="text-[10px] text-slate-500 font-medium">
-                        Tinggi Badan
-                      </span>
-                    </div>
-                  </div>
+                </div>
+                <div className="flex flex-col mt-2 space-y-0.5">
+                  <span className="text-xs text-slate-500 font-semibold">
+                    NIK: {data.nik}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Tgl Lahir: {formatTanggalLahir(data.tanggal_lahir)}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {hitungUmur(data.tanggal_lahir)} &bull;{" "}
+                    {data.jenis_kelamin || "Laki-laki"}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              <div className="border-t border-b border-slate-200 divide-y divide-slate-100 mb-8 md:mb-0">
-                {/* Row 1: Berat & Tinggi */}
-                <div className="flex items-center justify-between py-4">
-                  <div className="flex-1 flex flex-col items-center border-r border-slate-200">
-                    <span className="text-[10px] text-slate-500 mb-1">
-                      Berat Badan (Terakhir)
-                    </span>
-                    <span className="text-lg font-bold text-slate-800">
-                      {dataTerbaru?.berat ? `${dataTerbaru.berat} kg` : "-"}
-                    </span>
-                  </div>
-                  <div className="flex-1 flex flex-col items-center">
-                    <span className="text-[10px] text-slate-500 mb-1">
-                      Tinggi Badan (Terakhir)
-                    </span>
-                    <span className="text-lg font-bold text-slate-800">
-                      {dataTerbaru?.tinggi ? `${dataTerbaru.tinggi} cm` : "-"}
-                    </span>
-                  </div>
-                </div>
+            <div className="mb-8">
+              <div className="mb-4">
+                <h3 className="font-semibold text-slate-800 text-[15px]">
+                  Grafik Pertumbuhan
+                </h3>
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Ketuk area titik pada grafik untuk melihat detail angka.
+                </p>
+              </div>
 
-                {/* Row 2: Lingkar Kepala & LILA */}
-                <div className="flex items-center justify-between py-4">
-                  <div className="flex-1 flex flex-col items-center border-r border-slate-200">
-                    <span className="text-[10px] text-slate-500 mb-1">
-                      Lingkar Kepala (Terakhir)
-                    </span>
-                    <span className="text-lg font-bold text-slate-800">
-                      {dataTerbaru?.lingkar_kepala ? `${dataTerbaru.lingkar_kepala} cm` : "-"}
+              <div className="bg-[#F8F9FA] rounded-2xl p-4 md:border md:border-slate-100 md:shadow-sm">
+                {graphData.length > 0 ? (
+                  <div className="relative w-full h-[220px]">
+                    <svg
+                      className="w-full h-full overflow-visible"
+                      preserveAspectRatio="none"
+                      viewBox="0 0 400 200"
+                    >
+                      <title>Grafik Pertumbuhan Anak</title>
+                      <line
+                        stroke="#E2E8F0"
+                        strokeWidth="1.5"
+                        x1="0"
+                        x2="400"
+                        y1="40"
+                        y2="40"
+                      />
+                      <line
+                        stroke="#E2E8F0"
+                        strokeWidth="1.5"
+                        x1="0"
+                        x2="400"
+                        y1="100"
+                        y2="100"
+                      />
+                      <line
+                        stroke="#E2E8F0"
+                        strokeWidth="1.5"
+                        x1="0"
+                        x2="400"
+                        y1="160"
+                        y2="160"
+                      />
+
+                      <path
+                        d={heightPath}
+                        fill="none"
+                        stroke="#FDBA74"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3.5"
+                      />
+                      <path
+                        d={weightPath}
+                        fill="none"
+                        stroke="#1E1B4B"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3.5"
+                      />
+
+                      {graphData.map((d) => {
+                        const isSelected = selectedPoint?.id === d.id;
+
+                        return (
+                          // biome-ignore lint/a11y/noStaticElementInteractions: SVG chart point
+                          <g
+                            className="cursor-pointer outline-none"
+                            key={d.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPoint(isSelected ? null : d);
+                            }}
+                          >
+                            <rect
+                              fill="transparent"
+                              height="200"
+                              width="40"
+                              x={d.x - 20}
+                              y="0"
+                            />
+
+                            {isSelected && (
+                              <line
+                                stroke="#94A3B8"
+                                strokeDasharray="4 4"
+                                strokeWidth="1.5"
+                                x1={d.x}
+                                x2={d.x}
+                                y1="20"
+                                y2="160"
+                              />
+                            )}
+
+                            <circle
+                              cx={d.x}
+                              cy={d.heightY}
+                              fill={isSelected ? "#FFF" : "#FDBA74"}
+                              r={isSelected ? "5" : "3.5"}
+                              stroke="#FDBA74"
+                              strokeWidth={isSelected ? "2" : "0"}
+                            />
+                            <circle
+                              cx={d.x}
+                              cy={d.weightY}
+                              fill={isSelected ? "#FFF" : "#1E1B4B"}
+                              r={isSelected ? "5" : "3.5"}
+                              stroke="#1E1B4B"
+                              strokeWidth={isSelected ? "2" : "0"}
+                            />
+
+                            <text
+                              fill={isSelected ? "#1E1B4B" : "#64748B"}
+                              fontSize="11"
+                              fontWeight={isSelected ? "700" : "500"}
+                              textAnchor="middle"
+                              x={d.x}
+                              y="185"
+                            >
+                              {d.date}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+
+                    {selectedPoint && (
+                      <div
+                        className="absolute bg-white shadow-lg border border-slate-100 rounded-xl p-2.5 flex flex-col gap-1 w-28 pointer-events-none transition-all duration-200 z-20"
+                        style={{
+                          left: `${(selectedPoint.x / 400) * 100}%`,
+                          top: `${(Math.min(selectedPoint.heightY, selectedPoint.weightY) / 200) * 100}%`,
+                          transform: "translate(-50%, -115%)",
+                        }}
+                      >
+                        <span className="text-[11px] font-bold text-slate-800 text-center mb-0.5 border-b border-slate-100 pb-1">
+                          {selectedPoint.fullDate}
+                        </span>
+                        <div className="flex items-center justify-between text-[11px] mt-0.5">
+                          <span className="text-slate-500">Berat</span>
+                          <span className="font-bold text-[#1E1B4B]">
+                            {selectedPoint.weight} kg
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500">Tinggi</span>
+                          <span className="font-bold text-[#FDBA74]">
+                            {selectedPoint.height} cm
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="py-12 flex items-center justify-center">
+                    <span className="text-sm text-slate-400">
+                      Belum ada data grafik.
                     </span>
                   </div>
-                  <div className="flex-1 flex flex-col items-center">
-                    <span className="text-[10px] text-slate-500 mb-1">
-                      LILA (Terakhir)
+                )}
+
+                <div className="flex items-center justify-center gap-6 mt-4">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-[#1E1B4B]"></div>
+                    <span className="text-[10px] text-slate-500 font-medium">
+                      Berat Badan
                     </span>
-                    <span className="text-lg font-bold text-slate-800">
-                      {dataTerbaru?.lila ? `${dataTerbaru.lila} cm` : "-"}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-[#FDBA74]"></div>
+                    <span className="text-[10px] text-slate-500 font-medium">
+                      Tinggi Badan
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="w-full h-2 bg-slate-100 md:hidden mb-6"></div>
-
-            {/* KOLOM KANAN */}
-            <div className="flex flex-col px-5 md:px-0">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-slate-800 text-[15px]">
-                  Riwayat Pengukuran
-                </h3>
-                {isAdmin && (
-                  <Link
-                    className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
-                    params={{ pesertaId: id }}
-                    to="/anggota/input/$pesertaId"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Tambah
-                  </Link>
-                )}
+            <div className="border-t border-b border-slate-200 divide-y divide-slate-100 mb-8 md:mb-0">
+              {/* Row 1: Berat & Tinggi */}
+              <div className="flex items-center justify-between py-4">
+                <div className="flex-1 flex flex-col items-center border-r border-slate-200">
+                  <span className="text-[10px] text-slate-500 mb-1">
+                    Berat Badan (Terakhir)
+                  </span>
+                  <span className="text-lg font-bold text-slate-800">
+                    {dataTerbaru?.berat ? `${dataTerbaru.berat} kg` : "-"}
+                  </span>
+                </div>
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[10px] text-slate-500 mb-1">
+                    Tinggi Badan (Terakhir)
+                  </span>
+                  <span className="text-lg font-bold text-slate-800">
+                    {dataTerbaru?.tinggi ? `${dataTerbaru.tinggi} cm` : "-"}
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                {data.riwayat.length > 0 ? (
-                  data.riwayat.map((item, index) => {
-                    const isExpanded = expandedHistoryId === item.id;
-                    return (
-                      <div
-                        className="bg-white md:bg-slate-50 md:border md:border-slate-100 rounded-2xl overflow-hidden transition-all duration-200 border border-slate-100/80 shadow-sm"
-                        key={item.id}
-                      >
-                        {/* Accordion Header (Core Metrics) */}
-                        <button
-                          type="button"
-                          className="w-full flex items-center justify-between p-4 cursor-pointer text-left hover:bg-slate-50/50 transition-colors"
-                          onClick={() => setExpandedHistoryId(isExpanded ? null : item.id)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Calendar className={`w-4 h-4 shrink-0 ${index === 0 ? "text-indigo-650 font-bold" : "text-slate-400"}`} />
-                            <div className="flex flex-col">
-                              <span className="text-xs font-bold text-slate-800">
-                                {new Date(item.tanggal_ukur).toLocaleDateString(
-                                  "id-ID",
-                                  { day: "numeric", month: "short", year: "numeric" },
-                                )}
-                              </span>
-                              {index === 0 && (
-                                <span className="text-[7.5px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 mt-0.5 rounded-md font-bold uppercase tracking-wider w-max">
-                                  Terbaru
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-4 text-right">
-                              <div className="flex flex-col">
-                                <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Berat</span>
-                                <span className="text-xs font-bold text-slate-800">{item.berat || "-"} kg</span>
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Tinggi</span>
-                                <span className="text-xs font-bold text-slate-800">{item.tinggi || "-"} cm</span>
-                              </div>
-                            </div>
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                            )}
-                          </div>
-                        </button>
-
-                        {/* Accordion Body (Extra Metrics & Actions) */}
-                        {isExpanded && (
-                          <div className="p-4 bg-slate-50/60 border-t border-slate-100/80 space-y-3.5 animate-in slide-in-from-top-1 duration-150">
-                            {/* Extra parameters */}
-                            <div className="grid grid-cols-2 gap-3 text-center">
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
-                                <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Lingkar Kepala</span>
-                                <span className="text-xs font-bold text-slate-800">{item.lingkar_kepala || "-"} cm</span>
-                              </div>
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
-                                <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">LILA</span>
-                                <span className="text-xs font-bold text-slate-800">{item.lila || "-"} cm</span>
-                              </div>
-                            </div>
-
-                            {/* Cara Ukur & Edema */}
-                            <div className="flex justify-between items-center text-[10px] text-slate-550 font-semibold px-1 py-0.5">
-                              <span>Cara Ukur: <span className="text-slate-800 font-bold">{item.cara_ukur || "Berdiri"}</span></span>
-                              <span>Pitting Edema: <span className={item.pitting_edema === "Ya" ? "text-red-650 font-black" : "text-slate-800 font-bold"}>{item.pitting_edema || "Tidak"}</span></span>
-                            </div>
-
-
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-6 text-slate-500 text-sm">
-                    Belum ada riwayat pengukuran.
-                  </div>
-                )}
+              {/* Row 2: Lingkar Kepala & LILA */}
+              <div className="flex items-center justify-between py-4">
+                <div className="flex-1 flex flex-col items-center border-r border-slate-200">
+                  <span className="text-[10px] text-slate-500 mb-1">
+                    Lingkar Kepala (Terakhir)
+                  </span>
+                  <span className="text-lg font-bold text-slate-800">
+                    {dataTerbaru?.lingkar_kepala
+                      ? `${dataTerbaru.lingkar_kepala} cm`
+                      : "-"}
+                  </span>
+                </div>
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[10px] text-slate-500 mb-1">
+                    LILA (Terakhir)
+                  </span>
+                  <span className="text-lg font-bold text-slate-800">
+                    {dataTerbaru?.lila ? `${dataTerbaru.lila} cm` : "-"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="w-full h-2 bg-slate-100 md:hidden mb-6"></div>
+
+          {/* KOLOM KANAN */}
+          <div className="flex flex-col px-5 md:px-0">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-semibold text-slate-800 text-[15px]">
+                Riwayat Pengukuran
+              </h3>
+              {isAdmin && (
+                <Link
+                  className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
+                  params={{ pesertaId: id }}
+                  to="/anggota/input/$pesertaId"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Tambah
+                </Link>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {data.riwayat.length > 0 ? (
+                data.riwayat.map((item, index) => {
+                  return (
+                    <div
+                      className="bg-white md:bg-slate-50 md:border md:border-slate-100 rounded-2xl overflow-hidden transition-all duration-200 border border-slate-100/80 shadow-sm hover:shadow-md hover:border-indigo-100"
+                      key={item.id}
+                    >
+                      <button
+                        className="w-full flex items-center justify-between p-4 cursor-pointer text-left hover:bg-slate-50/50 transition-colors"
+                        onClick={() => setSelectedHistory(item)}
+                        type="button"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Calendar
+                            className={`w-4 h-4 shrink-0 ${index === 0 ? "text-indigo-650 font-bold" : "text-slate-400"}`}
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-800">
+                              {new Date(item.tanggal_ukur).toLocaleDateString(
+                                "id-ID",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}
+                            </span>
+                            {index === 0 && (
+                              <span className="text-[7.5px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 mt-0.5 rounded-md font-bold uppercase tracking-wider w-max">
+                                Terbaru
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 text-right">
+                            <div className="flex flex-col">
+                              <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">
+                                Berat
+                              </span>
+                              <span className="text-xs font-bold text-slate-800">
+                                {item.berat || "-"} kg
+                              </span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">
+                                Tinggi
+                              </span>
+                              <span className="text-xs font-bold text-slate-800">
+                                {item.tinggi || "-"} cm
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 text-slate-500 text-sm">
+                  Belum ada riwayat pengukuran.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
 
       {/* MODAL POP-UP DETAIL RIWAYAT */}
       {selectedHistory && (
@@ -587,6 +599,13 @@ function MemberDetailView() {
               <h3 className="font-bold text-slate-800 text-[15px]">
                 Detail Pengukuran
               </h3>
+              <button
+                className="p-1 hover:bg-slate-200 rounded-full transition-colors text-slate-500"
+                onClick={() => setSelectedHistory(null)}
+                type="button"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Konten Modal */}
@@ -660,10 +679,10 @@ function MemberDetailView() {
               </div>
             </div>
 
-            {isAdmin && (
-              <div className="p-5 bg-slate-50 border-t border-slate-100">
+            {isAdmin ? (
+              <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
                 <button
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-650 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed border border-red-100"
                   disabled={isDeleting}
                   onClick={() => handleDeleteHistory(selectedHistory.id)}
                   type="button"
@@ -673,19 +692,29 @@ function MemberDetailView() {
                   ) : (
                     <Trash2 className="w-4 h-4" />
                   )}
-                  {isDeleting ? "Menghapus..." : "Hapus"}
+                  {isDeleting ? "Hapus..." : "Hapus"}
+                </button>
+
+                <Link
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-750 hover:bg-indigo-100 border border-indigo-100 rounded-xl text-sm font-bold transition-colors"
+                  params={{ pengukuranId: String(selectedHistory.id) }}
+                  to="/anggota/edit-pengukuran/$pengukuranId"
+                >
+                  <Pencil className="w-4 h-4" />
+                  Edit
+                </Link>
+              </div>
+            ) : (
+              <div className="p-5 bg-slate-50 border-t border-slate-100">
+                <button
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+                  onClick={() => setSelectedHistory(null)}
+                  type="button"
+                >
+                  Tutup
                 </button>
               </div>
             )}
-            <div className="pt-2 pb-2 px-5">
-              <button
-                className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-md"
-                onClick={() => setSelectedHistory(null)}
-                type="button"
-              >
-                Batal
-              </button>
-            </div>
           </div>
         </div>
       )}

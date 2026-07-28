@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // Mendefinisikan route dinamis berdasarkan nama file $pesertaId.tsx
 export const Route = createFileRoute("/anggota/input/$pesertaId")({
@@ -91,7 +91,7 @@ function MeasurementForm() {
       console.error("Error membaca sensor:", error);
       await window.showCustomAlert(
         (error as Error).message ||
-          "Gagal mengambil data dari sensor otomatis."
+          "Gagal mengambil data dari sensor otomatis.",
       );
     } finally {
       setIsSensorLoading(false);
@@ -134,7 +134,7 @@ function MeasurementForm() {
       console.error("Error submit data:", error);
       await window.showCustomAlert(
         (error as Error).message ||
-          "Terjadi kesalahan pada sistem saat menyimpan data."
+          "Terjadi kesalahan pada sistem saat menyimpan data.",
       );
     } finally {
       setIsLoading(false);
@@ -146,12 +146,13 @@ function MeasurementForm() {
       <div className="w-full max-w-md md:max-w-4xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden md:min-h-[auto]">
         {/* Header */}
         <div className="p-4 md:px-8 md:pt-8 md:pb-4 flex items-center md:border-b md:border-slate-100">
-          <Link
-            className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors"
-            to="/anggota"
+          <button
+            className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors cursor-pointer"
+            onClick={() => window.history.back()}
+            type="button"
           >
             <ArrowLeft className="w-6 h-6" />
-          </Link>
+          </button>
           <h1 className="hidden md:block ml-2 text-lg font-bold text-slate-800">
             Input Data Pengukuran
           </h1>

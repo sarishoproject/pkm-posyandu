@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
 import { Route as AkunIndexRouteImport } from './app/akun/index'
 import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
+import { Route as CariIndexRouteImport } from './app/cari/index'
 import { Route as AnggotaEditPengukuranPengukuranIdRouteImport } from './app/anggota/edit-pengukuran/$pengukuranId'
 import { Route as AnggotaEditEditIdRouteImport } from './app/anggota/edit/$editId'
 import { Route as AnggotaInfoIdRouteImport } from './app/anggota/info/$id'
@@ -31,6 +32,11 @@ const AkunIndexRoute = AkunIndexRouteImport.update({
 const AnggotaIndexRoute = AnggotaIndexRouteImport.update({
   id: '/anggota/',
   path: '/anggota/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CariIndexRoute = CariIndexRouteImport.update({
+  id: '/cari/',
+  path: '/cari/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaEditPengukuranPengukuranIdRoute =
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/akun/': typeof AkunIndexRoute
   '/anggota/': typeof AnggotaIndexRoute
+  '/cari/': typeof CariIndexRoute
   '/anggota/edit-pengukuran/$pengukuranId': typeof AnggotaEditPengukuranPengukuranIdRoute
   '/anggota/edit/$editId': typeof AnggotaEditEditIdRoute
   '/anggota/info/$id': typeof AnggotaInfoIdRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/akun': typeof AkunIndexRoute
   '/anggota': typeof AnggotaIndexRoute
+  '/cari': typeof CariIndexRoute
   '/anggota/edit-pengukuran/$pengukuranId': typeof AnggotaEditPengukuranPengukuranIdRoute
   '/anggota/edit/$editId': typeof AnggotaEditEditIdRoute
   '/anggota/info/$id': typeof AnggotaInfoIdRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/akun/': typeof AkunIndexRoute
   '/anggota/': typeof AnggotaIndexRoute
+  '/cari/': typeof CariIndexRoute
   '/anggota/edit-pengukuran/$pengukuranId': typeof AnggotaEditPengukuranPengukuranIdRoute
   '/anggota/edit/$editId': typeof AnggotaEditEditIdRoute
   '/anggota/info/$id': typeof AnggotaInfoIdRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/akun/'
     | '/anggota/'
+    | '/cari/'
     | '/anggota/edit-pengukuran/$pengukuranId'
     | '/anggota/edit/$editId'
     | '/anggota/info/$id'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/'
     | '/akun'
     | '/anggota'
+    | '/cari'
     | '/anggota/edit-pengukuran/$pengukuranId'
     | '/anggota/edit/$editId'
     | '/anggota/info/$id'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/'
     | '/akun/'
     | '/anggota/'
+    | '/cari/'
     | '/anggota/edit-pengukuran/$pengukuranId'
     | '/anggota/edit/$editId'
     | '/anggota/info/$id'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AkunIndexRoute: typeof AkunIndexRoute
   AnggotaIndexRoute: typeof AnggotaIndexRoute
+  CariIndexRoute: typeof CariIndexRoute
   AnggotaEditPengukuranPengukuranIdRoute: typeof AnggotaEditPengukuranPengukuranIdRoute
   AnggotaEditEditIdRoute: typeof AnggotaEditEditIdRoute
   AnggotaInfoIdRoute: typeof AnggotaInfoIdRoute
@@ -156,6 +169,13 @@ declare module '@tanstack/react-router' {
       path: '/anggota'
       fullPath: '/anggota/'
       preLoaderRoute: typeof AnggotaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cari/': {
+      id: '/cari/'
+      path: '/cari'
+      fullPath: '/cari/'
+      preLoaderRoute: typeof CariIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anggota/edit-pengukuran/$pengukuranId': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AkunIndexRoute: AkunIndexRoute,
   AnggotaIndexRoute: AnggotaIndexRoute,
+  CariIndexRoute: CariIndexRoute,
   AnggotaEditPengukuranPengukuranIdRoute:
     AnggotaEditPengukuranPengukuranIdRoute,
   AnggotaEditEditIdRoute: AnggotaEditEditIdRoute,

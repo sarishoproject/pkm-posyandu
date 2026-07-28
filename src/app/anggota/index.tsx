@@ -1,16 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
-  Home,
-  Loader2,
-  Ruler,
-  ScanLine,
-  Search,
-  User,
-  UserPlus,
-  Users,
-  Mars,
-  Venus,
-} from "lucide-react";
+  createFileRoute,
+  Link,
+  useLocation,
+  useNavigate,
+} from "@tanstack/react-router";
+import { Mars, Pencil, Ruler, ScanLine, Search, Venus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/anggota/")({
@@ -19,22 +13,42 @@ export const Route = createFileRoute("/anggota/")({
 
 interface Peserta {
   id: number;
+  jenis_kelamin?: string;
   nama_anak: string;
   nama_ibu: string | null;
   nik: string;
   status: string;
-  jenis_kelamin?: string;
-  tanggal_lahir?: string;
   sudah_diperiksa?: number;
+  tanggal_lahir?: string;
 }
 
 function MobileView() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [pesertaList, setPesertaList] = useState<Peserta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<"semua" | "sudah" | "belum">(
+    () => {
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const filterParam = params.get("filter");
+        if (filterParam === "sudah" || filterParam === "belum")
+          return filterParam;
+      }
+      return "semua";
+    },
+  );
   const [isAdmin, setIsAdmin] = useState(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const filterParam = params.get("filter");
+    if (filterParam === "sudah" || filterParam === "belum") {
+      setActiveFilter(filterParam);
+    } else {
+      setActiveFilter("semua");
+    }
+  }, [location.search]);
   useEffect(() => {
     const checkAuth = () => {
       setIsAdmin(localStorage.getItem("isLoggedIn") === "true");
@@ -77,62 +91,96 @@ function MobileView() {
     let months = (now.getFullYear() - birth.getFullYear()) * 12;
     months -= birth.getMonth();
     months += now.getMonth();
-    
+
     if (months < 0) return "0 Bulan";
-    
+
     if (months >= 12) {
       const years = Math.floor(months / 12);
       const remainingMonths = months % 12;
-      return remainingMonths > 0 
-        ? `${years} Tahun ${remainingMonths} Bulan` 
+      return remainingMonths > 0
+        ? `${years} Tahun ${remainingMonths} Bulan`
         : `${years} Tahun`;
     }
     return `${months} Bulan`;
   };
 
-  const filteredPeserta = pesertaList.filter(
-    (anak) =>
-      anak.nama_anak.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      anak.nik.includes(searchQuery),
-  );
+  const filteredPeserta = pesertaList.filter((child) => {
+    if (activeFilter === "sudah") return !!child.sudah_diperiksa;
+    if (activeFilter === "belum") return !child.sudah_diperiksa;
+    return true;
+  });
+
+  const sudahCount = pesertaList.filter((p) => p.sudah_diperiksa).length;
+  const belumCount = pesertaList.filter((p) => !p.sudah_diperiksa).length;
+  const totalCount = pesertaList.length;
 
   return (
     <div className="w-full max-w-md md:max-w-5xl mx-auto flex flex-col flex-1 px-4 md:px-8">
-      <div className="flex items-center gap-3 p-4 pt-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-          <input
-            className="w-full pl-10 pr-12 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white shadow-sm text-sm"
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama atau NIK..."
-            type="text"
-            value={searchQuery}
-          />
-          <button
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
-            type="button"
-          >
+      <div className="px-4 pt-6 pb-1">
+        <Link
+          className="w-full flex items-center pl-11 pr-12 h-14 rounded-2xl border border-slate-200 bg-white shadow-sm text-sm text-slate-400 cursor-pointer relative"
+          to="/cari"
+        >
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
+          <span>Telusuri</span>
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-850 transition-colors">
             <ScanLine className="w-5 h-5" />
-          </button>
-        </div>
+          </span>
+        </Link>
+      </div>
 
-        {isAdmin && (
-          <Link className="flex-shrink-0" to="/anggota/tambah">
-            <button
-              className="p-3 border border-slate-200 rounded-2xl bg-white text-indigo-700 hover:bg-slate-50 transition-colors shadow-sm"
-              type="button"
-            >
-              <UserPlus className="w-5 h-5" />
-            </button>
-          </Link>
-        )}
+      <div className="flex justify-end items-center gap-5 px-4 py-3">
+        <button
+          className={`text-xs font-bold transition-all cursor-pointer ${activeFilter === "semua" ? "text-slate-900" : "text-slate-400 hover:text-slate-600"}`}
+          onClick={() => {
+            setActiveFilter("semua");
+            navigate({ to: "/anggota", search: {} });
+          }}
+          type="button"
+        >
+          Semua
+        </button>
+        <button
+          className={`text-xs font-bold transition-all cursor-pointer ${activeFilter === "sudah" ? "text-slate-900" : "text-slate-400 hover:text-slate-600"}`}
+          onClick={() => {
+            setActiveFilter("sudah");
+            navigate({ to: "/anggota", search: { filter: "sudah" } });
+          }}
+          type="button"
+        >
+          Sudah
+          {sudahCount > 0 && sudahCount < totalCount ? ` (${sudahCount})` : ""}
+        </button>
+        <button
+          className={`text-xs font-bold transition-all cursor-pointer ${activeFilter === "belum" ? "text-slate-900" : "text-slate-400 hover:text-slate-600"}`}
+          onClick={() => {
+            setActiveFilter("belum");
+            navigate({ to: "/anggota", search: { filter: "belum" } });
+          }}
+          type="button"
+        >
+          Belum
+          {belumCount > 0 && belumCount < totalCount ? ` (${belumCount})` : ""}
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-max items-start">
         {isLoading ? (
-          <div className="flex justify-center items-center py-10">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-          </div>
+          ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5"].map((itemKey) => (
+            <div
+              className="bg-white border border-slate-100/70 p-4 rounded-2xl flex items-center justify-between shadow-sm animate-pulse"
+              key={itemKey}
+            >
+              <div className="flex items-center gap-4 w-full">
+                <div className="w-12 h-12 rounded-full bg-slate-100 shrink-0" />
+                <div className="flex flex-col flex-1 space-y-2">
+                  <div className="w-3/4 h-4 bg-slate-100 rounded-md" />
+                  <div className="w-1/2 h-3.5 bg-slate-100 rounded-md" />
+                </div>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-slate-100 shrink-0" />
+            </div>
+          ))
         ) : filteredPeserta.length > 0 ? (
           filteredPeserta.map((child) => (
             <Link
@@ -142,10 +190,10 @@ function MobileView() {
               to="/anggota/info/$id"
             >
               {/* Left indicator border based on checked status */}
-              <div 
+              <div
                 className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 rounded-r-full transition-colors ${
                   child.sudah_diperiksa ? "bg-green-500" : "bg-orange-400"
-                }`} 
+                }`}
               />
 
               <div className="flex items-center gap-4 pl-1">
@@ -157,7 +205,9 @@ function MobileView() {
                     {child.nama_anak}
                   </span>
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1 font-medium">
-                    {child.jenis_kelamin?.toUpperCase() === "L" || child.jenis_kelamin?.toUpperCase() === "LAKI-LAKI" || child.jenis_kelamin?.toUpperCase() === "LAKI_LAKI" ? (
+                    {child.jenis_kelamin?.toUpperCase() === "L" ||
+                    child.jenis_kelamin?.toUpperCase() === "LAKI-LAKI" ||
+                    child.jenis_kelamin?.toUpperCase() === "LAKI_LAKI" ? (
                       <Mars className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     ) : (
                       <Venus className="w-3.5 h-3.5 text-slate-400 shrink-0" />

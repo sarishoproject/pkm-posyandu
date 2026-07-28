@@ -1,10 +1,11 @@
+import * as ExcelJS from "exceljs";
 import db from "@/db/connection";
 import type { NextRouteHandler } from "@/types";
-import * as ExcelJS from "exceljs";
 
 export const GET: NextRouteHandler = async () => {
   try {
-    const data = db.query(`
+    const data = db
+      .query(`
       SELECT 
         p.nik, 
         p.nama_anak, 
@@ -29,7 +30,8 @@ export const GET: NextRouteHandler = async () => {
       FROM pendataan d
       JOIN peserta p ON d.peserta_id = p.id
       ORDER BY d.tanggal_ukur DESC
-    `).all() as any[];
+    `)
+      .all() as any[];
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "Erzy.sh WebDev";
@@ -67,7 +69,12 @@ export const GET: NextRouteHandler = async () => {
 
     // Style header row
     const headerRow = sheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: "FFFFFF" }, name: "Arial", size: 10 };
+    headerRow.font = {
+      bold: true,
+      color: { argb: "FFFFFF" },
+      name: "Arial",
+      size: 10,
+    };
     headerRow.height = 25;
     headerRow.eachCell((cell) => {
       cell.fill = {
@@ -130,7 +137,8 @@ export const GET: NextRouteHandler = async () => {
 
     return new Response(buffer, {
       headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": 'attachment; filename="laporan_posyandu.xlsx"',
       },
     });

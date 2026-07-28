@@ -28,7 +28,7 @@ function AddMemberForm() {
 
     if (!tahunInput || tahunInput < 2000 || tahunInput > tahunSekarang) {
       await window.showCustomAlert(
-        `Tahun lahir tidak valid! Harap masukkan tahun antara 2000 - ${tahunSekarang}.`
+        `Tahun lahir tidak valid! Harap masukkan tahun antara 2000 - ${tahunSekarang}.`,
       );
       return;
     }
@@ -85,181 +85,184 @@ function AddMemberForm() {
         </h1>
       </div>
 
-        <div className="px-5 pt-2 pb-8 flex-1 flex flex-col md:px-8">
-          <form
-            className="space-y-5 flex-1 flex flex-col"
-            onSubmit={handleSubmit}
-          >
-            <div className="flex flex-col gap-1.5">
-              <label
-                className="text-[11px] font-semibold text-slate-600"
-                htmlFor="nama"
-              >
-                Nama Anak
-              </label>
-              <input
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
-                onChange={(e) =>
-                  setFormData({ ...formData, nama_anak: e.target.value })
-                }
-                placeholder="Masukkan nama lengkap anak"
-                required
-                type="text"
-                value={formData.nama_anak}
-              />
-            </div>
+      <div className="px-5 pt-2 pb-8 flex-1 flex flex-col md:px-8">
+        <form
+          className="space-y-5 flex-1 flex flex-col"
+          onSubmit={handleSubmit}
+        >
+          <div className="flex flex-col gap-1.5">
+            <label
+              className="text-[11px] font-semibold text-slate-600"
+              htmlFor="nama"
+            >
+              Nama Anak
+            </label>
+            <input
+              className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+              onChange={(e) =>
+                setFormData({ ...formData, nama_anak: e.target.value })
+              }
+              placeholder="Masukkan nama lengkap anak"
+              required
+              type="text"
+              value={formData.nama_anak}
+            />
+          </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                className="text-[11px] font-semibold text-slate-600"
-                htmlFor="nik"
-              >
-                NIK (Nomor Induk Kependudukan)
-              </label>
-              <input
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
-                maxLength={16}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    nik: e.target.value.replace(/\D/g, ""),
-                  })
-                } // Hanya angka
-                placeholder="16 digit NIK"
-                required
-                type="text"
-                value={formData.nik}
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label
+              className="text-[11px] font-semibold text-slate-600"
+              htmlFor="nik"
+            >
+              NIK (Nomor Induk Kependudukan)
+            </label>
+            <input
+              className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+              maxLength={16}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  nik: e.target.value.replace(/\D/g, ""),
+                })
+              } // Hanya angka
+              placeholder="16 digit NIK"
+              required
+              type="text"
+              value={formData.nik}
+            />
+          </div>
 
-            {/* JENIS KELAMIN - Hanya untuk UI */}
-            <div className="flex flex-col gap-1.5">
-              <label
-                className="text-[11px] font-semibold text-slate-600"
-                htmlFor="jenis_kelamin"
-              >
-                Jenis Kelamin
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
-                    formData.jenis_kelamin === "Laki-laki"
-                      ? "border-indigo-400 bg-indigo-50 text-indigo-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
-                  onClick={() =>
-                    setFormData({ ...formData, jenis_kelamin: "Laki-laki" })
-                  }
-                  type="button"
-                >
-                  <span className="text-lg leading-none">♂</span> Laki-laki
-                </button>
-
-                <button
-                  className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
-                    formData.jenis_kelamin === "Perempuan"
-                      ? "border-pink-400 bg-pink-50 text-pink-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
-                  onClick={() =>
-                    setFormData({ ...formData, jenis_kelamin: "Perempuan" })
-                  }
-                  type="button"
-                >
-                  <span className="text-lg leading-none">♀</span> Perempuan
-                </button>
-              </div>
-            </div>
-
-            {/* TANGGAL LAHIR - Hanya untuk UI */}
-            <div className="flex flex-col gap-1.5">
-              <label
-                className="text-[11px] font-semibold text-slate-600"
-                htmlFor="tanggal_lahir"
-              >
-                Tanggal Lahir Anak
-              </label>
-              <div className="grid grid-cols-[1fr_1fr_1fr] gap-2">
-                <select
-                  className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
-                  onChange={(e) =>
-                    setFormData({ ...formData, tgl_lahir: e.target.value })
-                  }
-                  value={formData.tgl_lahir}
-                >
-                  <option value="">Tgl</option>
-                  {Array.from({ length: 31 }, (_, i) => (
-                    <option key={++i} value={i + 1}>
-                      {i + 1}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
-                  onChange={(e) =>
-                    setFormData({ ...formData, bulan_lahir: e.target.value })
-                  }
-                  value={formData.bulan_lahir}
-                >
-                  <option value="">Bulan</option>
-                  <option value="1">Januari</option>
-                  <option value="2">Februari</option>
-                  <option value="3">Maret</option>
-                  <option value="4">April</option>
-                  <option value="5">Mei</option>
-                  <option value="6">Juni</option>
-                  <option value="7">Juli</option>
-                  <option value="8">Agustus</option>
-                  <option value="9">September</option>
-                  <option value="10">Oktober</option>
-                  <option value="11">November</option>
-                  <option value="12">Desember</option>
-                </select>
-
-                <input
-                  className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
-                  max={new Date().getFullYear()}
-                  min="2000" // Batas minimal
-                  onChange={(e) =>
-                    setFormData({ ...formData, tahun_lahir: e.target.value })
-                  }
-                  placeholder="Tahun"
-                  type="number"
-                  value={formData.tahun_lahir}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label
-                className="text-[11px] font-semibold text-slate-600"
-                htmlFor="nama_ibu"
-              >
-                Nama Ibu Kandung
-              </label>
-              <input
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
-                onChange={(e) =>
-                  setFormData({ ...formData, nama_ibu: e.target.value })
-                }
-                placeholder="Masukkan nama ibu"
-                type="text"
-                value={formData.nama_ibu}
-              />
-            </div>
-
-            <div className="mt-auto pt-8">
+          {/* JENIS KELAMIN - Hanya untuk UI */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              className="text-[11px] font-semibold text-slate-600"
+              htmlFor="jenis_kelamin"
+            >
+              Jenis Kelamin
+            </label>
+            <div className="grid grid-cols-2 gap-3">
               <button
-                className="w-full py-4 rounded-xl bg-[#23257B] text-white font-medium text-sm hover:bg-[#1a1c5e] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
-                disabled={isLoading}
-                type="submit"
+                className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
+                  formData.jenis_kelamin === "Laki-laki"
+                    ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+                onClick={() =>
+                  setFormData({ ...formData, jenis_kelamin: "Laki-laki" })
+                }
+                type="button"
               >
-                {isLoading ? "Menyimpan..." : "Simpan Data"}
+                <span className="text-lg leading-none">♂</span> Laki-laki
+              </button>
+
+              <button
+                className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border font-medium text-sm transition-colors ${
+                  formData.jenis_kelamin === "Perempuan"
+                    ? "border-pink-400 bg-pink-50 text-pink-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+                onClick={() =>
+                  setFormData({ ...formData, jenis_kelamin: "Perempuan" })
+                }
+                type="button"
+              >
+                <span className="text-lg leading-none">♀</span> Perempuan
               </button>
             </div>
-          </form>
-        </div>
+          </div>
+
+          {/* TANGGAL LAHIR - Hanya untuk UI */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              className="text-[11px] font-semibold text-slate-600"
+              htmlFor="tanggal_lahir"
+            >
+              Tanggal Lahir Anak
+            </label>
+            <div className="grid grid-cols-[1fr_1fr_1fr] gap-2">
+              <select
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
+                onChange={(e) =>
+                  setFormData({ ...formData, tgl_lahir: e.target.value })
+                }
+                value={formData.tgl_lahir}
+              >
+                <option value="">Tgl</option>
+                {Array.from({ length: 31 }, (_, i) => {
+                  const d = i + 1;
+                  return (
+                    <option key={`tgl-${d}`} value={d}>
+                      {d}
+                    </option>
+                  );
+                })}
+              </select>
+
+              <select
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 bg-white text-sm appearance-none cursor-pointer"
+                onChange={(e) =>
+                  setFormData({ ...formData, bulan_lahir: e.target.value })
+                }
+                value={formData.bulan_lahir}
+              >
+                <option value="">Bulan</option>
+                <option value="1">Januari</option>
+                <option value="2">Februari</option>
+                <option value="3">Maret</option>
+                <option value="4">April</option>
+                <option value="5">Mei</option>
+                <option value="6">Juni</option>
+                <option value="7">Juli</option>
+                <option value="8">Agustus</option>
+                <option value="9">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+              </select>
+
+              <input
+                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+                max={new Date().getFullYear()}
+                min="2000" // Batas minimal
+                onChange={(e) =>
+                  setFormData({ ...formData, tahun_lahir: e.target.value })
+                }
+                placeholder="Tahun"
+                type="number"
+                value={formData.tahun_lahir}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              className="text-[11px] font-semibold text-slate-600"
+              htmlFor="nama_ibu"
+            >
+              Nama Ibu Kandung
+            </label>
+            <input
+              className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm"
+              onChange={(e) =>
+                setFormData({ ...formData, nama_ibu: e.target.value })
+              }
+              placeholder="Masukkan nama ibu"
+              type="text"
+              value={formData.nama_ibu}
+            />
+          </div>
+
+          <div className="mt-auto pt-8">
+            <button
+              className="w-full py-4 rounded-xl bg-[#23257B] text-white font-medium text-sm hover:bg-[#1a1c5e] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+              disabled={isLoading}
+              type="submit"
+            >
+              {isLoading ? "Menyimpan..." : "Simpan Data"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

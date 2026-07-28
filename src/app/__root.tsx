@@ -1,6 +1,18 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { createRootRouteWithContext, Link, Outlet, useLocation } from "@tanstack/react-router";
-import { Home, User, Users, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  createRootRouteWithContext,
+  Link,
+  Outlet,
+  useLocation,
+} from "@tanstack/react-router";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Home,
+  Search,
+  Settings,
+  Users,
+} from "lucide-react";
 import React from "react";
 
 // Add global TypeScript typings for custom alert/confirm handlers
@@ -19,9 +31,15 @@ export const Route = createRootRouteWithContext<{
 
 function RootLayout() {
   const location = useLocation();
-  const showNavbar = ["/", "/anggota", "/anggota/", "/akun", "/akun/"].includes(
-    location.pathname,
-  );
+  const showNavbar = [
+    "/",
+    "/anggota",
+    "/anggota/",
+    "/cari",
+    "/cari/",
+    "/akun",
+    "/akun/",
+  ].includes(location.pathname);
 
   const [dialog, setDialog] = React.useState<{
     isOpen: boolean;
@@ -66,7 +84,9 @@ function RootLayout() {
   }, []);
 
   return (
-    <div className={`flex flex-col min-h-screen w-full relative font-sans text-slate-800 bg-[#F8F9FA] ${showNavbar ? "pb-24" : ""}`}>
+    <div
+      className={`flex flex-col min-h-screen w-full relative font-sans text-slate-800 bg-[#F8F9FA] ${showNavbar ? "pb-24" : ""}`}
+    >
       <div className="flex-1 flex flex-col w-full">
         <Outlet />
       </div>
@@ -82,7 +102,7 @@ function RootLayout() {
           </Link>
 
           <Link
-            className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
+            className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-16 [&.active]:text-indigo-700"
             to="/anggota"
           >
             <Users className="w-6 h-6" />
@@ -90,11 +110,19 @@ function RootLayout() {
           </Link>
 
           <Link
-            className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-20 [&.active]:text-indigo-700"
+            className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-16 [&.active]:text-indigo-700"
+            to="/cari"
+          >
+            <Search className="w-6 h-6" />
+            <span className="text-[10px] font-medium">Cari</span>
+          </Link>
+
+          <Link
+            className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-16 [&.active]:text-indigo-700"
             to="/akun"
           >
-            <User className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Akun</span>
+            <Settings className="w-6 h-6" />
+            <span className="text-[10px] font-medium">Setelan</span>
           </Link>
         </div>
       )}
@@ -104,20 +132,26 @@ function RootLayout() {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-[2rem] p-6 max-w-sm w-full shadow-2xl border border-slate-100/50 flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
             {/* Icon based on type */}
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
-              dialog.type === "confirm" ? "bg-amber-50 text-amber-500" : "bg-indigo-50 text-indigo-600"
-            }`}>
+            <div
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                dialog.type === "confirm"
+                  ? "bg-amber-50 text-amber-500"
+                  : "bg-indigo-50 text-indigo-600"
+              }`}
+            >
               {dialog.type === "confirm" ? (
                 <AlertCircle className="w-8 h-8" />
               ) : (
                 <CheckCircle2 className="w-8 h-8" />
               )}
             </div>
-            
+
             {/* Title & Message */}
             <div className="space-y-1">
               <h3 className="font-black text-slate-800 text-base leading-tight">
-                {dialog.type === "confirm" ? "Konfirmasi Tindakan" : "Pemberitahuan"}
+                {dialog.type === "confirm"
+                  ? "Konfirmasi Tindakan"
+                  : "Pemberitahuan"}
               </h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-[260px] mx-auto">
                 {dialog.message}
@@ -129,15 +163,15 @@ function RootLayout() {
               {dialog.type === "confirm" ? (
                 <>
                   <button
-                    onClick={() => dialog.resolve?.(false)}
                     className="flex-1 py-3 border-2 border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    onClick={() => dialog.resolve?.(false)}
                     type="button"
                   >
                     Batal
                   </button>
                   <button
-                    onClick={() => dialog.resolve?.(true)}
                     className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-md"
+                    onClick={() => dialog.resolve?.(true)}
                     type="button"
                   >
                     Ya, Hapus
@@ -145,8 +179,8 @@ function RootLayout() {
                 </>
               ) : (
                 <button
-                  onClick={() => dialog.resolve?.(null)}
                   className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  onClick={() => dialog.resolve?.(null)}
                   type="button"
                 >
                   Mengerti

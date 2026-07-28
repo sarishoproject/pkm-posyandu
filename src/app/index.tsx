@@ -1,5 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Loader2, Users, FileText, CheckCircle, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileText,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -7,13 +15,22 @@ export const Route = createFileRoute("/")({
 });
 
 interface StatsResponse {
-  total_peserta: number;
-  total_pemeriksaan: number;
-  sudah_periksa_bulan_ini: number;
   belum_periksa_bulan_ini: number;
+  pemeriksaan_bulan_ini: {
+    id: number;
+    nama_panggilan: string;
+    berat: number;
+    tinggi: number;
+  }[];
+  rata_rata_pertumbuhan: {
+    bulan: string;
+    rata_berat: number;
+    rata_tinggi: number;
+  }[];
+  sudah_periksa_bulan_ini: number;
+  total_pemeriksaan: number;
+  total_peserta: number;
   tren_bulanan: { bulan: string; jumlah: number }[];
-  rata_rata_pertumbuhan: { bulan: string; rata_berat: number; rata_tinggi: number }[];
-  pemeriksaan_bulan_ini: { id: number; nama_panggilan: string; berat: number; tinggi: number }[];
 }
 
 function SebaranBulanIniChart({
@@ -47,15 +64,22 @@ function SebaranBulanIniChart({
   const drawRange = yMaxBound - yMinBound;
 
   const points = data.map((item, idx) => {
-    const x = paddingX + (idx * (width - paddingX * 2)) / Math.max(1, data.length - 1);
+    const x =
+      paddingX + (idx * (width - paddingX * 2)) / Math.max(1, data.length - 1);
     const val = item[metric];
-    const y = height - paddingY - ((val - yMinBound) / drawRange) * (height - paddingY * 2);
+    const y =
+      height -
+      paddingY -
+      ((val - yMinBound) / drawRange) * (height - paddingY * 2);
     const isMin = item.id === minItem?.id && val === minVal;
     const isMax = item.id === maxItem?.id && val === maxVal;
     return { x, y, val, label: item.nama_panggilan, isMin, isMax, id: item.id };
   });
 
-  const avgY = height - paddingY - ((avg - yMinBound) / drawRange) * (height - paddingY * 2);
+  const avgY =
+    height -
+    paddingY -
+    ((avg - yMinBound) / drawRange) * (height - paddingY * 2);
   const color = metric === "berat" ? "rgb(37, 99, 235)" : "rgb(217, 119, 6)";
 
   const maxPoint = points.find((p) => p.isMax);
@@ -65,38 +89,59 @@ function SebaranBulanIniChart({
     <div className="flex flex-col space-y-4 pt-1">
       {/* SVG Chart Container */}
       <div className="relative h-[135px] w-full overflow-visible select-none">
-        <svg height="100%" width="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+        <svg
+          className="overflow-visible"
+          height="100%"
+          viewBox={`0 0 ${width} ${height}`}
+          width="100%"
+        >
           {/* Grid lines */}
-          <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="#F8FAFC" strokeWidth="1" />
-          <line x1={paddingX} y1={height / 2} x2={width - paddingX} y2={height / 2} stroke="#F8FAFC" strokeWidth="1" />
+          <line
+            stroke="#F8FAFC"
+            strokeWidth="1"
+            x1={paddingX}
+            x2={width - paddingX}
+            y1={paddingY}
+            y2={paddingY}
+          />
+          <line
+            stroke="#F8FAFC"
+            strokeWidth="1"
+            x1={paddingX}
+            x2={width - paddingX}
+            y1={height / 2}
+            y2={height / 2}
+          />
 
           {/* Average Dashed Line */}
           <line
-            x1={paddingX}
-            y1={avgY}
-            x2={width - paddingX}
-            y2={avgY}
             stroke="#94A3B8"
-            strokeWidth="1.25"
             strokeDasharray="4 4"
             strokeOpacity="0.6"
+            strokeWidth="1.25"
+            x1={paddingX}
+            x2={width - paddingX}
+            y1={avgY}
+            y2={avgY}
           />
           <text
+            className="text-[8px] font-bold fill-slate-400 font-sans"
             x={width - paddingX - 45}
             y={avgY - 4}
-            className="text-[8px] font-bold fill-slate-400 font-sans"
           >
             Rata-rata: {avg}
           </text>
 
           {/* Connect line */}
           <path
-            d={points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ")}
+            d={points
+              .map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+              .join(" ")}
             fill="none"
             stroke={color}
+            strokeLinecap="round"
             strokeOpacity="0.15"
             strokeWidth="2"
-            strokeLinecap="round"
           />
 
           {/* Dots */}
@@ -104,11 +149,11 @@ function SebaranBulanIniChart({
             .filter((p) => p.isMin || p.isMax)
             .map((p) => (
               <circle
-                key={p.id}
                 cx={p.x}
                 cy={p.y}
-                r="4"
                 fill={p.isMin ? "#475569" : color}
+                key={p.id}
+                r="4"
                 stroke="white"
                 strokeWidth="1.5"
               />
@@ -125,7 +170,10 @@ function SebaranBulanIniChart({
               backgroundColor: color,
             }}
           >
-            <span>{maxPoint.label} ({maxPoint.val}{unit})</span>
+            <span>
+              {maxPoint.label} ({maxPoint.val}
+              {unit})
+            </span>
             <div
               className="absolute bottom-[-3px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rotate-45"
               style={{ backgroundColor: color }}
@@ -135,14 +183,17 @@ function SebaranBulanIniChart({
 
         {minPoint && (
           <div
+            className="absolute -translate-x-1/2 text-[9px] font-bold px-2 py-0.5 rounded shadow-sm whitespace-nowrap flex items-center gap-1 select-none pointer-events-none text-white transition-all duration-300"
             style={{
               left: `${(minPoint.x / width) * 100}%`,
               top: `${(minPoint.y / height) * 100 + 8}px`,
               backgroundColor: "#475569",
             }}
-            className="absolute -translate-x-1/2 text-[9px] font-bold px-2 py-0.5 rounded shadow-sm whitespace-nowrap flex items-center gap-1 select-none pointer-events-none text-white transition-all duration-300"
           >
-            <span>{minPoint.label} ({minPoint.val}{unit})</span>
+            <span>
+              {minPoint.label} ({minPoint.val}
+              {unit})
+            </span>
             <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rotate-45 bg-[#475569]" />
           </div>
         )}
@@ -175,55 +226,117 @@ function TradingViewLineChart({
   const paddingY = 12;
 
   const points = data.map((item, idx) => {
-    const x = paddingX + (idx * (width - paddingX * 2)) / Math.max(1, data.length - 1);
+    const x =
+      paddingX + (idx * (width - paddingX * 2)) / Math.max(1, data.length - 1);
     const val = item[dataKey] || 0;
-    const y = height - paddingY - ((val - minVal) / range) * (height - paddingY * 2);
+    const y =
+      height - paddingY - ((val - minVal) / range) * (height - paddingY * 2);
     return { x, y, val, label: item.bulan };
   });
 
-  const linePath = points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
-  const areaPath = points.length > 0 
-    ? `${linePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`
-    : "";
+  const linePath = points
+    .map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ");
+  const areaPath =
+    points.length > 0
+      ? `${linePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`
+      : "";
 
   return (
     <div className="bg-white p-3.5 rounded-2xl border border-slate-100/50 shadow-sm flex flex-col space-y-1.5 overflow-hidden">
       <div className="flex justify-between items-baseline">
-        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{title}</span>
+        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+          {title}
+        </span>
         <span className="text-xs font-black text-slate-800">
-          {values[values.length - 1] || "-"} <span className="text-[9px] text-slate-500 font-normal">{unit}</span>
+          {values[values.length - 1] || "-"}{" "}
+          <span className="text-[9px] text-slate-500 font-normal">{unit}</span>
         </span>
       </div>
       <div className="flex justify-center items-end relative h-[90px] w-full overflow-visible">
-        <svg height={height} width="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+        <svg
+          className="overflow-visible"
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          width="100%"
+        >
           <defs>
-            <linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={`grad-${dataKey}`} x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor={color} stopOpacity="0.25" />
               <stop offset="100%" stopColor={color} stopOpacity="0.00" />
             </linearGradient>
           </defs>
 
           {/* Grid lines */}
-          <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} stroke="#F1F5F9" strokeWidth="0.75" strokeDasharray="2 2" />
-          <line x1={paddingX} y1={height / 2} x2={width - paddingX} y2={height / 2} stroke="#F1F5F9" strokeWidth="0.75" strokeDasharray="2 2" />
-          <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} stroke="#E2E8F0" strokeWidth="1" />
+          <line
+            stroke="#F1F5F9"
+            strokeDasharray="2 2"
+            strokeWidth="0.75"
+            x1={paddingX}
+            x2={width - paddingX}
+            y1={paddingY}
+            y2={paddingY}
+          />
+          <line
+            stroke="#F1F5F9"
+            strokeDasharray="2 2"
+            strokeWidth="0.75"
+            x1={paddingX}
+            x2={width - paddingX}
+            y1={height / 2}
+            y2={height / 2}
+          />
+          <line
+            stroke="#E2E8F0"
+            strokeWidth="1"
+            x1={paddingX}
+            x2={width - paddingX}
+            y1={height - paddingY}
+            y2={height - paddingY}
+          />
 
           {/* Area under the line */}
           {areaPath && <path d={areaPath} fill={`url(#grad-${dataKey})`} />}
 
           {/* Line path */}
-          {linePath && <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />}
+          {linePath && (
+            <path
+              d={linePath}
+              fill="none"
+              stroke={color}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+          )}
 
           {/* Data Points */}
           {points.map((p) => (
             <g key={p.label}>
-              <circle cx={p.x} cy={p.y} r="2.5" fill="white" stroke={color} strokeWidth="1.5" />
+              <circle
+                cx={p.x}
+                cy={p.y}
+                fill="white"
+                r="2.5"
+                stroke={color}
+                strokeWidth="1.5"
+              />
               {/* Value labels */}
-              <text x={p.x} y={p.y - 6} textAnchor="middle" className="text-[8px] font-bold fill-slate-800 font-sans">
+              <text
+                className="text-[8px] font-bold fill-slate-800 font-sans"
+                textAnchor="middle"
+                x={p.x}
+                y={p.y - 6}
+              >
                 {p.val}
               </text>
               {/* Axis labels */}
-              <text x={p.x} y={height - 2} textAnchor="middle" className="text-[7px] font-semibold fill-slate-400 font-sans">
+              <text
+                className="text-[7px] font-semibold fill-slate-400 font-sans"
+                textAnchor="middle"
+                x={p.x}
+                y={height - 2}
+              >
                 {p.label}
               </text>
             </g>
@@ -239,7 +352,7 @@ function DashboardHome() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeMetric, setActiveMetric] = useState<"berat" | "tinggi">("berat");
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   // Month navigation state: YYYY-MM
   const [currentMonth, setCurrentMonth] = useState(() => {
     const d = new Date();
@@ -310,8 +423,49 @@ function DashboardHome() {
 
   if (isLoading || !stats) {
     return (
-      <div className="flex-1 flex justify-center items-center py-20">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+      <div className="flex-1 flex flex-col p-4 xs:p-6 max-w-md mx-auto space-y-6 pb-12 animate-pulse">
+        {/* Hero skeleton */}
+        <div className="bg-indigo-50 border border-indigo-100 rounded-[2.25rem] p-6 flex flex-col space-y-6">
+          <div className="flex justify-between items-start">
+            <div className="space-y-2">
+              <div className="w-24 h-6 bg-indigo-200/50 rounded-md" />
+              <div className="w-36 h-3 bg-indigo-200/30 rounded-md" />
+            </div>
+            <div className="w-24 h-9 bg-indigo-200/40 rounded-xl" />
+          </div>
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-200/40" />
+              <div className="space-y-1.5 flex-1">
+                <div className="w-12 h-2.5 bg-indigo-200/30 rounded-md" />
+                <div className="w-8 h-5 bg-indigo-200/50 rounded-md" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-200/40" />
+              <div className="space-y-1.5 flex-1">
+                <div className="w-12 h-2.5 bg-indigo-200/30 rounded-md" />
+                <div className="w-8 h-5 bg-indigo-200/50 rounded-md" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Warga Diperiksa skeleton */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100/50 shadow-sm space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="w-32 h-5 bg-slate-100 rounded-md" />
+            <div className="w-16 h-6 bg-slate-100 rounded-lg" />
+          </div>
+          <div className="h-32 bg-slate-50/70 rounded-xl" />
+          <div className="h-4 bg-slate-100 rounded-full" />
+        </div>
+
+        {/* TradingView widgets skeletons */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white p-3.5 h-28 rounded-2xl border border-slate-100/50 shadow-sm" />
+          <div className="bg-white p-3.5 h-28 rounded-2xl border border-slate-100/50 shadow-sm" />
+        </div>
       </div>
     );
   }
@@ -324,23 +478,27 @@ function DashboardHome() {
   const gap = 20;
 
   return (
-    <div className="flex-1 flex flex-col p-6 max-w-md mx-auto space-y-6 pb-12">
+    <div className="flex-1 flex flex-col p-4 xs:p-6 max-w-md mx-auto space-y-6 pb-12">
       {/* Hero Section Card (Primary Theme) */}
-      <div className="bg-indigo-600 text-white rounded-[2.25rem] p-6 shadow-md flex flex-col space-y-6">
+      <div className="bg-indigo-600 text-white rounded-[2.25rem] p-5 xs:p-6 shadow-md flex flex-col space-y-6">
         {/* Header inside Hero */}
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start gap-2">
           <div className="space-y-0.5">
-            <h1 className="text-2xl font-black tracking-tight text-white">Beranda</h1>
-            <p className="text-xs text-indigo-200/90 font-medium">Ringkasan data posyandu</p>
+            <h1 className="text-xl xs:text-2xl font-black tracking-tight text-white">
+              Beranda
+            </h1>
+            <p className="text-[10px] xs:text-xs text-indigo-200/90 font-medium">
+              Ringkasan data posyandu
+            </p>
           </div>
           {isAdmin && (
             <button
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-700 rounded-xl text-xs font-black shadow-sm transition-all hover:shadow-md cursor-pointer"
+              className="flex items-center justify-start text-left gap-2 pl-3.5 pr-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-700 rounded-xl text-xs font-black shadow-sm transition-all hover:shadow-md cursor-pointer"
               onClick={handleExport}
               type="button"
             >
-              <Download className="w-3.5 h-3.5" />
-              Export Data
+              <Download className="w-4 h-4 shrink-0" />
+              <span className="text-left leading-tight">Ekspor Data</span>
             </button>
           )}
         </div>
@@ -352,8 +510,12 @@ function DashboardHome() {
               <Users className="w-5 h-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[9px] text-indigo-200/90 font-bold uppercase tracking-wider">Total Anak</span>
-              <span className="text-xl font-black text-white mt-0.5">{stats.total_peserta}</span>
+              <span className="text-[9px] text-indigo-200/90 font-bold uppercase tracking-wider">
+                Total Anak
+              </span>
+              <span className="text-xl font-black text-white mt-0.5">
+                {stats.total_peserta}
+              </span>
             </div>
           </div>
 
@@ -362,8 +524,12 @@ function DashboardHome() {
               <FileText className="w-5 h-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[9px] text-indigo-200/90 font-bold uppercase tracking-wider">Pemeriksaan</span>
-              <span className="text-xl font-black text-white mt-0.5">{stats.total_pemeriksaan}</span>
+              <span className="text-[9px] text-indigo-200/90 font-bold uppercase tracking-wider">
+                Pemeriksaan
+              </span>
+              <span className="text-xl font-black text-white mt-0.5">
+                {stats.total_pemeriksaan}
+              </span>
             </div>
           </div>
         </div>
@@ -374,8 +540,8 @@ function DashboardHome() {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-1.5">
             <button
-              onClick={handlePrevMonth}
               className="p-1 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer text-slate-400 hover:text-slate-700"
+              onClick={handlePrevMonth}
               title="Bulan Sebelumnya"
               type="button"
             >
@@ -385,14 +551,18 @@ function DashboardHome() {
               {formatMonthLabel(currentMonth)}
             </h2>
             <button
-              onClick={handleNextMonth}
-              disabled={isNextDisabled}
               className={`p-1 rounded-lg transition-colors text-slate-400 ${
                 isNextDisabled
                   ? "opacity-30 cursor-not-allowed"
                   : "hover:bg-slate-50 cursor-pointer hover:text-slate-700"
               }`}
-              title={isNextDisabled ? "Tidak bisa melihat masa depan" : "Bulan Selanjutnya"}
+              disabled={isNextDisabled}
+              onClick={handleNextMonth}
+              title={
+                isNextDisabled
+                  ? "Tidak bisa melihat masa depan"
+                  : "Bulan Selanjutnya"
+              }
               type="button"
             >
               <ChevronRight className="w-4 h-4" />
@@ -400,30 +570,30 @@ function DashboardHome() {
           </div>
           <div className="flex bg-slate-100 p-0.5 rounded-lg shrink-0">
             <button
-              onClick={() => setActiveMetric("berat")}
               className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                 activeMetric === "berat"
                   ? "bg-white text-indigo-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
               }`}
+              onClick={() => setActiveMetric("berat")}
               type="button"
             >
               Berat
             </button>
             <button
-              onClick={() => setActiveMetric("tinggi")}
               className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                 activeMetric === "tinggi"
                   ? "bg-white text-pink-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
               }`}
+              onClick={() => setActiveMetric("tinggi")}
               type="button"
             >
               Tinggi
             </button>
           </div>
         </div>
-        
+
         {(() => {
           const total = stats.total_peserta || 1;
           const sudah = stats.sudah_periksa_bulan_ini;
@@ -434,8 +604,12 @@ function DashboardHome() {
           return (
             <div className="space-y-4">
               {/* Sebaran Pengukuran Bulan Ini (Switchable Chart) */}
-              {stats.pemeriksaan_bulan_ini && stats.pemeriksaan_bulan_ini.length > 0 ? (
-                <SebaranBulanIniChart data={stats.pemeriksaan_bulan_ini} metric={activeMetric} />
+              {stats.pemeriksaan_bulan_ini &&
+              stats.pemeriksaan_bulan_ini.length > 0 ? (
+                <SebaranBulanIniChart
+                  data={stats.pemeriksaan_bulan_ini}
+                  metric={activeMetric}
+                />
               ) : (
                 <div className="text-center py-10 text-slate-400 text-xs">
                   Tidak ada data pemeriksaan pada bulan ini.
@@ -445,8 +619,8 @@ function DashboardHome() {
               {/* Stacked Progress Bar (Thicker) */}
               <div className="relative w-full h-5 rounded-full bg-orange-400 flex shadow-inner overflow-hidden">
                 <div
-                  style={{ width: `${persenSudah}%` }}
                   className="relative bg-green-500 h-full transition-all duration-500 ease-out flex items-center justify-end pr-[2px] rounded-full"
+                  style={{ width: `${persenSudah}%` }}
                   title={`Sudah Diperiksa: ${Math.round(persenSudah)}%`}
                 >
                   {/* Floating percentage badge inside the green bar on the far right */}
@@ -460,7 +634,14 @@ function DashboardHome() {
 
               {/* Stats Narrative Sentence (Below the Bar) */}
               <div className="text-left text-[10.5px] text-slate-500 font-medium leading-relaxed pt-1">
-                Pada bulan <span className="text-slate-800 font-bold">{formatMonthLabel(currentMonth)}</span>, sudah diperiksa <span className="text-green-600 font-bold">{sudah} anak</span> dan belum diperiksa <span className="text-orange-500 font-bold">{belum} anak</span>.
+                Pada bulan{" "}
+                <span className="text-slate-800 font-bold">
+                  {formatMonthLabel(currentMonth)}
+                </span>
+                , sudah diperiksa{" "}
+                <span className="text-green-600 font-bold">{sudah} anak</span>{" "}
+                dan belum diperiksa{" "}
+                <span className="text-orange-500 font-bold">{belum} anak</span>.
               </div>
             </div>
           );
@@ -468,32 +649,40 @@ function DashboardHome() {
       </div>
 
       {/* Rata-Rata Pertumbuhan Gaya TradingView */}
-      {stats?.rata_rata_pertumbuhan && stats.rata_rata_pertumbuhan.length > 0 && (
-        <div className="grid grid-cols-2 gap-4">
-          <TradingViewLineChart
-            data={stats.rata_rata_pertumbuhan}
-            dataKey="rata_berat"
-            title="Rata-rata Berat"
-            color="rgb(37, 99, 235)"
-            unit="kg"
-          />
-          <TradingViewLineChart
-            data={stats.rata_rata_pertumbuhan}
-            dataKey="rata_tinggi"
-            title="Rata-rata Tinggi"
-            color="rgb(217, 119, 6)"
-            unit="cm"
-          />
-        </div>
-      )}
+      {stats?.rata_rata_pertumbuhan &&
+        stats.rata_rata_pertumbuhan.length > 0 && (
+          <div className="grid grid-cols-2 gap-4">
+            <TradingViewLineChart
+              color="rgb(37, 99, 235)"
+              data={stats.rata_rata_pertumbuhan}
+              dataKey="rata_berat"
+              title="Rata-rata Berat"
+              unit="kg"
+            />
+            <TradingViewLineChart
+              color="rgb(217, 119, 6)"
+              data={stats.rata_rata_pertumbuhan}
+              dataKey="rata_tinggi"
+              title="Rata-rata Tinggi"
+              unit="cm"
+            />
+          </div>
+        )}
 
       {/* Grafik Tren Pemeriksaan */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100/50 shadow-sm space-y-4">
-        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Tren Pemeriksaan Bulanan</h2>
-        
+        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+          Tren Pemeriksaan Bulanan
+        </h2>
+
         {stats?.tren_bulanan && stats.tren_bulanan.length > 0 ? (
           <div className="flex justify-center items-end pt-4">
-            <svg height={chartHeight} width={chartWidth} className="overflow-visible">
+            <svg
+              className="overflow-visible w-full h-auto max-w-[320px]"
+              height="100%"
+              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              width="100%"
+            >
               {stats.tren_bulanan.map((item, idx) => {
                 const barHeight = (item.jumlah / maxVal) * 120; // scale to max 120px
                 const x = 30 + idx * (barWidth + gap);
@@ -503,30 +692,30 @@ function DashboardHome() {
                   <g key={item.bulan}>
                     {/* Bar */}
                     <rect
-                      x={x}
-                      y={y}
-                      width={barWidth}
+                      className="fill-indigo-600 hover:fill-indigo-700 transition-colors"
                       height={barHeight}
                       rx={6}
-                      className="fill-indigo-600 hover:fill-indigo-700 transition-colors"
+                      width={barWidth}
+                      x={x}
+                      y={y}
                     />
-                    
+
                     {/* Value Badge */}
                     <text
+                      className="text-[10px] font-bold fill-slate-700 font-sans"
+                      textAnchor="middle"
                       x={x + barWidth / 2}
                       y={y - 8}
-                      textAnchor="middle"
-                      className="text-[10px] font-bold fill-slate-700 font-sans"
                     >
                       {item.jumlah}
                     </text>
 
                     {/* Label Bulan */}
                     <text
+                      className="text-[10px] font-semibold fill-slate-400 font-sans"
+                      textAnchor="middle"
                       x={x + barWidth / 2}
                       y={chartHeight - 10}
-                      textAnchor="middle"
-                      className="text-[10px] font-semibold fill-slate-400 font-sans"
                     >
                       {item.bulan}
                     </text>

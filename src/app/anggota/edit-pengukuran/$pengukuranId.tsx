@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2, Radio } from "lucide-react";
+import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 
@@ -55,7 +55,7 @@ function EditMeasurementForm() {
         });
       } catch (error) {
         console.error("Error:", error);
-        alert("Gagal memuat data lama.");
+        await window.showCustomAlert("Gagal memuat data lama.");
       } finally {
         setIsFetching(false);
       }
@@ -88,7 +88,7 @@ function EditMeasurementForm() {
       }));
     } catch (error) {
       console.error("Error membaca sensor:", error);
-      alert(
+      await window.showCustomAlert(
         error instanceof Error
           ? error.message
           : "Gagal mengambil data dari sensor otomatis.",
@@ -128,7 +128,7 @@ function EditMeasurementForm() {
         );
       }
 
-      alert("Data pengukuran berhasil diperbarui!");
+      await window.showCustomAlert("Data pengukuran berhasil diperbarui!");
 
       if (pesertaId) {
         navigate({
@@ -140,7 +140,7 @@ function EditMeasurementForm() {
       }
     } catch (error) {
       console.error("Error submit data:", error);
-      alert(
+      await window.showCustomAlert(
         error instanceof Error
           ? error.message
           : "Terjadi kesalahan saat menyimpan data.",
@@ -159,10 +159,17 @@ function EditMeasurementForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
-      <div className="w-full max-w-md md:max-w-4xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden md:min-h-[auto]">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans p-4 md:p-8 lg:p-12">
+      <div className="w-full max-w-4xl mx-auto flex flex-col relative">
         {/* Header */}
-        <div className="p-4 md:px-8 md:pt-8 md:pb-4 flex items-center gap-4 md:border-b md:border-slate-100">
+        <div className="pb-6 flex items-center gap-2 border-b border-slate-200/65 mb-8">
+          <button
+            className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors"
+            onClick={() => window.history.back()}
+            type="button"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
           <h1 className="text-lg font-bold text-slate-800">
             Edit Data Pengukuran
           </h1>
@@ -341,10 +348,10 @@ function EditMeasurementForm() {
                 </div>
               </div>
 
-              <div className="mt-10 md:mt-auto pt-4 md:pt-8 flex flex-col gap-3">
+              <div className="mt-10 md:mt-auto pt-4 md:pt-8">
                 {/* Tombol Simpan */}
                 <button
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#373895] text-white font-semibold hover:bg-indigo-800 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#1E1B4B] text-white font-semibold hover:bg-indigo-900 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
                   disabled={isLoading || !isFormComplete}
                   type="submit"
                 >
@@ -358,15 +365,6 @@ function EditMeasurementForm() {
                   ) : (
                     "Lengkapi Data Dahulu"
                   )}
-                </button>
-
-                {/* Tombol Kembali */}
-                <button
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-md"
-                  onClick={() => window.history.back()}
-                  type="button"
-                >
-                  Kembali
                 </button>
               </div>
             </div>

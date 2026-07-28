@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -56,7 +56,7 @@ function EditMemberForm() {
         }));
       } catch (error) {
         console.error("Error fetching detail:", error);
-        alert("Gagal memuat data anggota.");
+        await window.showCustomAlert("Gagal memuat data anggota.");
       } finally {
         setIsFetching(false);
       }
@@ -71,7 +71,7 @@ function EditMemberForm() {
     const tahunSekarang = new Date().getFullYear();
 
     if (!tahunInput || tahunInput < 2000 || tahunInput > tahunSekarang) {
-      alert(
+      await window.showCustomAlert(
         `Tahun lahir tidak valid! Harap masukkan tahun antara 2000 - ${tahunSekarang}.`,
       );
       return;
@@ -102,11 +102,11 @@ function EditMemberForm() {
         throw new Error("Gagal menyimpan perubahan");
       }
 
-      alert("Data anggota berhasil diperbarui!");
+      await window.showCustomAlert("Data anggota berhasil diperbarui!");
       navigate({ to: "/anggota/info/$id", params: { id: editId } });
     } catch (error) {
       console.error("Error:", error);
-      alert("Terjadi kesalahan saat memperbarui data.");
+      await window.showCustomAlert("Terjadi kesalahan saat memperbarui data.");
     } finally {
       setIsLoading(false);
     }
@@ -124,13 +124,13 @@ function EditMemberForm() {
     <div className="min-h-screen bg-[#F9FAFB] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-md mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
         <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
-          <Link
-            className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
-            params={{ id: editId }}
-            to="/anggota/info/$id"
+          <button
+            className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+            onClick={() => window.history.back()}
+            type="button"
           >
             <X className="w-6 h-6" />
-          </Link>
+          </button>
           <h1 className="text-[17px] font-medium text-slate-800">
             Edit Data Anggota
           </h1>
@@ -232,11 +232,14 @@ function EditMemberForm() {
                   value={formData.tgl_lahir}
                 >
                   <option value="">Tgl</option>
-                  {Array.from({ length: 31 }, (_, i) => (
-                    <option key={`tgl-${++i}`} value={String(i + 1)}>
-                      {i + 1}
-                    </option>
-                  ))}
+                  {Array.from({ length: 31 }, (_, i) => {
+                    const d = i + 1;
+                    return (
+                      <option key={`tgl-${d}`} value={String(d)}>
+                        {d}
+                      </option>
+                    );
+                  })}
                 </select>
 
                 <select
