@@ -21,6 +21,7 @@ export const POST: NextRouteHandler<
     vita,
     kelas_ibu_balita,
     mbg,
+    asi,
   } = body;
 
   if (!peserta_id || !tanggal_ukur) {
@@ -33,8 +34,8 @@ export const POST: NextRouteHandler<
   const stmt = db.prepare(
     `INSERT INTO pendataan (
       peserta_id, tanggal_ukur, berat, tinggi, lila, lingkar_kepala, 
-      pitting_edema, cara_ukur, vita, kelas_ibu_balita, mbg
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+      pitting_edema, cara_ukur, vita, kelas_ibu_balita, mbg , asi
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? , ? ) RETURNING *`,
   );
 
   const newPendataan = stmt.get(
@@ -49,6 +50,7 @@ export const POST: NextRouteHandler<
     vita || null,
     kelas_ibu_balita || null,
     mbg || null,
+    asi || null,
   );
 
   return NextResponse.json(newPendataan, { status: 201 });

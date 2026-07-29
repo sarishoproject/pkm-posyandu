@@ -79,7 +79,7 @@ export const GET: NextRouteHandler<
 
     // Format monthly names for Indonesian locale
     const formattedTren = trenBulanan
-      .filter((item) => item.bulan && item.bulan.includes("-"))
+      .filter((item) => item.bulan?.includes("-"))
       .map((item) => {
         const [year, month] = item.bulan.split("-");
         const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 15);
@@ -94,7 +94,7 @@ export const GET: NextRouteHandler<
       });
 
     const formattedRataRata = rataRataPertumbuhan
-      .filter((item) => item.bulan && item.bulan.includes("-"))
+      .filter((item) => item.bulan?.includes("-"))
       .map((item) => {
         const [year, month] = item.bulan.split("-");
         const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 15);

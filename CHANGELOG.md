@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.9.0] - 2026-07-29
+- ⚙️ Add database migration script for 'asi' column to 'pendataan' table.
+- 📦 Update Pendataan interface and API routes to handle 'asi' field persistence.
+- 🎨 Improve UI/UX in registration and editing forms with new select inputs for ASI status.
+- 🚀 Add export functionality for individual member records.
+- 🛠️ Refactor type definitions and optimize component logic to support nullable ASI fields.
+- 🧹 Clean up imports and address React prop associations in forms.
+
+
 ## [2.8.0] - 2026-07-26
 - ⚙️ Updated GitHub Actions workflow to support cross-compilation for Linux x64, macOS ARM64, and macOS x64.
 - 📦 Streamlined build artifact compression using tar and zip utilities.

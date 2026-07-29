@@ -25,14 +25,21 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
 
     // Tangkap data dari frontend
     const body = await req.json();
-    const { berat, tinggi, lingkar_kepala, lila, cara_ukur, pitting_edema } =
-      body;
+    const {
+      berat,
+      tinggi,
+      lingkar_kepala,
+      lila,
+      cara_ukur,
+      pitting_edema,
+      asi,
+    } = body;
 
     // Eksekusi UPDATE dan langsung kembalikan hasilnya
     const updated = db
       .prepare(`
         UPDATE pendataan 
-        SET berat = ?, tinggi = ?, lingkar_kepala = ?, lila = ?, cara_ukur = ?, pitting_edema = ?
+        SET berat = ?, tinggi = ?, lingkar_kepala = ?, lila = ?, cara_ukur = ?, pitting_edema = ? , asi = ?
         WHERE id = ? 
         RETURNING *
       `)
@@ -42,7 +49,8 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
         lingkar_kepala ? Number(lingkar_kepala) : null,
         lila ? Number(lila) : null,
         cara_ukur || "Berdiri",
-        pitting_edema, // Langsung masukkan karena frontend sudah mengubahnya jadi "Ya" / "Tidak"
+        pitting_edema,
+        asi, // Langsung masukkan karena frontend sudah mengubahnya jadi "Ya" / "Tidak"
         id,
       );
 

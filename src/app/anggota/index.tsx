@@ -4,7 +4,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { Mars, Pencil, Ruler, ScanLine, Search, Venus } from "lucide-react";
+import { Mars, Ruler, ScanLine, Search, Venus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/anggota/")({
