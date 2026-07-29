@@ -5,21 +5,27 @@ import type { NextRouteHandler, PesertaInput } from "@/types";
 // GET /api/peserta/:id — Ambil detail peserta beserta riwayat pendataannya
 export const GET: NextRouteHandler<{ id: string }> = async (req) => {
   const { id } = req.params;
+  let peserta: any;
 
-  const peserta = db.query("SELECT * FROM peserta WHERE id = ?").get(id);
+  // Cek apakah ini hasil scan QR (panjang karakter UUID adalah 36) atau ID angka
+  if (id.length === 36) {
+    peserta = db.query("SELECT * FROM peserta WHERE qr_code = ?").get(id);
+  } else {
+    peserta = db.query("SELECT * FROM peserta WHERE id = ?").get(id);
+  }
+
   if (!peserta) {
     return NextResponse.json(
       { error: "Peserta tidak ditemukan." },
-      { status: 404 },
+      { status: 404 }
     );
   }
 
-  // Ambil riwayat pendataan anak ini
   const riwayat = db
     .query(
-      "SELECT * FROM pendataan WHERE peserta_id = ? ORDER BY tanggal_ukur DESC",
+      "SELECT * FROM pendataan WHERE peserta_id = ? ORDER BY tanggal_ukur DESC"
     )
-    .all(id);
+    .all(peserta.id);
 
   return NextResponse.json({ ...peserta, riwayat });
 };
@@ -34,49 +40,46 @@ export const DELETE: NextRouteHandler<{ id: string }> = async (req) => {
   if (!deleted) {
     return NextResponse.json(
       { error: "Peserta tidak ditemukan." },
-      { status: 404 },
+      { status: 404 }
     );
   }
 
   return NextResponse.json({ message: "Peserta berhasil dihapus." });
 };
 
-// PUT /api/peserta/:id — Update data peserta (Nama, NIK, ASI, dll)
+// PUT /api/peserta/:id — Update data peserta
 export const PUT: NextRouteHandler<
   { id: string },
   Record<string, never>,
-  Partial<PesertaInput> // Partial artinya field gak harus diisi semua
+  Partial<PesertaInput>
 > = async (req) => {
   const { id } = req.params;
   const body = await req.json();
 
-  // Cek apakah pesertanya ada
   const exists = db.query("SELECT * FROM peserta WHERE id = ?").get(id);
   if (!exists) {
     return NextResponse.json(
       { error: "Peserta tidak ditemukan." },
-      { status: 404 },
+      { status: 404 }
     );
   }
 
-  // Bangun query UPDATE dinamis (hanya update field yang dikirim frontend)
   const fields = Object.keys(body);
   if (fields.length === 0) {
     return NextResponse.json(
       { error: "Tidak ada data untuk diupdate." },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
   const setClause = fields.map((field) => `${field} = ?`).join(", ");
 
-  // FIX TYPESCRIPT: Kasihtahu TS kalau nilainya pasti string atau null
   const values = fields.map(
-    (field) => body[field as keyof PesertaInput] ?? null,
+    (field) => body[field as keyof PesertaInput] ?? null
   ) as (string | null)[];
 
   const stmt = db.prepare(
-    `UPDATE peserta SET ${setClause} WHERE id = ? RETURNING *`,
+    `UPDATE peserta SET ${setClause} WHERE id = ? RETURNING *`
   );
   const updatedPeserta = stmt.get(...values, id);
 

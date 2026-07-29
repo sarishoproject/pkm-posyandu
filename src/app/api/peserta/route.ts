@@ -35,7 +35,6 @@ export const POST: NextRouteHandler<
     nik,
     nama_anak,
     nama_ibu,
-    qr_code,
     status,
     jenis_kelamin,
     tanggal_lahir,
@@ -54,6 +53,7 @@ export const POST: NextRouteHandler<
       { status: 400 },
     );
   }
+  const generatedQrCode = crypto.randomUUID();
 
   try {
     const stmt = db.prepare(
@@ -64,7 +64,7 @@ export const POST: NextRouteHandler<
       nik,
       nama_anak,
       nama_ibu || null,
-      qr_code || null,
+      generatedQrCode || null,
       status || "aktif",
       jenis_kelamin || null,
       tanggal_lahir || null,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.0] - 2026-07-29
+- 📦 Add qrcode.react to dependencies to enable QR generation.
+- 🎨 Create new barcode view page (/anggota/barcode/$id) with download functionality.
+- ⚡️ Implement QR code scanning support by allowing lookup via UUID in API routes.
+- ⚙️ Update participant creation to auto-generate a unique QR code (UUID) upon registration.
+- 📖 Update route definitions to include the new barcode view page.
+
 ## [2.9.0] - 2026-07-29
 - ⚙️ Add database migration script for 'asi' column to 'pendataan' table.
 - 📦 Update Pendataan interface and API routes to handle 'asi' field persistence.

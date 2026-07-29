@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './app/index'
 import { Route as AkunIndexRouteImport } from './app/akun/index'
 import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
 import { Route as CariIndexRouteImport } from './app/cari/index'
+import { Route as AnggotaBarcodeIdRouteImport } from './app/anggota/barcode/$id'
 import { Route as AnggotaEditPengukuranPengukuranIdRouteImport } from './app/anggota/edit-pengukuran/$pengukuranId'
 import { Route as AnggotaEditEditIdRouteImport } from './app/anggota/edit/$editId'
 import { Route as AnggotaInfoIdRouteImport } from './app/anggota/info/$id'
@@ -37,6 +38,11 @@ const AnggotaIndexRoute = AnggotaIndexRouteImport.update({
 const CariIndexRoute = CariIndexRouteImport.update({
   id: '/cari/',
   path: '/cari/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnggotaBarcodeIdRoute = AnggotaBarcodeIdRouteImport.update({
+  id: '/anggota/barcode/$id',
+  path: '/anggota/barcode/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaEditPengukuranPengukuranIdRoute =
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/akun/': typeof AkunIndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
+  '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/edit-pengukuran/$pengukuranId': typeof AnggotaEditPengukuranPengukuranIdRoute
   '/anggota/edit/$editId': typeof AnggotaEditEditIdRoute
   '/anggota/info/$id': typeof AnggotaInfoIdRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/akun': typeof AkunIndexRoute
   '/anggota': typeof AnggotaIndexRoute
   '/cari': typeof CariIndexRoute
+  '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/edit-pengukuran/$pengukuranId': typeof AnggotaEditPengukuranPengukuranIdRoute
   '/anggota/edit/$editId': typeof AnggotaEditEditIdRoute
   '/anggota/info/$id': typeof AnggotaInfoIdRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/akun/': typeof AkunIndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
+  '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/edit-pengukuran/$pengukuranId': typeof AnggotaEditPengukuranPengukuranIdRoute
   '/anggota/edit/$editId': typeof AnggotaEditEditIdRoute
   '/anggota/info/$id': typeof AnggotaInfoIdRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/akun/'
     | '/anggota/'
     | '/cari/'
+    | '/anggota/barcode/$id'
     | '/anggota/edit-pengukuran/$pengukuranId'
     | '/anggota/edit/$editId'
     | '/anggota/info/$id'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/akun'
     | '/anggota'
     | '/cari'
+    | '/anggota/barcode/$id'
     | '/anggota/edit-pengukuran/$pengukuranId'
     | '/anggota/edit/$editId'
     | '/anggota/info/$id'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/akun/'
     | '/anggota/'
     | '/cari/'
+    | '/anggota/barcode/$id'
     | '/anggota/edit-pengukuran/$pengukuranId'
     | '/anggota/edit/$editId'
     | '/anggota/info/$id'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   AkunIndexRoute: typeof AkunIndexRoute
   AnggotaIndexRoute: typeof AnggotaIndexRoute
   CariIndexRoute: typeof CariIndexRoute
+  AnggotaBarcodeIdRoute: typeof AnggotaBarcodeIdRoute
   AnggotaEditPengukuranPengukuranIdRoute: typeof AnggotaEditPengukuranPengukuranIdRoute
   AnggotaEditEditIdRoute: typeof AnggotaEditEditIdRoute
   AnggotaInfoIdRoute: typeof AnggotaInfoIdRoute
@@ -176,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/cari'
       fullPath: '/cari/'
       preLoaderRoute: typeof CariIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anggota/barcode/$id': {
+      id: '/anggota/barcode/$id'
+      path: '/anggota/barcode/$id'
+      fullPath: '/anggota/barcode/$id'
+      preLoaderRoute: typeof AnggotaBarcodeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anggota/edit-pengukuran/$pengukuranId': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   AkunIndexRoute: AkunIndexRoute,
   AnggotaIndexRoute: AnggotaIndexRoute,
   CariIndexRoute: CariIndexRoute,
+  AnggotaBarcodeIdRoute: AnggotaBarcodeIdRoute,
   AnggotaEditPengukuranPengukuranIdRoute:
     AnggotaEditPengukuranPengukuranIdRoute,
   AnggotaEditEditIdRoute: AnggotaEditEditIdRoute,
