@@ -25,6 +25,10 @@ interface Peserta {
 function MobileView() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    document.title = "Daftar Anggota | Posyandu";
+  }, []);
   const [pesertaList, setPesertaList] = useState<Peserta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<"semua" | "sudah" | "belum">(

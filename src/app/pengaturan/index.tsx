@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertCircle,
+  ArrowLeft,
   BookOpen,
   Download,
   Eye,
@@ -10,14 +11,17 @@ import {
   Loader2,
   LogIn,
   LogOut,
+  Printer,
+  QrCode,
   Trash2,
   User,
   UserPlus,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { QRCodeCanvas } from "qrcode.react";
 
-export const Route = createFileRoute("/akun/")({
+export const Route = createFileRoute("/pengaturan/")({
   component: AkunPage,
 });
 
@@ -25,10 +29,17 @@ interface Peserta {
   id: number;
   nama_anak: string;
   nik: string;
+  qr_code?: string;
 }
 
 function AkunPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [showAllQr, setShowAllQr] = useState(false);
+
+  useEffect(() => {
+    document.title = "Pengaturan | Posyandu";
+  }, []);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -139,6 +150,94 @@ function AkunPage() {
       setIsDeleting(false);
     }
   };
+
+  if (showAllQr) {
+    return (
+      <div className="flex-1 flex flex-col w-full max-w-md mx-auto bg-white min-h-screen pb-12 print-container">
+        <style>{`
+          @media print {
+            body {
+              background: white !important;
+              color: black !important;
+            }
+            .no-print, nav, footer, .fixed {
+              display: none !important;
+            }
+            .print-container {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100% !important;
+              max-w-none !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+            }
+            .print-grid {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+              gap: 1.5cm !important;
+            }
+            .break-inside-avoid {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+          }
+        `}</style>
+        
+        {/* Header (Hidden when printing) */}
+        <div className="no-print flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white sticky top-0 z-20">
+          <button
+            onClick={() => setShowAllQr(false)}
+            className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-semibold text-xs cursor-pointer bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200/50"
+            type="button"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Kembali
+          </button>
+          <span className="font-bold text-slate-800 text-sm">QR Code Semua Anggota</span>
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md cursor-pointer transition-all"
+            type="button"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Cetak (PDF)
+          </button>
+        </div>
+
+        {/* Grid View */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 p-6 print-grid">
+          {members.map((member) => (
+            <div
+              key={member.id}
+              className="flex flex-col items-center text-center p-2 break-inside-avoid"
+            >
+              {member.qr_code ? (
+                <div className="bg-white p-2 rounded-xl flex items-center justify-center">
+                  <QRCodeCanvas
+                    id={`qr-canvas-${member.id}`}
+                    value={`http://${window.location.host}/anggota/${member.qr_code}/pengukuran/tambah`}
+                    size={110}
+                    level="M"
+                  />
+                </div>
+              ) : (
+                <div className="w-[110px] h-[110px] bg-slate-100 flex items-center justify-center rounded-xl text-[10px] text-slate-400 font-semibold">
+                  Belum ada QR
+                </div>
+              )}
+              <span className="text-xs font-bold text-slate-800 mt-2 line-clamp-1">
+                {member.nama_anak}
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium uppercase mt-0.5">
+                NIK: {member.nik || "-"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col items-center justify-start p-6 max-w-md mx-auto w-full min-h-[85vh] space-y-6 pb-24">
@@ -251,6 +350,30 @@ function AkunPage() {
                   Buka
                 </span>
               </Link>
+
+              {/* Tampilkan Semua Kode QR Button */}
+              <button
+                className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
+                onClick={() => setShowAllQr(true)}
+                type="button"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
+                    <QrCode className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-800">
+                      Tampilkan Semua Kode QR
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Lihat dan cetak kartu QR Code semua anggota
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                  Lihat
+                </span>
+              </button>
 
               {/* Hapus Anggota Button */}
               <button

@@ -10,10 +10,10 @@
 
 import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
-import { Route as AkunIndexRouteImport } from './app/akun/index'
 import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
 import { Route as AnggotaIdRouteImport } from './app/anggota/$id'
 import { Route as CariIndexRouteImport } from './app/cari/index'
+import { Route as PengaturanIndexRouteImport } from './app/pengaturan/index'
 import { Route as AnggotaIdEditRouteImport } from './app/anggota/$id/edit'
 import { Route as AnggotaBarcodeIdRouteImport } from './app/anggota/barcode/$id'
 import { Route as AnggotaTambahIndexRouteImport } from './app/anggota/tambah/index'
@@ -23,11 +23,6 @@ import { Route as AnggotaIdPengukuranTambahRouteImport } from './app/anggota/$id
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AkunIndexRoute = AkunIndexRouteImport.update({
-  id: '/akun/',
-  path: '/akun/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaIndexRoute = AnggotaIndexRouteImport.update({
@@ -43,6 +38,11 @@ const AnggotaIdRoute = AnggotaIdRouteImport.update({
 const CariIndexRoute = CariIndexRouteImport.update({
   id: '/cari/',
   path: '/cari/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PengaturanIndexRoute = PengaturanIndexRouteImport.update({
+  id: '/pengaturan/',
+  path: '/pengaturan/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaIdEditRoute = AnggotaIdEditRouteImport.update({
@@ -76,9 +76,9 @@ const AnggotaIdPengukuranTambahRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anggota/$id': typeof AnggotaIdRouteWithChildren
-  '/akun/': typeof AkunIndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
+  '/pengaturan/': typeof PengaturanIndexRoute
   '/anggota/$id/edit': typeof AnggotaIdEditRoute
   '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/tambah/': typeof AnggotaTambahIndexRoute
@@ -88,9 +88,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anggota/$id': typeof AnggotaIdRouteWithChildren
-  '/akun': typeof AkunIndexRoute
   '/anggota': typeof AnggotaIndexRoute
   '/cari': typeof CariIndexRoute
+  '/pengaturan': typeof PengaturanIndexRoute
   '/anggota/$id/edit': typeof AnggotaIdEditRoute
   '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/tambah': typeof AnggotaTambahIndexRoute
@@ -101,9 +101,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/anggota/$id': typeof AnggotaIdRouteWithChildren
-  '/akun/': typeof AkunIndexRoute
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
+  '/pengaturan/': typeof PengaturanIndexRoute
   '/anggota/$id/edit': typeof AnggotaIdEditRoute
   '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/tambah/': typeof AnggotaTambahIndexRoute
@@ -115,9 +115,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/anggota/$id'
-    | '/akun/'
     | '/anggota/'
     | '/cari/'
+    | '/pengaturan/'
     | '/anggota/$id/edit'
     | '/anggota/barcode/$id'
     | '/anggota/tambah/'
@@ -127,9 +127,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/anggota/$id'
-    | '/akun'
     | '/anggota'
     | '/cari'
+    | '/pengaturan'
     | '/anggota/$id/edit'
     | '/anggota/barcode/$id'
     | '/anggota/tambah'
@@ -139,9 +139,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/anggota/$id'
-    | '/akun/'
     | '/anggota/'
     | '/cari/'
+    | '/pengaturan/'
     | '/anggota/$id/edit'
     | '/anggota/barcode/$id'
     | '/anggota/tambah/'
@@ -152,9 +152,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnggotaIdRoute: typeof AnggotaIdRouteWithChildren
-  AkunIndexRoute: typeof AkunIndexRoute
   AnggotaIndexRoute: typeof AnggotaIndexRoute
   CariIndexRoute: typeof CariIndexRoute
+  PengaturanIndexRoute: typeof PengaturanIndexRoute
   AnggotaBarcodeIdRoute: typeof AnggotaBarcodeIdRoute
   AnggotaTambahIndexRoute: typeof AnggotaTambahIndexRoute
 }
@@ -166,13 +166,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/akun/': {
-      id: '/akun/'
-      path: '/akun'
-      fullPath: '/akun/'
-      preLoaderRoute: typeof AkunIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anggota/': {
@@ -194,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/cari'
       fullPath: '/cari/'
       preLoaderRoute: typeof CariIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pengaturan/': {
+      id: '/pengaturan/'
+      path: '/pengaturan'
+      fullPath: '/pengaturan/'
+      preLoaderRoute: typeof PengaturanIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anggota/$id/edit': {
@@ -253,9 +253,9 @@ const AnggotaIdRouteWithChildren = AnggotaIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnggotaIdRoute: AnggotaIdRouteWithChildren,
-  AkunIndexRoute: AkunIndexRoute,
   AnggotaIndexRoute: AnggotaIndexRoute,
   CariIndexRoute: CariIndexRoute,
+  PengaturanIndexRoute: PengaturanIndexRoute,
   AnggotaBarcodeIdRoute: AnggotaBarcodeIdRoute,
   AnggotaTambahIndexRoute: AnggotaTambahIndexRoute,
 }

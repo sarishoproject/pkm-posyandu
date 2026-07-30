@@ -33,6 +33,24 @@ function EditMeasurementForm() {
     formData.lila !== "";
   formData.asi !== "";
 
+  const [childName, setChildName] = useState("");
+
+  useEffect(() => {
+    const fetchChild = async () => {
+      try {
+        const res = await fetch(`/api/peserta/${id}`);
+        if (res.ok) {
+          const childData = await res.json();
+          setChildName(childData.nama_anak);
+          document.title = `Edit Pengukuran ${childData.nama_anak} | Posyandu`;
+        }
+      } catch (err) {
+        console.error("Gagal memuat nama anak:", err);
+      }
+    };
+    fetchChild();
+  }, [id]);
+
   // 1. Ambil Data Lama
   useEffect(() => {
     const fetchExistingData = async () => {
@@ -191,7 +209,7 @@ function EditMeasurementForm() {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-bold text-slate-900 text-[16px]">
-                    Data Peserta
+                    {childName || "Data Peserta"}
                   </span>
                   <span className="text-sm text-slate-500 mt-0.5">
                     Koreksi pengukuran

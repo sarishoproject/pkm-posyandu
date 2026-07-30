@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/anggota/tambah/")({
   component: AddMemberForm,
@@ -10,6 +10,10 @@ export const Route = createFileRoute("/anggota/tambah/")({
 function AddMemberForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "Tambah Anggota Baru | Posyandu";
+  }, []);
 
   const [formData, setFormData] = useState({
     nama_anak: "",

@@ -353,6 +353,10 @@ function DashboardHome() {
   const [activeMetric, setActiveMetric] = useState<"berat" | "tinggi">("berat");
   const [isAdmin, setIsAdmin] = useState(false);
 
+  useEffect(() => {
+    document.title = "Beranda | Posyandu";
+  }, []);
+
   // Month navigation state: YYYY-MM
   const [currentMonth, setCurrentMonth] = useState(() => {
     const d = new Date();

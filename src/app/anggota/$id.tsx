@@ -6,6 +6,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  QrCode,
   Trash2,
   X,
 } from "lucide-react";
@@ -97,6 +98,7 @@ function MemberDetailView() {
 
         const json = await response.json();
         setData(json);
+        document.title = `${json.nama_anak} - Detail | Posyandu`;
       } catch (error) {
         console.error("Error fetching detail:", error);
       } finally {
@@ -225,7 +227,7 @@ function MemberDetailView() {
       <div className="sticky top-0 bg-[#F8F9FA]/90 backdrop-blur-md py-4 flex items-center border-b border-slate-100 z-20">
         <button
           className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
-          onClick={() => navigate({ to: "/anggota/" })}
+          onClick={() => navigate({ to: "/anggota" })}
           type="button"
         >
           <ArrowLeft className="w-6 h-6" />
@@ -252,14 +254,24 @@ function MemberDetailView() {
                     {data.nama_anak}
                   </h2>
                   {isAdmin && (
-                    <Link
-                      className="flex items-center gap-1 text-indigo-800 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full text-xs font-semibold transition-colors shrink-0 hover:bg-indigo-100"
-                      params={{ id }}
-                      to="/anggota/$id/edit"
-                    >
-                      <Pencil className="w-3 h-3" />
-                      Edit
-                    </Link>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Link
+                        className="flex items-center gap-1 text-indigo-800 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors hover:bg-indigo-100"
+                        params={{ id }}
+                        to="/anggota/barcode/$id"
+                      >
+                        <QrCode className="w-3 h-3" />
+                        QR
+                      </Link>
+                      <Link
+                        className="flex items-center gap-1 text-indigo-800 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors hover:bg-indigo-100"
+                        params={{ id }}
+                        to="/anggota/$id/edit"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        Edit
+                      </Link>
+                    </div>
                   )}
                 </div>
                 <div className="flex flex-col mt-2 space-y-0.5">

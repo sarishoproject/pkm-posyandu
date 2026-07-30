@@ -53,7 +53,7 @@ export const POST: NextRouteHandler<
       { status: 400 },
     );
   }
-  const generatedQrCode = crypto.randomUUID();
+  const generatedQrCode = crypto.randomUUID().substring(0, 8);
 
   try {
     const stmt = db.prepare(

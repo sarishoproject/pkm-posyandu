@@ -7,8 +7,8 @@ export const GET: NextRouteHandler<{ id: string }> = async (req) => {
   const { id } = req.params;
   let peserta: any;
 
-  // Cek apakah ini hasil scan QR (panjang karakter UUID adalah 36) atau ID angka
-  if (id.length === 36) {
+  // Cek apakah ini hasil scan QR (bukan ID angka murni) atau ID angka
+  if (isNaN(Number(id))) {
     peserta = db.query("SELECT * FROM peserta WHERE qr_code = ?").get(id);
   } else {
     peserta = db.query("SELECT * FROM peserta WHERE id = ?").get(id);

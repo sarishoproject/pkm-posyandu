@@ -25,6 +25,7 @@ function MeasurementForm() {
         if (!response.ok) throw new Error("Gagal mengambil data");
         const data = await response.json();
         setChild(data);
+        document.title = `Input Pengukuran ${data.nama_anak} | Posyandu`;
       } catch (error) {
         console.error("Error fetching child:", error);
       }

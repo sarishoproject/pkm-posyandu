@@ -31,6 +31,7 @@ function EditMemberForm() {
         if (!response.ok) throw new Error("Data tidak ditemukan");
 
         const data = await response.json();
+        document.title = `Edit ${data.nama_anak} | Posyandu`;
 
         let tgl = "",
           bln = "",

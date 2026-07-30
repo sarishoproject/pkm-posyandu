@@ -27,6 +27,7 @@ function BarcodeView() {
         if (!response.ok) throw new Error("Data tidak ditemukan");
         const json = await response.json();
         setData(json);
+        document.title = `Kartu QR ${json.nama_anak} | Posyandu`;
       } catch (error) {
         console.error("Error fetching detail:", error);
       } finally {
@@ -73,7 +74,7 @@ function BarcodeView() {
   // PENTING: Gunakan IP Lokal Anda (contoh: 192.168.x.x) jika ingin di-scan betulan pakai HP.
   // Jika pakai 'localhost', HP Anda tidak akan bisa membuka linknya.
   const host = window.location.host; // otomatis mengambil localhost:5173 atau IP Anda
-  const scanUrl = `http://${host}/anggota/input/${data.qr_code}`;
+  const scanUrl = `http://${host}/anggota/${data.qr_code}/pengukuran/tambah`;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center pt-10 px-4">
@@ -81,7 +82,7 @@ function BarcodeView() {
       <div className="w-full max-w-md flex items-center mb-8">
         <button
           className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
-          onClick={() => navigate({ to: `/anggota/info/${id}` })}
+          onClick={() => navigate({ to: "/anggota/$id", params: { id } })}
           type="button"
         >
           <ArrowLeft className="w-6 h-6" />

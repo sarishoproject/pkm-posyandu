@@ -41,6 +41,10 @@ function CariPage() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    document.title = "Cari Anggota | Posyandu";
+  }, []);
+
   const [pesertaList, setPesertaList] = useState<Peserta[]>([]);
   const [historyList, setHistoryList] = useState<Peserta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
