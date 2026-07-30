@@ -2,6 +2,29 @@ import * as ExcelJS from "exceljs";
 import db from "@/db/connection";
 import type { NextRouteHandler } from "@/types";
 
+type ExportRow = {
+  nik: string;
+  nama_anak: string;
+  tanggal_lahir: string | null;
+  tanggal_ukur: string;
+  berat: number | null;
+  tinggi: number | null;
+  lila: number | null;
+  lingkar_kepala: number | null;
+  pitting_edema: string | null;
+  cara_ukur: string | null;
+  vita: string | null;
+  asi_bulan_0: number | null;
+  asi_bulan_1: number | null;
+  asi_bulan_2: number | null;
+  asi_bulan_3: number | null;
+  asi_bulan_4: number | null;
+  asi_bulan_5: number | null;
+  asi_bulan_6: number | null;
+  kelas_ibu_balita: number | null;
+  mbg: number | null;
+};
+
 export const GET: NextRouteHandler = async () => {
   try {
     const data = db
@@ -31,7 +54,7 @@ export const GET: NextRouteHandler = async () => {
       JOIN peserta p ON d.peserta_id = p.id
       ORDER BY d.tanggal_ukur DESC
     `)
-      .all() as any[];
+      .all() as ExportRow[];
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "Erzy.sh WebDev";

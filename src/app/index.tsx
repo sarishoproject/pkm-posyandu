@@ -208,7 +208,7 @@ function TradingViewLineChart({
   color,
   unit,
 }: {
-  data: { bulan: string; [key: string]: any }[];
+  data: { bulan: string; [key: string]: number | string }[];
   dataKey: string;
   title: string;
   color: string;

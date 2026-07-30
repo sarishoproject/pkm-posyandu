@@ -1,6 +1,6 @@
 import { type Context, Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import { NextRequest } from "@/lib/classes/server";
+import { NextRequest, type NextResponse } from "@/lib/classes/server";
 import type { NextRouteHandler } from "@/types";
 
 const app = new Hono();
@@ -33,14 +33,15 @@ for (const path in modules) {
   const wrapHandler = (handler: NextRouteHandler) => async (c: Context) => {
     try {
       const req = new NextRequest(c);
-      const res = (await handler(req)) as any;
+      const res = await handler(req);
       if (res instanceof Response) {
         return res;
       }
+      const nextRes = res as NextResponse<unknown>;
       return c.json(
-        res.data,
-        res.status as ContentfulStatusCode,
-        res.headers as Record<string, string | string[]>,
+        nextRes.data,
+        nextRes.status as ContentfulStatusCode,
+        nextRes.headers as Record<string, string | string[]>,
       );
     } catch (e) {
       console.error(

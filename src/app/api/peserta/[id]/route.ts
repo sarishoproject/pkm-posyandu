@@ -5,25 +5,29 @@ import type { NextRouteHandler, PesertaInput } from "@/types";
 // GET /api/peserta/:id — Ambil detail peserta beserta riwayat pendataannya
 export const GET: NextRouteHandler<{ id: string }> = async (req) => {
   const { id } = req.params;
-  let peserta: any;
+  let peserta: Peserta | undefined | null;
 
   // Cek apakah ini hasil scan QR (bukan ID angka murni) atau ID angka
-  if (isNaN(Number(id))) {
-    peserta = db.query("SELECT * FROM peserta WHERE qr_code = ?").get(id);
+  if (Number.isNaN(Number(id))) {
+    peserta = db.query("SELECT * FROM peserta WHERE qr_code = ?").get(id) as
+      | Peserta
+      | undefined;
   } else {
-    peserta = db.query("SELECT * FROM peserta WHERE id = ?").get(id);
+    peserta = db.query("SELECT * FROM peserta WHERE id = ?").get(id) as
+      | Peserta
+      | undefined;
   }
 
   if (!peserta) {
     return NextResponse.json(
       { error: "Peserta tidak ditemukan." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
   const riwayat = db
     .query(
-      "SELECT * FROM pendataan WHERE peserta_id = ? ORDER BY tanggal_ukur DESC"
+      "SELECT * FROM pendataan WHERE peserta_id = ? ORDER BY tanggal_ukur DESC",
     )
     .all(peserta.id);
 
@@ -40,7 +44,7 @@ export const DELETE: NextRouteHandler<{ id: string }> = async (req) => {
   if (!deleted) {
     return NextResponse.json(
       { error: "Peserta tidak ditemukan." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -60,7 +64,7 @@ export const PUT: NextRouteHandler<
   if (!exists) {
     return NextResponse.json(
       { error: "Peserta tidak ditemukan." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -68,18 +72,18 @@ export const PUT: NextRouteHandler<
   if (fields.length === 0) {
     return NextResponse.json(
       { error: "Tidak ada data untuk diupdate." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const setClause = fields.map((field) => `${field} = ?`).join(", ");
 
   const values = fields.map(
-    (field) => body[field as keyof PesertaInput] ?? null
+    (field) => body[field as keyof PesertaInput] ?? null,
   ) as (string | null)[];
 
   const stmt = db.prepare(
-    `UPDATE peserta SET ${setClause} WHERE id = ? RETURNING *`
+    `UPDATE peserta SET ${setClause} WHERE id = ? RETURNING *`,
   );
   const updatedPeserta = stmt.get(...values, id);
 

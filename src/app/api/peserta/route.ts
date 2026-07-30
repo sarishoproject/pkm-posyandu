@@ -21,7 +21,7 @@ export const GET: NextRouteHandler = async () => {
     `)
     .all(currentYearMonth);
 
-  return NextResponse.json(pesertaList as any[]);
+  return NextResponse.json(pesertaList as Peserta[]);
 };
 
 // POST /api/peserta — Tambah peserta baru
@@ -31,14 +31,8 @@ export const POST: NextRouteHandler<
   PesertaInput
 > = async (req) => {
   const body = await req.json();
-  const {
-    nik,
-    nama_anak,
-    nama_ibu,
-    status,
-    jenis_kelamin,
-    tanggal_lahir,
-  } = body;
+  const { nik, nama_anak, nama_ibu, status, jenis_kelamin, tanggal_lahir } =
+    body;
 
   if (!nik || !nama_anak) {
     return NextResponse.json(

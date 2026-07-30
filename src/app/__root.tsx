@@ -6,6 +6,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
+import { Html5Qrcode } from "html5-qrcode";
 import {
   AlertCircle,
   CheckCircle2,
@@ -19,7 +20,6 @@ import {
   X,
 } from "lucide-react";
 import React from "react";
-import { Html5Qrcode } from "html5-qrcode";
 
 // Add global TypeScript typings for custom alert/confirm handlers
 declare global {
@@ -56,7 +56,7 @@ function RootLayout() {
     isOpen: boolean;
     type: "alert" | "confirm";
     message: string;
-    resolve: ((val: any) => void) | null;
+    resolve: ((val: boolean | undefined) => void) | null;
   }>({
     isOpen: false,
     type: "alert",
@@ -101,7 +101,10 @@ function RootLayout() {
 
     if (isScanOpen) {
       setIsCameraLoading(true);
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
+        );
       setIsMirrored(!isMobile);
 
       const startScanner = async () => {
@@ -118,26 +121,36 @@ function RootLayout() {
             },
             (decodedText) => {
               if (!isActive) return;
-              html5QrCode?.stop().then(() => {
-                setIsScanOpen(false);
-                let qrCode = decodedText;
-                if (decodedText.includes("/anggota/")) {
-                  const parts = decodedText.split("/anggota/");
-                  if (parts.length > 1) {
-                    const subParts = parts[1].split("/pengukuran/tambah");
-                    qrCode = subParts[0];
+              html5QrCode
+                ?.stop()
+                .then(() => {
+                  setIsScanOpen(false);
+                  let qrCode = decodedText;
+                  if (decodedText.includes("/anggota/")) {
+                    const parts = decodedText.split("/anggota/");
+                    if (parts.length > 1) {
+                      const subParts = parts[1].split("/pengukuran/tambah");
+                      qrCode = subParts[0];
+                    }
                   }
-                }
-                navigate({ to: "/anggota/$id/pengukuran/tambah", params: { id: qrCode } });
-              }).catch((e) => console.error("Error stopping scanner:", e));
+                  navigate({
+                    to: "/anggota/$id/pengukuran/tambah",
+                    params: { id: qrCode },
+                  });
+                })
+                .catch((e) => console.error("Error stopping scanner:", e));
             },
             () => {
               // verbose error callback
-            }
+            },
           );
-          
+
           if (!isActive) {
-            html5QrCode.stop().catch((e) => console.error("Gagal stop camera pasca startup lambat:", e));
+            html5QrCode
+              .stop()
+              .catch((e) =>
+                console.error("Gagal stop camera pasca startup lambat:", e),
+              );
             return;
           }
 
@@ -157,12 +170,14 @@ function RootLayout() {
       return () => {
         isActive = false;
         clearTimeout(timer);
-        if (html5QrCode && html5QrCode.isScanning) {
-          html5QrCode.stop().catch((e) => console.error("Gagal stop scanner on cleanup:", e));
+        if (html5QrCode?.isScanning) {
+          html5QrCode
+            .stop()
+            .catch((e) => console.error("Gagal stop scanner on cleanup:", e));
         }
       };
     }
-  }, [isScanOpen]);
+  }, [isScanOpen, navigate]);
 
   return (
     <div
@@ -192,8 +207,8 @@ function RootLayout() {
 
           {/* Tombol Tengah (Scan QR) */}
           <button
-            onClick={() => setIsScanOpen(true)}
             className="flex flex-col items-center justify-center -mt-6 bg-indigo-600 hover:bg-indigo-700 text-white w-13 h-13 rounded-full shadow-[0_4px_15px_rgba(79,70,229,0.35)] border-4 border-[#F8F9FA] transition-all cursor-pointer shrink-0 select-none"
+            onClick={() => setIsScanOpen(true)}
             type="button"
           >
             <QrCode className="w-5.5 h-5.5 text-white" />
@@ -218,27 +233,32 @@ function RootLayout() {
       )}
 
       {/* Global QR Scanner Drawer */}
-      <div
-        className={`fixed inset-0 bg-black/60 z-[9990] transition-opacity duration-300 ${isScanOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      <button
+        aria-label="Tutup Scanner"
+        className={`fixed inset-0 bg-black/60 z-[9990] transition-opacity duration-300 w-full border-none cursor-default ${isScanOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         onClick={() => setIsScanOpen(false)}
+        onKeyDown={(e) => e.key === "Escape" && setIsScanOpen(false)}
+        type="button"
       />
       <div
-        className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[2.5rem] shadow-2xl z-[9995] px-6 pt-5 pb-8 transition-transform duration-300 ease-out transform ${isScanOpen ? "translate-y-0" : "translate-y-full"}`}
+        className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[2.5rem] shadow-2xl z-[9995] px-6 pt-5 pb-8 transition-transform duration-300 ease-out transform ${isScanOpen ? "translate-y-0 pointer-events-auto" : "translate-y-full pointer-events-none"}`}
       >
         {/* Handle bar drag indicator */}
         <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 shrink-0" />
 
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-slate-900 text-lg">Scan QR Code Anak</h3>
+          <h3 className="font-bold text-slate-900 text-lg">
+            Scan QR Code Anak
+          </h3>
           <div className="flex items-center gap-2">
             {isScanOpen && (
               <button
-                onClick={() => setIsMirrored(!isMirrored)}
                 className={`p-1.5 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
                   isMirrored
                     ? "bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800"
                 }`}
+                onClick={() => setIsMirrored(!isMirrored)}
                 title="Cerminkan Tampilan Kamera (Cermin)"
                 type="button"
               >
@@ -270,15 +290,18 @@ function RootLayout() {
             {isCameraLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/90 z-10 gap-3">
                 <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                <span className="text-xs text-slate-400 font-semibold">Memulai Kamera...</span>
+                <span className="text-xs text-slate-400 font-semibold">
+                  Memulai Kamera...
+                </span>
               </div>
             )}
-            <div id="reader" className="w-full h-full" />
+            <div className="w-full h-full" id="reader" />
           </div>
         )}
 
         <p className="text-[11px] text-slate-500 text-center font-medium mt-3 px-4 leading-relaxed">
-          Posisikan QR Code anak di dalam kotak pemindai untuk langsung diarahkan ke form pengukuran.
+          Posisikan QR Code anak di dalam kotak pemindai untuk langsung
+          diarahkan ke form pengukuran.
         </p>
       </div>
 

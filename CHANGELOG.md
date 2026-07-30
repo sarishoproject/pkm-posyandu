@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.0] - 2026-07-30
+- ⚡️ Optimize QR scanner performance and event handling in root component.
+- 🎨 Improve UI/UX of the scanner overlay with better accessibility and state management.
+- 🧹 Simplify member detail route by moving component logic to an outlet.
+- ⚙️ Update code formatting and cleanup unused dependencies to reduce bundle size.
+
+
 ## [2.10.0] - 2026-07-29
 - 📦 Add qrcode.react to dependencies to enable QR generation.
 - 🎨 Create new barcode view page (/anggota/barcode/$id) with download functionality.

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Download, Loader2, QrCode } from "lucide-react";
-import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react"; // Import versi Canvas agar bisa di-download
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/anggota/barcode/$id")({
   component: BarcodeView,
@@ -52,11 +52,11 @@ function BarcodeView() {
     // 3. Buat elemen link <a> sementara untuk men-trigger download
     const downloadLink = document.createElement("a");
     downloadLink.href = pngUrl;
-    
+
     // Nama file dinamis: "QR_Nama_Anak.png"
     const safeName = data?.nama_anak.replace(/\s+/g, "_") || "Anak";
     downloadLink.download = `QR_${safeName}.png`;
-    
+
     // 4. Klik link tersebut secara otomatis, lalu hapus
     document.body.appendChild(downloadLink);
     downloadLink.click();
@@ -87,7 +87,9 @@ function BarcodeView() {
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold text-slate-800 ml-2">Kartu Identitas Anak</h1>
+        <h1 className="text-lg font-bold text-slate-800 ml-2">
+          Kartu Identitas Anak
+        </h1>
       </div>
 
       {/* Kartu QR Code */}
@@ -95,19 +97,23 @@ function BarcodeView() {
         <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4">
           <QrCode className="w-8 h-8" />
         </div>
-        
-        <h2 className="text-2xl font-black text-slate-900 mb-1">{data.nama_anak}</h2>
-        <p className="text-slate-500 font-medium text-sm mb-8">NIK: {data.nik}</p>
+
+        <h2 className="text-2xl font-black text-slate-900 mb-1">
+          {data.nama_anak}
+        </h2>
+        <p className="text-slate-500 font-medium text-sm mb-8">
+          NIK: {data.nik}
+        </p>
 
         {/* Kontainer QR Code (Diberi padding & border agar rapi saat didownload) */}
         <div className="bg-white p-4 rounded-2xl border-2 border-slate-100 shadow-sm mb-8">
           {data.qr_code ? (
             <QRCodeCanvas
               id="qr-canvas" // ID ini penting untuk dipanggil di fungsi download
-              value={scanUrl}
-              size={200}
-              level={"H"} // High error correction (lebih mudah discan)
               includeMargin={true}
+              level={"H"} // High error correction (lebih mudah discan)
+              size={200}
+              value={scanUrl}
             />
           ) : (
             <div className="w-[200px] h-[200px] flex items-center justify-center text-slate-400 bg-slate-50 rounded-xl">
@@ -122,10 +128,10 @@ function BarcodeView() {
 
         {/* Tombol Download */}
         <button
-          onClick={handleDownloadQR}
-          disabled={!data.qr_code}
-          type="button"
           className="w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl font-bold transition-all shadow-sm cursor-pointer"
+          disabled={!data.qr_code}
+          onClick={handleDownloadQR}
+          type="button"
         >
           <Download className="w-5 h-5" />
           <span>Download QR Code</span>

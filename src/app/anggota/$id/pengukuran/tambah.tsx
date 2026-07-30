@@ -8,6 +8,11 @@ export const Route = createFileRoute("/anggota/$id/pengukuran/tambah")({
   component: MeasurementForm,
 });
 
+interface ChildData {
+  nama_anak: string;
+  nik: string;
+}
+
 function MeasurementForm() {
   const navigate = useNavigate();
 
@@ -16,7 +21,7 @@ function MeasurementForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSensorLoading, setIsSensorLoading] = useState(false);
-  const [child, setChild] = useState<any | null>(null);
+  const [child, setChild] = useState<ChildData | null>(null);
 
   useEffect(() => {
     const fetchChild = async () => {

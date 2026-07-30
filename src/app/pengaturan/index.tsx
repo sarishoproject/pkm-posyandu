@@ -18,8 +18,8 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/pengaturan/")({
   component: AkunPage,
@@ -38,7 +38,9 @@ function AkunPage() {
   const [selectedMember, setSelectedMember] = useState<Peserta | null>(null);
 
   const downloadSingleQR = (member: Peserta) => {
-    const canvas = document.getElementById(`modal-qr-canvas-${member.id}`) as HTMLCanvasElement;
+    const canvas = document.getElementById(
+      `modal-qr-canvas-${member.id}`,
+    ) as HTMLCanvasElement;
     if (!canvas) return;
     const url = canvas.toDataURL("image/png");
     const a = document.createElement("a");
@@ -196,21 +198,23 @@ function AkunPage() {
             }
           }
         `}</style>
-        
+
         {/* Header (Hidden when printing) */}
         <div className="no-print flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white sticky top-0 z-20">
           <button
-            onClick={() => setShowAllQr(false)}
             className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-semibold text-xs cursor-pointer bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200/50"
+            onClick={() => setShowAllQr(false)}
             type="button"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Kembali
           </button>
-          <span className="font-bold text-slate-800 text-sm">QR Code Semua Anggota</span>
+          <span className="font-bold text-slate-800 text-sm">
+            QR Code Semua Anggota
+          </span>
           <button
-            onClick={() => window.print()}
             className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md cursor-pointer transition-all"
+            onClick={() => window.print()}
             type="button"
           >
             <Printer className="w-3.5 h-3.5" />
@@ -221,18 +225,19 @@ function AkunPage() {
         {/* Grid View */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-8 p-6 print-grid">
           {members.map((member) => (
-            <div
+            <button
+              className="flex flex-col items-center text-center p-2 break-inside-avoid cursor-pointer hover:opacity-80 transition-all select-none bg-transparent border-none w-full"
               key={member.id}
-              className="flex flex-col items-center text-center p-2 break-inside-avoid cursor-pointer hover:opacity-80 transition-all select-none"
               onClick={() => setSelectedMember(member)}
+              type="button"
             >
               {member.qr_code ? (
                 <div className="bg-white p-2 rounded-xl flex items-center justify-center">
                   <QRCodeCanvas
                     id={`qr-canvas-${member.id}`}
-                    value={`http://${window.location.host}/anggota/${member.qr_code}/pengukuran/tambah`}
-                    size={110}
                     level="M"
+                    size={110}
+                    value={`http://${window.location.host}/anggota/${member.qr_code}/pengukuran/tambah`}
                   />
                 </div>
               ) : (
@@ -246,20 +251,20 @@ function AkunPage() {
               <span className="text-[10px] text-slate-400 font-medium uppercase mt-0.5">
                 NIK: {member.nik || "-"}
               </span>
-            </div>
+            </button>
           ))}
         </div>
 
         {/* Detail QR Code Modal */}
         {selectedMember && (
-          <div
-            className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          <button
+            aria-label="Tutup modal"
+            className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200 w-full border-none cursor-default"
             onClick={() => setSelectedMember(null)}
+            onKeyDown={(e) => e.key === "Escape" && setSelectedMember(null)}
+            type="button"
           >
-            <div
-              className="bg-white rounded-[2rem] p-6 max-w-xs w-full shadow-2xl border border-slate-100/50 flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200 relative"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="bg-white rounded-[2rem] p-6 max-w-xs w-full shadow-2xl border border-slate-100/50 flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200 relative">
               <button
                 className="absolute right-4 top-4 p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                 onClick={() => setSelectedMember(null)}
@@ -281,9 +286,9 @@ function AkunPage() {
                 <div className="bg-white p-3 rounded-2xl border border-slate-100/60 flex items-center justify-center shadow-inner">
                   <QRCodeCanvas
                     id={`modal-qr-canvas-${selectedMember.id}`}
-                    value={`http://${window.location.host}/anggota/${selectedMember.qr_code}/pengukuran/tambah`}
-                    size={160}
                     level="H"
+                    size={160}
+                    value={`http://${window.location.host}/anggota/${selectedMember.qr_code}/pengukuran/tambah`}
                   />
                 </div>
               ) : (
@@ -305,7 +310,7 @@ function AkunPage() {
                 )}
               </div>
             </div>
-          </div>
+          </button>
         )}
       </div>
     );
