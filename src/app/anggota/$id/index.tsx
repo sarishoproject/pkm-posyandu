@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Calendar,
-  Download,
   Loader2,
   Pencil,
   Plus,
@@ -63,10 +62,6 @@ function MemberDetailView() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const handleExportSingleUser = () => {
-    // Ganti 'id' dengan variabel state/param yang menyimpan ID anak tersebut
-    window.open(`/api/export?peserta_id=${id}`, "_blank");
-  };
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
@@ -298,16 +293,17 @@ function MemberDetailView() {
 
             {isAdmin && (
               <div className="grid grid-cols-3 gap-2 w-full mb-8">
-                <button
+                {/* <button
                   className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm text-center"
                   onClick={handleExportSingleUser}
                   type="button"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Excel
-                </button>
+                </button> */}
                 <Link
-                  className="flex items-center justify-center gap-1.5 text-indigo-850 bg-indigo-50/60 border border-indigo-100/70 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-indigo-100/60 text-center"
+                  className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm text-center"
+                  // className="flex items-center justify-center gap-1.5 text-indigo-850 bg-indigo-50/60 border border-indigo-100/70 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-indigo-100/60 text-center"
                   params={{ id }}
                   to="/anggota/barcode/$id"
                 >
@@ -558,7 +554,7 @@ function MemberDetailView() {
               </h3>
               {isAdmin && (
                 <Link
-                  className="hidden md:flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
+                  className="hidden md:flex items-center gap-1 bg-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-700 transition-colors"
                   params={{ id }}
                   to="/anggota/$id/pengukuran/tambah"
                 >

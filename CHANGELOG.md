@@ -1,5 +1,13 @@
 # Changelog
 
+### [2026-07-30]
+- 📝 Update README content to provide comprehensive guides on project usage, scripts, and API documentation.
+- 🚀 Added detailed sections for Application Features, CRUD workflow, and Backend API specs.
+- ⚙️ Clarified deployment workflows, script usage, and the compile process for single-binary builds.
+- 📖 Enhanced documentation for Database schema management and error handling protocols.
+- 🎨 Improved structure of the README for better readability and accessibility for new contributors.
+
+
 ## [2.11.0] - 2026-07-30
 - ⚡️ Optimize QR scanner performance and event handling in root component.
 - 🎨 Improve UI/UX of the scanner overlay with better accessibility and state management.

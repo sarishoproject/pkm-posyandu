@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
 import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
-import { Route as AnggotaIdRouteImport } from './app/anggota/$id'
 import { Route as CariIndexRouteImport } from './app/cari/index'
 import { Route as PengaturanIndexRouteImport } from './app/pengaturan/index'
 import { Route as AnggotaIdIndexRouteImport } from './app/anggota/$id/index'
@@ -31,11 +30,6 @@ const AnggotaIndexRoute = AnggotaIndexRouteImport.update({
   path: '/anggota/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AnggotaIdRoute = AnggotaIdRouteImport.update({
-  id: '/anggota/$id',
-  path: '/anggota/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CariIndexRoute = CariIndexRouteImport.update({
   id: '/cari/',
   path: '/cari/',
@@ -47,14 +41,14 @@ const PengaturanIndexRoute = PengaturanIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaIdIndexRoute = AnggotaIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AnggotaIdRoute,
+  id: '/anggota/$id/',
+  path: '/anggota/$id/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaIdEditRoute = AnggotaIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => AnggotaIdRoute,
+  id: '/anggota/$id/edit',
+  path: '/anggota/$id/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AnggotaBarcodeIdRoute = AnggotaBarcodeIdRouteImport.update({
   id: '/anggota/barcode/$id',
@@ -68,20 +62,19 @@ const AnggotaTambahIndexRoute = AnggotaTambahIndexRouteImport.update({
 } as any)
 const AnggotaIdPengukuranPengukuranIdRoute =
   AnggotaIdPengukuranPengukuranIdRouteImport.update({
-    id: '/pengukuran/$pengukuranId',
-    path: '/pengukuran/$pengukuranId',
-    getParentRoute: () => AnggotaIdRoute,
+    id: '/anggota/$id/pengukuran/$pengukuranId',
+    path: '/anggota/$id/pengukuran/$pengukuranId',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const AnggotaIdPengukuranTambahRoute =
   AnggotaIdPengukuranTambahRouteImport.update({
-    id: '/pengukuran/tambah',
-    path: '/pengukuran/tambah',
-    getParentRoute: () => AnggotaIdRoute,
+    id: '/anggota/$id/pengukuran/tambah',
+    path: '/anggota/$id/pengukuran/tambah',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/anggota/$id': typeof AnggotaIdRouteWithChildren
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
   '/pengaturan/': typeof PengaturanIndexRoute
@@ -107,7 +100,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/anggota/$id': typeof AnggotaIdRouteWithChildren
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
   '/pengaturan/': typeof PengaturanIndexRoute
@@ -122,7 +114,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/anggota/$id'
     | '/anggota/'
     | '/cari/'
     | '/pengaturan/'
@@ -147,7 +138,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/anggota/$id'
     | '/anggota/'
     | '/cari/'
     | '/pengaturan/'
@@ -161,12 +151,15 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AnggotaIdRoute: typeof AnggotaIdRouteWithChildren
   AnggotaIndexRoute: typeof AnggotaIndexRoute
   CariIndexRoute: typeof CariIndexRoute
   PengaturanIndexRoute: typeof PengaturanIndexRoute
+  AnggotaIdEditRoute: typeof AnggotaIdEditRoute
   AnggotaBarcodeIdRoute: typeof AnggotaBarcodeIdRoute
+  AnggotaIdIndexRoute: typeof AnggotaIdIndexRoute
   AnggotaTambahIndexRoute: typeof AnggotaTambahIndexRoute
+  AnggotaIdPengukuranPengukuranIdRoute: typeof AnggotaIdPengukuranPengukuranIdRoute
+  AnggotaIdPengukuranTambahRoute: typeof AnggotaIdPengukuranTambahRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -185,13 +178,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnggotaIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/anggota/$id': {
-      id: '/anggota/$id'
-      path: '/anggota/$id'
-      fullPath: '/anggota/$id'
-      preLoaderRoute: typeof AnggotaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cari/': {
       id: '/cari/'
       path: '/cari'
@@ -208,17 +194,17 @@ declare module '@tanstack/react-router' {
     }
     '/anggota/$id/': {
       id: '/anggota/$id/'
-      path: '/'
+      path: '/anggota/$id'
       fullPath: '/anggota/$id/'
       preLoaderRoute: typeof AnggotaIdIndexRouteImport
-      parentRoute: typeof AnggotaIdRoute
+      parentRoute: typeof rootRouteImport
     }
     '/anggota/$id/edit': {
       id: '/anggota/$id/edit'
-      path: '/edit'
+      path: '/anggota/$id/edit'
       fullPath: '/anggota/$id/edit'
       preLoaderRoute: typeof AnggotaIdEditRouteImport
-      parentRoute: typeof AnggotaIdRoute
+      parentRoute: typeof rootRouteImport
     }
     '/anggota/barcode/$id': {
       id: '/anggota/barcode/$id'
@@ -236,47 +222,32 @@ declare module '@tanstack/react-router' {
     }
     '/anggota/$id/pengukuran/$pengukuranId': {
       id: '/anggota/$id/pengukuran/$pengukuranId'
-      path: '/pengukuran/$pengukuranId'
+      path: '/anggota/$id/pengukuran/$pengukuranId'
       fullPath: '/anggota/$id/pengukuran/$pengukuranId'
       preLoaderRoute: typeof AnggotaIdPengukuranPengukuranIdRouteImport
-      parentRoute: typeof AnggotaIdRoute
+      parentRoute: typeof rootRouteImport
     }
     '/anggota/$id/pengukuran/tambah': {
       id: '/anggota/$id/pengukuran/tambah'
-      path: '/pengukuran/tambah'
+      path: '/anggota/$id/pengukuran/tambah'
       fullPath: '/anggota/$id/pengukuran/tambah'
       preLoaderRoute: typeof AnggotaIdPengukuranTambahRouteImport
-      parentRoute: typeof AnggotaIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AnggotaIdRouteChildren {
-  AnggotaIdEditRoute: typeof AnggotaIdEditRoute
-  AnggotaIdIndexRoute: typeof AnggotaIdIndexRoute
-  AnggotaIdPengukuranPengukuranIdRoute: typeof AnggotaIdPengukuranPengukuranIdRoute
-  AnggotaIdPengukuranTambahRoute: typeof AnggotaIdPengukuranTambahRoute
-}
-
-const AnggotaIdRouteChildren: AnggotaIdRouteChildren = {
-  AnggotaIdEditRoute: AnggotaIdEditRoute,
-  AnggotaIdIndexRoute: AnggotaIdIndexRoute,
-  AnggotaIdPengukuranPengukuranIdRoute: AnggotaIdPengukuranPengukuranIdRoute,
-  AnggotaIdPengukuranTambahRoute: AnggotaIdPengukuranTambahRoute,
-}
-
-const AnggotaIdRouteWithChildren = AnggotaIdRoute._addFileChildren(
-  AnggotaIdRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AnggotaIdRoute: AnggotaIdRouteWithChildren,
   AnggotaIndexRoute: AnggotaIndexRoute,
   CariIndexRoute: CariIndexRoute,
   PengaturanIndexRoute: PengaturanIndexRoute,
+  AnggotaIdEditRoute: AnggotaIdEditRoute,
   AnggotaBarcodeIdRoute: AnggotaBarcodeIdRoute,
+  AnggotaIdIndexRoute: AnggotaIdIndexRoute,
   AnggotaTambahIndexRoute: AnggotaTambahIndexRoute,
+  AnggotaIdPengukuranPengukuranIdRoute: AnggotaIdPengukuranPengukuranIdRoute,
+  AnggotaIdPengukuranTambahRoute: AnggotaIdPengukuranTambahRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

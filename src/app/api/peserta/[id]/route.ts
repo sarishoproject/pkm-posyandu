@@ -1,6 +1,6 @@
 import db from "@/db/connection";
 import { NextResponse } from "@/lib/classes/server";
-import type { NextRouteHandler, PesertaInput } from "@/types";
+import type { NextRouteHandler, Peserta, PesertaInput } from "@/types";
 
 // GET /api/peserta/:id — Ambil detail peserta beserta riwayat pendataannya
 export const GET: NextRouteHandler<{ id: string }> = async (req) => {

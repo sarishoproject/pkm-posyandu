@@ -11,7 +11,8 @@
     "digest": "bunx @rilaptra/digester@latest",
     "lint": "biome check --write;biome ci",
     "preview": "bun --bun vite preview",
-    "start": "cmd /c \"if exist build\\\\app-bun-windows-x64.exe (build\\\\app-bun-windows-x64.exe) else (echo Error: File EXE belum ada, ngab! Jalanin 'bun run compile' dulu.)\""
+    "start": "cmd /c \"if exist build\\\\app-bun-windows-x64.exe (build\\\\app-bun-windows-x64.exe) else (echo Error: File EXE belum ada, ngab! Jalanin 'bun run compile' dulu.)\"",
+    "verify": "bun run scripts/verify.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",

@@ -214,7 +214,7 @@ function TradingViewLineChart({
   color: string;
   unit: string;
 }) {
-  const values = data.map((item) => item[dataKey] || 0);
+  const values = data.map((item) => Number(item[dataKey]) || 0);
   const minVal = Math.min(...values) * 0.95; // 5% padding bottom
   const maxVal = Math.max(...values) * 1.05; // 5% padding top
   const range = maxVal - minVal || 1;
@@ -227,7 +227,7 @@ function TradingViewLineChart({
   const points = data.map((item, idx) => {
     const x =
       paddingX + (idx * (width - paddingX * 2)) / Math.max(1, data.length - 1);
-    const val = item[dataKey] || 0;
+    const val = Number(item[dataKey]) || 0;
     const y =
       height - paddingY - ((val - minVal) / range) * (height - paddingY * 2);
     return { x, y, val, label: item.bulan };

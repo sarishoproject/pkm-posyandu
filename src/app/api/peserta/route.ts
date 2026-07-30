@@ -2,7 +2,7 @@ import db from "@/db/connection";
 import { NextResponse } from "@/lib/classes/server";
 import type { NextRouteHandler, Peserta, PesertaInput } from "@/types";
 
-// GET /api/peserta — Ambil semua peserta
+// GET /api/peserta
 export const GET: NextRouteHandler = async () => {
   const now = new Date();
   const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -24,7 +24,7 @@ export const GET: NextRouteHandler = async () => {
   return NextResponse.json(pesertaList as Peserta[]);
 };
 
-// POST /api/peserta — Tambah peserta baru
+// POST /api/peserta
 export const POST: NextRouteHandler<
   Record<string, never>,
   Record<string, never>,
@@ -47,7 +47,9 @@ export const POST: NextRouteHandler<
       { status: 400 },
     );
   }
-  const generatedQrCode = crypto.randomUUID().substring(0, 8);
+
+  // ✅ Generate QR Code menggunakan native Bun UUID v7 (8 chars)
+  const generatedQrCode = Bun.randomUUIDv7().substring(0, 8);
 
   try {
     const stmt = db.prepare(

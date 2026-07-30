@@ -85,8 +85,8 @@ function RootLayout() {
           isOpen: true,
           type: "confirm",
           message,
-          resolve: (val: boolean) => {
-            resolve(val);
+          resolve: (val) => {
+            resolve(val ?? false);
             setDialog((prev) => ({ ...prev, isOpen: false }));
           },
         });
@@ -358,7 +358,7 @@ function RootLayout() {
               ) : (
                 <button
                   className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-md"
-                  onClick={() => dialog.resolve?.(null)}
+                  onClick={() => dialog.resolve?.(false)}
                   type="button"
                 >
                   Mengerti

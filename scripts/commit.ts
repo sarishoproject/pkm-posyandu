@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { createInterface } from "node:readline";
+import { runVerification } from "./verify"; // Import dari verify.ts
 
 // --- TINY TUI HELPERS ---
 const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -60,7 +61,12 @@ async function getApiKey(): Promise<string> {
   return key;
 }
 
-// --- AI MANAGER ---
+// --- TYPE DEFINITIONS UNTUK GEMINI API ---
+interface GeminiResponse {
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  error?: { message: string };
+}
+
 interface AIResponse {
   bump: "major" | "minor" | "patch" | "none";
   changelog: string;
@@ -71,6 +77,7 @@ interface AIResponse {
   commitMessage: string;
 }
 
+// --- AI MANAGER ---
 async function generateCommitDetails(
   diff: string,
   apiKey: string,
@@ -121,7 +128,8 @@ async function generateCommitDetails(
     },
   );
 
-  const data = await res.json();
+  const data = (await res.json()) as GeminiResponse;
+
   if (data.error) throw new Error(data.error.message);
 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -192,10 +200,17 @@ async function updateChangelog(newVer: string | null, changelogText: string) {
 async function main() {
   console.log("🤖 AI AUTO COMMIT (Lightweight Digester)\n");
 
-  const apiKey = await getApiKey();
-
-  // 1. Stage & Get Diff
+  // 1. Stage semua perubahan awal
+  console.log("📦 Staging all changes...");
   runGit(["add", "."]);
+
+  // 2. Jalankan Verifikasi Otomatis
+  // const isVerified = await runVerification();
+  // if (!isVerified) {
+  //   process.exit(1); // Stop jika verifikasi gagal
+  // }
+
+  // 3. Get Diff
   const rawDiff = runGit(["diff", "--cached", "-U0"]);
 
   if (!rawDiff.trim()) {
@@ -222,7 +237,8 @@ async function main() {
     process.exit(0);
   }
 
-  // 2. Consult AI
+  // 4. Consult AI
+  const apiKey = await getApiKey();
   console.log("🧠 Mengonsultasikan ke Gemini AI...");
   const result = await generateCommitDetails(cleanDiff, apiKey);
 
@@ -236,7 +252,7 @@ async function main() {
       .join("\n")}\n`,
   );
 
-  // 3. Security Check
+  // 5. Security Check
   if (!result.checkResult.isSafe) {
     console.log(`🛡️  SECURITY WARNING: ${result.checkResult.message}`);
     const proceed = await promptYesNo(
@@ -250,7 +266,7 @@ async function main() {
     }
   }
 
-  // 4. Confirm
+  // 6. Confirm
   const confirm = await promptYesNo("🚀 Execute & commit perubahan ini?", true);
   if (!confirm) {
     console.log("Dibatalkan.");
@@ -258,7 +274,7 @@ async function main() {
     process.exit(0);
   }
 
-  // 5. Update Version
+  // 7. Update Version
   let newVer: string | null = null;
   if (result.bump !== "none") {
     const pkgPath = join(process.cwd(), "package.json");
@@ -270,19 +286,19 @@ async function main() {
     runGit(["add", "package.json"]);
   }
 
-  // 6. Update Changelog
+  // 8. Update Changelog
   await updateChangelog(newVer, result.changelog);
   console.log("✅ CHANGELOG.md diupdate");
   runGit(["add", "CHANGELOG.md"]);
 
-  // 7. Commit & Tag
+  // 9. Commit & Tag
   runGit(["commit", "-m", result.commitMessage]);
   if (newVer) {
     runGit(["tag", `v${newVer}`]);
     console.log(`🏷️  Tag v${newVer} dibuat`);
   }
 
-  // 8. Push
+  // 10. Auto-Push
   const shouldPush = await promptYesNo("🌐 Push ke remote repository?", true);
   if (shouldPush) {
     try {

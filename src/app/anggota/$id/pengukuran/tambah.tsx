@@ -3,34 +3,59 @@ import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 
-// Mendefinisikan route dinamis berdasarkan nama file $pesertaId.tsx
 export const Route = createFileRoute("/anggota/$id/pengukuran/tambah")({
   component: MeasurementForm,
 });
 
 interface ChildData {
+  asi_bulan_0?: string;
+  asi_bulan_1?: string;
+  asi_bulan_2?: string;
+  asi_bulan_3?: string;
+  asi_bulan_4?: string;
+  asi_bulan_5?: string;
+  asi_bulan_6?: string;
   nama_anak: string;
   nik: string;
+  tanggal_lahir: string | null;
 }
 
 function MeasurementForm() {
   const navigate = useNavigate();
-
-  // Mengambil ID dari URL (misal: /anggota/input/1 -> pesertaId = "1")
   const { id } = Route.useParams();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSensorLoading, setIsSensorLoading] = useState(false);
   const [child, setChild] = useState<ChildData | null>(null);
+  const [asiInfo, setAsiInfo] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChild = async () => {
       try {
         const response = await fetch(`/api/peserta/${id}`);
         if (!response.ok) throw new Error("Gagal mengambil data");
-        const data = await response.json();
+        const data: ChildData = await response.json();
         setChild(data);
         document.title = `Input Pengukuran ${data.nama_anak} | Posyandu`;
+
+        // Hitung umur bulan & fetch status ASI
+        if (data.tanggal_lahir) {
+          const birth = new Date(data.tanggal_lahir);
+          const now = new Date();
+          let months = (now.getFullYear() - birth.getFullYear()) * 12;
+          months -= birth.getMonth();
+          months += now.getMonth();
+          if (now.getDate() < birth.getDate()) months--;
+
+          const umurBulan = months < 0 ? 0 : months;
+
+          if (umurBulan <= 6) {
+            const asiStatus = data[`asi_bulan_${umurBulan}` as keyof ChildData];
+            setAsiInfo(asiStatus === "ya" ? "Ya" : "Tidak");
+          } else {
+            setAsiInfo(null); // Umur > 6 bulan, tidak perlu tampilkan ASI
+          }
+        }
       } catch (error) {
         console.error("Error fetching child:", error);
       }
@@ -47,17 +72,15 @@ function MeasurementForm() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  // State form sesuai dengan interface PendataanInput di backend
   const [formData, setFormData] = useState({
     peserta_id: Number(id),
-    tanggal_ukur: new Date().toISOString().split("T")[0], // YYYY-MM-DD
+    tanggal_ukur: new Date().toISOString().split("T")[0],
     berat: "",
     tinggi: "",
     lingkar_kepala: "",
-    lila: "", // Lingkar Lengan Atas
-    pitting_edema: false, // Boolean di UI
+    lila: "",
+    pitting_edema: false,
     cara_ukur: "Berdiri",
-    asi: "tidak",
   });
 
   const isFormComplete =
@@ -65,14 +88,11 @@ function MeasurementForm() {
     formData.tinggi !== "" &&
     formData.lingkar_kepala !== "" &&
     formData.lila !== "";
-  formData.asi !== "";
 
-  // Fungsi untuk mengambil data dari Mock API Sensor
   const handleSimulateSensor = async () => {
     setIsSensorLoading(true);
 
     try {
-      // Menjalankan fetch secara paralel agar lebih cepat
       const [weightRes, heightRes] = await Promise.all([
         fetch("https://mock.fadlanabduh.my.id/api/weight"),
         fetch("https://mock.fadlanabduh.my.id/api/height"),
@@ -85,11 +105,9 @@ function MeasurementForm() {
       const weightData = await weightRes.json();
       const heightData = await heightRes.json();
 
-      // Ekstraksi nilai (menyesuaikan kemungkinan struktur JSON dari API)
       const hasilBerat = weightData.weight ?? weightData.value ?? weightData;
       const hasilTinggi = heightData.height ?? heightData.value ?? heightData;
 
-      // Update state dengan data dari sensor
       setFormData((prev) => ({
         ...prev,
         berat: Number(hasilBerat).toFixed(1),
@@ -106,13 +124,12 @@ function MeasurementForm() {
     }
   };
 
-  // Fungsi untuk mengirim data ke backend Hono
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Konversi tipe data agar sesuai dengan skema database
+      // Hapus payload asi, karena asi sudah dikelola di data peserta
       const payload = {
         ...formData,
         berat: formData.berat ? Number(formData.berat) : null,
@@ -122,7 +139,6 @@ function MeasurementForm() {
           : null,
         lila: formData.lila ? Number(formData.lila) : null,
         pitting_edema: formData.pitting_edema ? "Ya" : "Tidak",
-        asi: formData.asi ? "Ya" : "Tidak",
       };
 
       const response = await fetch("/api/pendataan", {
@@ -137,7 +153,6 @@ function MeasurementForm() {
       }
 
       await window.showCustomAlert("Data pengukuran berhasil disimpan!");
-      // Arahkan kembali ke halaman info/detail anggota
       navigate({ to: "/anggota/$id", params: { id } });
     } catch (error) {
       console.error("Error submit data:", error);
@@ -153,7 +168,6 @@ function MeasurementForm() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-md md:max-w-4xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden md:min-h-[auto]">
-        {/* Header */}
         <div className="p-4 md:px-8 md:pt-8 md:pb-4 flex items-center md:border-b md:border-slate-100">
           <button
             className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors cursor-pointer"
@@ -172,9 +186,7 @@ function MeasurementForm() {
             className="md:grid md:grid-cols-2 md:gap-10 lg:gap-14 h-full flex flex-col"
             onSubmit={handleSubmit}
           >
-            {/* ================= KOLOM KIRI (Profil & Sensor) ================= */}
             <div className="flex flex-col">
-              {/* Card Profil Anak */}
               <div className="relative bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 mb-8 overflow-hidden md:border-slate-200 md:shadow-md">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-indigo-500 rounded-r-full" />
                 <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0 ml-1 text-sm tracking-wider">
@@ -190,7 +202,27 @@ function MeasurementForm() {
                 </div>
               </div>
 
-              {/* Area Sensor */}
+              {/* ================= INFO ASI OTOMATIS ================= */}
+              {asiInfo !== null && (
+                <div className="mb-6 bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
+                      Status ASI Bulan Ini
+                    </span>
+                    <span className="text-sm font-bold text-slate-800 mt-1">
+                      {asiInfo === "Ya"
+                        ? "Mendapat ASI Eksklusif"
+                        : "Tidak Mendapat ASI"}
+                    </span>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${asiInfo === "Ya" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                  >
+                    {asiInfo}
+                  </span>
+                </div>
+              )}
+
               <div className="mb-6 md:mb-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-bold text-slate-500 tracking-wider uppercase">
@@ -224,7 +256,6 @@ function MeasurementForm() {
                   </div>
                 </div>
 
-                {/* Tombol Fetch API Sensor */}
                 <button
                   className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
                   disabled={isSensorLoading}
@@ -252,7 +283,6 @@ function MeasurementForm() {
 
             <hr className="border-slate-200 my-6 md:hidden" />
 
-            {/* ================= KOLOM KANAN (Input Manual) ================= */}
             <div className="flex flex-col space-y-4 h-full flex-1">
               <div className="flex-1">
                 <h3 className="hidden md:block text-xs font-bold text-slate-500 tracking-wider mb-4 uppercase">
@@ -343,31 +373,10 @@ function MeasurementForm() {
                   </label>
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5 pt-4">
-                <label
-                  className="text-xs font-semibold text-slate-700"
-                  htmlFor="asi"
-                >
-                  Pemberian ASI Eksklusif
-                </label>
-                <select
-                  className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none cursor-pointer"
-                  id="asi"
-                  onChange={(e) =>
-                    setFormData({ ...formData, asi: e.target.value })
-                  }
-                  value={formData.asi}
-                >
-                  <option value="tidak">Tidak</option>
-                  <option value="ya">Ya</option>
-                </select>
-              </div>
 
-              {/* Tombol Submit Hono */}
               <div className="mt-10 md:mt-auto pt-4 md:pt-8">
                 <button
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#373895] text-white font-semibold hover:bg-indigo-800 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
-                  // GANTI BARIS INI: Disable jika sedang loading ATAU form belum komplit
                   disabled={isLoading || !isFormComplete}
                   type="submit"
                 >
@@ -376,8 +385,7 @@ function MeasurementForm() {
                       <Loader2 className="w-5 h-5 animate-spin" />
                       Menyimpan Data...
                     </>
-                  ) : // Opsional: Ubah teks tombol jika belum komplit agar user paham
-                  isFormComplete ? (
+                  ) : isFormComplete ? (
                     "Simpan Data Pengukuran"
                   ) : (
                     "Lengkapi Data Dahulu"

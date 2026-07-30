@@ -23,7 +23,6 @@ function EditMeasurementForm() {
     lila: "",
     pitting_edema: false,
     cara_ukur: "Berdiri",
-    asi: "",
   });
 
   const isFormComplete =
@@ -31,7 +30,6 @@ function EditMeasurementForm() {
     formData.tinggi !== "" &&
     formData.lingkar_kepala !== "" &&
     formData.lila !== "";
-  formData.asi !== "";
 
   const [childName, setChildName] = useState("");
 
@@ -51,7 +49,6 @@ function EditMeasurementForm() {
     fetchChild();
   }, [id]);
 
-  // 1. Ambil Data Lama
   useEffect(() => {
     const fetchExistingData = async () => {
       try {
@@ -70,11 +67,6 @@ function EditMeasurementForm() {
           lila: data.lila?.toString() || "",
           pitting_edema: data.pitting_edema === "Ya",
           cara_ukur: data.cara_ukur || "Berdiri",
-          asi: data.asi
-            ? data.asi.toLowerCase() === "ya"
-              ? "Ya"
-              : "Tidak"
-            : "",
         });
       } catch (error) {
         console.error("Error:", error);
@@ -86,7 +78,6 @@ function EditMeasurementForm() {
     fetchExistingData();
   }, [pengukuranId]);
 
-  // 2. Fungsi Ambil Data dari Sensor
   const handleSimulateSensor = async () => {
     setIsSensorLoading(true);
     try {
@@ -121,7 +112,6 @@ function EditMeasurementForm() {
     }
   };
 
-  // 3. Fungsi Submit Edit (PUT)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -136,7 +126,6 @@ function EditMeasurementForm() {
           : null,
         lila: formData.lila ? Number(formData.lila) : null,
         pitting_edema: formData.pitting_edema ? "Ya" : "Tidak",
-        asi: formData.asi,
       };
 
       const response = await fetch(`/api/pendataan/${pengukuranId}`, {
@@ -181,7 +170,6 @@ function EditMeasurementForm() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans p-4 md:p-8 lg:p-12">
       <div className="w-full max-w-4xl mx-auto flex flex-col relative">
-        {/* Header */}
         <div className="pb-6 flex items-center gap-2 border-b border-slate-200/65 mb-8">
           <button
             className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors"
@@ -200,7 +188,6 @@ function EditMeasurementForm() {
             className="md:grid md:grid-cols-2 md:gap-10 lg:gap-14 h-full flex flex-col"
             onSubmit={handleSubmit}
           >
-            {/* ================= KOLOM KIRI ================= */}
             <div className="flex flex-col">
               <div className="relative bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 mb-8 overflow-hidden md:border-slate-200 md:shadow-md">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-orange-300 rounded-r-full" />
@@ -273,7 +260,6 @@ function EditMeasurementForm() {
 
             <hr className="border-slate-200 my-6 md:hidden" />
 
-            {/* ================= KOLOM KANAN ================= */}
             <div className="flex flex-col space-y-4 h-full flex-1">
               <div className="flex-1">
                 <h3 className="hidden md:block text-xs font-bold text-slate-500 tracking-wider mb-4 uppercase">
@@ -366,23 +352,9 @@ function EditMeasurementForm() {
                     Pitting Edema
                   </label>
                 </div>
-                <select
-                  className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none cursor-pointer"
-                  onChange={(e) =>
-                    setFormData({ ...formData, asi: e.target.value })
-                  }
-                  value={formData.asi}
-                >
-                  <option disabled value="">
-                    -- Pilih Status ASI --
-                  </option>
-                  <option value="Tidak">Tidak</option>
-                  <option value="Ya">Ya</option>
-                </select>
               </div>
 
               <div className="mt-10 md:mt-auto pt-4 md:pt-8">
-                {/* Tombol Simpan */}
                 <button
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#1E1B4B] text-white font-semibold hover:bg-indigo-900 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
                   disabled={isLoading || !isFormComplete}

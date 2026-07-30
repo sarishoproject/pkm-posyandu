@@ -2,7 +2,7 @@ import db from "@/db/connection";
 import { NextResponse } from "@/lib/classes/server";
 import type { NextRouteHandler } from "@/types";
 
-// DELETE /api/pendataan/:id — Hapus riwayat pendataan tertentu (jika salah input)
+// DELETE /api/pendataan/:id
 export const DELETE: NextRouteHandler<{ id: string }> = async (req) => {
   const { id } = req.params;
   const deleted = db
@@ -19,27 +19,18 @@ export const DELETE: NextRouteHandler<{ id: string }> = async (req) => {
   return NextResponse.json({ message: "Data pendataan berhasil dihapus." });
 };
 
+// PUT /api/pendataan/:id
 export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
   try {
     const { id } = req.params;
-
-    // Tangkap data dari frontend
     const body = await req.json();
-    const {
-      berat,
-      tinggi,
-      lingkar_kepala,
-      lila,
-      cara_ukur,
-      pitting_edema,
-      asi,
-    } = body;
+    const { berat, tinggi, lingkar_kepala, lila, cara_ukur, pitting_edema } =
+      body;
 
-    // Eksekusi UPDATE dan langsung kembalikan hasilnya
     const updated = db
       .prepare(`
         UPDATE pendataan 
-        SET berat = ?, tinggi = ?, lingkar_kepala = ?, lila = ?, cara_ukur = ?, pitting_edema = ? , asi = ?
+        SET berat = ?, tinggi = ?, lingkar_kepala = ?, lila = ?, cara_ukur = ?, pitting_edema = ?
         WHERE id = ? 
         RETURNING *
       `)
@@ -50,7 +41,6 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
         lila ? Number(lila) : null,
         cara_ukur || "Berdiri",
         pitting_edema,
-        asi, // Langsung masukkan karena frontend sudah mengubahnya jadi "Ya" / "Tidak"
         id,
       );
 
@@ -77,11 +67,10 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
   }
 };
 
+// GET /api/pendataan/:id
 export const GET: NextRouteHandler<{ id: string }> = async (req) => {
   try {
     const { id } = req.params;
-
-    // Tarik 1 baris data dari database berdasarkan ID
     const data = db.prepare("SELECT * FROM pendataan WHERE id = ?").get(id);
 
     if (!data) {
@@ -91,7 +80,6 @@ export const GET: NextRouteHandler<{ id: string }> = async (req) => {
       );
     }
 
-    // Kembalikan datanya ke frontend
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error GET pendataan:", error);

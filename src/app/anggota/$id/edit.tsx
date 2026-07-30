@@ -22,6 +22,13 @@ function EditMemberForm() {
     tgl_lahir: "",
     bulan_lahir: "",
     tahun_lahir: "",
+    asi_bulan_0: "tidak",
+    asi_bulan_1: "tidak",
+    asi_bulan_2: "tidak",
+    asi_bulan_3: "tidak",
+    asi_bulan_4: "tidak",
+    asi_bulan_5: "tidak",
+    asi_bulan_6: "tidak",
   });
 
   useEffect(() => {
@@ -54,6 +61,13 @@ function EditMemberForm() {
           tgl_lahir: tgl,
           bulan_lahir: bln,
           tahun_lahir: thn,
+          asi_bulan_0: data.asi_bulan_0 || "tidak",
+          asi_bulan_1: data.asi_bulan_1 || "tidak",
+          asi_bulan_2: data.asi_bulan_2 || "tidak",
+          asi_bulan_3: data.asi_bulan_3 || "tidak",
+          asi_bulan_4: data.asi_bulan_4 || "tidak",
+          asi_bulan_5: data.asi_bulan_5 || "tidak",
+          asi_bulan_6: data.asi_bulan_6 || "tidak",
         }));
       } catch (error) {
         console.error("Error fetching detail:", error);
@@ -89,6 +103,13 @@ function EditMemberForm() {
         nama_ibu: formData.nama_ibu,
         jenis_kelamin: formData.jenis_kelamin,
         tanggal_lahir: fullTanggalLahir,
+        asi_bulan_0: formData.asi_bulan_0,
+        asi_bulan_1: formData.asi_bulan_1,
+        asi_bulan_2: formData.asi_bulan_2,
+        asi_bulan_3: formData.asi_bulan_3,
+        asi_bulan_4: formData.asi_bulan_4,
+        asi_bulan_5: formData.asi_bulan_5,
+        asi_bulan_6: formData.asi_bulan_6,
       };
 
       const response = await fetch(`/api/peserta/${id}`, {
@@ -121,6 +142,29 @@ function EditMemberForm() {
     );
   }
 
+  const renderAsiSelect = (bulan: number) => {
+    const key = `asi_bulan_${bulan}` as keyof typeof formData;
+    return (
+      <div className="flex flex-col gap-1.5" key={bulan}>
+        <label
+          className="text-[11px] font-semibold text-slate-600"
+          htmlFor="opsi"
+        >
+          Bulan {bulan}
+        </label>
+        <select
+          className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm appearance-none cursor-pointer"
+          name="opsi"
+          onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+          value={formData[key]}
+        >
+          <option value="tidak">Tidak</option>
+          <option value="ya">Ya</option>
+        </select>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-md mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden min-h-screen md:min-h-[auto] md:border md:border-slate-100">
@@ -137,7 +181,7 @@ function EditMemberForm() {
           </h1>
         </div>
 
-        <div className="px-5 pt-2 pb-8 flex-1 flex flex-col md:px-8">
+        <div className="px-5 pt-2 pb-8 flex-1 flex flex-col md:px-8 overflow-y-auto">
           <form
             className="space-y-5 flex-1 flex flex-col"
             onSubmit={handleSubmit}
@@ -298,6 +342,16 @@ function EditMemberForm() {
                 type="text"
                 value={formData.nama_ibu}
               />
+            </div>
+
+            {/* ================= UI EDIT ASI EKSKLUSIF ================= */}
+            <div className="pt-4 border-t border-slate-200 mt-2">
+              <h3 className="text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-3">
+                Riwayat ASI Eksklusif (0-6 Bulan)
+              </h3>
+              <div className="grid grid-cols-4 gap-3">
+                {[0, 1, 2, 3, 4, 5, 6].map((bulan) => renderAsiSelect(bulan))}
+              </div>
             </div>
 
             <div className="mt-auto pt-8">

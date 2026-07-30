@@ -1,5 +1,6 @@
 import * as ExcelJS from "exceljs";
 import db from "@/db/connection";
+import { NextResponse } from "@/lib/classes/server";
 import type { NextRouteHandler } from "@/types";
 
 type ExportRow = {
@@ -95,7 +96,7 @@ export const GET: NextRouteHandler = async () => {
     headerRow.font = {
       bold: true,
       color: { argb: "FFFFFF" },
-      name: "Arial",
+      name: "Calibri",
       size: 10,
     };
     headerRow.height = 25;
@@ -103,7 +104,7 @@ export const GET: NextRouteHandler = async () => {
       cell.fill = {
         type: "pattern",
         pattern: "solid",
-        fgColor: { argb: "3F51B5" }, // Indigo
+        fgColor: { argb: "FFFF00" }, // Indigo
       };
       cell.alignment = { vertical: "middle", horizontal: "center" };
       cell.border = {
@@ -118,7 +119,7 @@ export const GET: NextRouteHandler = async () => {
       const addedRow = sheet.addRow({
         no: index + 1,
         nik: row.nik,
-        nama_anak: row.nama_anak,
+        nama_anak: row.nama_anak.toUpperCase(),
         tanggal_lahir: row.tanggal_lahir,
         tanggal_ukur: row.tanggal_ukur,
         berat: row.berat,
@@ -141,7 +142,7 @@ export const GET: NextRouteHandler = async () => {
 
       // Align cells and add borders
       addedRow.eachCell((cell, colNumber) => {
-        cell.font = { name: "Arial", size: 9 };
+        cell.font = { name: "Calibri", size: 9 };
         cell.border = {
           top: { style: "thin", color: { argb: "E0E0E0" } },
           bottom: { style: "thin", color: { argb: "E0E0E0" } },
@@ -156,9 +157,9 @@ export const GET: NextRouteHandler = async () => {
       });
     });
 
-    const buffer = (await workbook.xlsx.writeBuffer()) as Buffer;
+    const buffer = await workbook.xlsx.writeBuffer();
 
-    return new Response(buffer, {
+    return new NextResponse(buffer, {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -167,7 +168,7 @@ export const GET: NextRouteHandler = async () => {
     });
   } catch (error) {
     console.error("Error generating Excel:", error);
-    return new Response(
+    return new NextResponse(
       JSON.stringify({ error: "Gagal mengekspor data ke Excel." }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
