@@ -9,6 +9,7 @@ import {
 import {
   AlertCircle,
   CheckCircle2,
+  FlipHorizontal,
   Home,
   Loader2,
   QrCode,
@@ -39,6 +40,7 @@ function RootLayout() {
   const navigate = useNavigate();
   const [isScanOpen, setIsScanOpen] = React.useState(false);
   const [isCameraLoading, setIsCameraLoading] = React.useState(true);
+  const [isMirrored, setIsMirrored] = React.useState(false);
 
   const showNavbar = [
     "/",
@@ -99,6 +101,9 @@ function RootLayout() {
 
     if (isScanOpen) {
       setIsCameraLoading(true);
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMirrored(!isMobile);
+
       const startScanner = async () => {
         try {
           html5QrCode = new Html5Qrcode("reader");
@@ -225,13 +230,29 @@ function RootLayout() {
 
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-900 text-lg">Scan QR Code Anak</h3>
-          <button
-            className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-            onClick={() => setIsScanOpen(false)}
-            type="button"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {isScanOpen && (
+              <button
+                onClick={() => setIsMirrored(!isMirrored)}
+                className={`p-1.5 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
+                  isMirrored
+                    ? "bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm"
+                    : "bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800"
+                }`}
+                title="Cerminkan Tampilan Kamera (Cermin)"
+                type="button"
+              >
+                <FlipHorizontal className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              onClick={() => setIsScanOpen(false)}
+              type="button"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Scanner reader viewport */}
@@ -242,6 +263,7 @@ function RootLayout() {
                 width: 100% !important;
                 height: 100% !important;
                 object-fit: cover !important;
+                ${isMirrored ? "transform: scaleX(-1) !important;" : ""}
               }
             `}</style>
             {/* Loading Placeholder */}
