@@ -15,6 +15,7 @@ import { Route as AnggotaIndexRouteImport } from './app/anggota/index'
 import { Route as AnggotaIdRouteImport } from './app/anggota/$id'
 import { Route as CariIndexRouteImport } from './app/cari/index'
 import { Route as AnggotaIdEditRouteImport } from './app/anggota/$id/edit'
+import { Route as AnggotaBarcodeIdRouteImport } from './app/anggota/barcode/$id'
 import { Route as AnggotaTambahIndexRouteImport } from './app/anggota/tambah/index'
 import { Route as AnggotaIdPengukuranPengukuranIdRouteImport } from './app/anggota/$id/pengukuran/$pengukuranId'
 import { Route as AnggotaIdPengukuranTambahRouteImport } from './app/anggota/$id/pengukuran/tambah'
@@ -49,6 +50,11 @@ const AnggotaIdEditRoute = AnggotaIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => AnggotaIdRoute,
 } as any)
+const AnggotaBarcodeIdRoute = AnggotaBarcodeIdRouteImport.update({
+  id: '/anggota/barcode/$id',
+  path: '/anggota/barcode/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnggotaTambahIndexRoute = AnggotaTambahIndexRouteImport.update({
   id: '/anggota/tambah/',
   path: '/anggota/tambah/',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
   '/anggota/$id/edit': typeof AnggotaIdEditRoute
+  '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/tambah/': typeof AnggotaTambahIndexRoute
   '/anggota/$id/pengukuran/$pengukuranId': typeof AnggotaIdPengukuranPengukuranIdRoute
   '/anggota/$id/pengukuran/tambah': typeof AnggotaIdPengukuranTambahRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/anggota': typeof AnggotaIndexRoute
   '/cari': typeof CariIndexRoute
   '/anggota/$id/edit': typeof AnggotaIdEditRoute
+  '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/tambah': typeof AnggotaTambahIndexRoute
   '/anggota/$id/pengukuran/$pengukuranId': typeof AnggotaIdPengukuranPengukuranIdRoute
   '/anggota/$id/pengukuran/tambah': typeof AnggotaIdPengukuranTambahRoute
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/anggota/': typeof AnggotaIndexRoute
   '/cari/': typeof CariIndexRoute
   '/anggota/$id/edit': typeof AnggotaIdEditRoute
+  '/anggota/barcode/$id': typeof AnggotaBarcodeIdRoute
   '/anggota/tambah/': typeof AnggotaTambahIndexRoute
   '/anggota/$id/pengukuran/$pengukuranId': typeof AnggotaIdPengukuranPengukuranIdRoute
   '/anggota/$id/pengukuran/tambah': typeof AnggotaIdPengukuranTambahRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/anggota/'
     | '/cari/'
     | '/anggota/$id/edit'
+    | '/anggota/barcode/$id'
     | '/anggota/tambah/'
     | '/anggota/$id/pengukuran/$pengukuranId'
     | '/anggota/$id/pengukuran/tambah'
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/anggota'
     | '/cari'
     | '/anggota/$id/edit'
+    | '/anggota/barcode/$id'
     | '/anggota/tambah'
     | '/anggota/$id/pengukuran/$pengukuranId'
     | '/anggota/$id/pengukuran/tambah'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/anggota/'
     | '/cari/'
     | '/anggota/$id/edit'
+    | '/anggota/barcode/$id'
     | '/anggota/tambah/'
     | '/anggota/$id/pengukuran/$pengukuranId'
     | '/anggota/$id/pengukuran/tambah'
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   AkunIndexRoute: typeof AkunIndexRoute
   AnggotaIndexRoute: typeof AnggotaIndexRoute
   CariIndexRoute: typeof CariIndexRoute
+  AnggotaBarcodeIdRoute: typeof AnggotaBarcodeIdRoute
   AnggotaTambahIndexRoute: typeof AnggotaTambahIndexRoute
 }
 
@@ -190,6 +203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnggotaIdEditRouteImport
       parentRoute: typeof AnggotaIdRoute
     }
+    '/anggota/barcode/$id': {
+      id: '/anggota/barcode/$id'
+      path: '/anggota/barcode/$id'
+      fullPath: '/anggota/barcode/$id'
+      preLoaderRoute: typeof AnggotaBarcodeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/anggota/tambah/': {
       id: '/anggota/tambah/'
       path: '/anggota/tambah'
@@ -236,6 +256,7 @@ const rootRouteChildren: RootRouteChildren = {
   AkunIndexRoute: AkunIndexRoute,
   AnggotaIndexRoute: AnggotaIndexRoute,
   CariIndexRoute: CariIndexRoute,
+  AnggotaBarcodeIdRoute: AnggotaBarcodeIdRoute,
   AnggotaTambahIndexRoute: AnggotaTambahIndexRoute,
 }
 export const routeTree = rootRouteImport

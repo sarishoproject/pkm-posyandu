@@ -93,6 +93,7 @@ function SebaranBulanIniChart({
           viewBox={`0 0 ${width} ${height}`}
           width="100%"
         >
+          <title>Sebaran Bulan Ini</title>
           {/* Grid lines */}
           <line
             stroke="#F8FAFC"
@@ -258,6 +259,7 @@ function TradingViewLineChart({
           viewBox={`0 0 ${width} ${height}`}
           width="100%"
         >
+          <title>hello</title>
           <defs>
             <linearGradient id={`grad-${dataKey}`} x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor={color} stopOpacity="0.25" />
@@ -392,7 +394,7 @@ function DashboardHome() {
     };
 
     fetchStats();
-  }, [currentMonth]);
+  }, [currentMonth, stats]);
 
   const handleExport = () => {
     window.open("/api/export", "_blank");
@@ -680,6 +682,7 @@ function DashboardHome() {
               viewBox={`0 0 ${chartWidth} ${chartHeight}`}
               width="100%"
             >
+              <title>Tren Pemeriksaan</title>
               {stats.tren_bulanan.map((item, idx) => {
                 const barHeight = (item.jumlah / maxVal) * 120; // scale to max 120px
                 const x = 30 + idx * (barWidth + gap);

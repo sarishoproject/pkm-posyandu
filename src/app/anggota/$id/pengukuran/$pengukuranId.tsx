@@ -23,6 +23,7 @@ function EditMeasurementForm() {
     lila: "",
     pitting_edema: false,
     cara_ukur: "Berdiri",
+    asi: "",
   });
 
   const isFormComplete =
@@ -30,6 +31,7 @@ function EditMeasurementForm() {
     formData.tinggi !== "" &&
     formData.lingkar_kepala !== "" &&
     formData.lila !== "";
+  formData.asi !== "";
 
   // 1. Ambil Data Lama
   useEffect(() => {
@@ -50,6 +52,11 @@ function EditMeasurementForm() {
           lila: data.lila?.toString() || "",
           pitting_edema: data.pitting_edema === "Ya",
           cara_ukur: data.cara_ukur || "Berdiri",
+          asi: data.asi
+            ? data.asi.toLowerCase() === "ya"
+              ? "Ya"
+              : "Tidak"
+            : "",
         });
       } catch (error) {
         console.error("Error:", error);
@@ -111,6 +118,7 @@ function EditMeasurementForm() {
           : null,
         lila: formData.lila ? Number(formData.lila) : null,
         pitting_edema: formData.pitting_edema ? "Ya" : "Tidak",
+        asi: formData.asi,
       };
 
       const response = await fetch(`/api/pendataan/${pengukuranId}`, {
@@ -340,6 +348,19 @@ function EditMeasurementForm() {
                     Pitting Edema
                   </label>
                 </div>
+                <select
+                  className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none cursor-pointer"
+                  onChange={(e) =>
+                    setFormData({ ...formData, asi: e.target.value })
+                  }
+                  value={formData.asi}
+                >
+                  <option disabled value="">
+                    -- Pilih Status ASI --
+                  </option>
+                  <option value="Tidak">Tidak</option>
+                  <option value="Ya">Ya</option>
+                </select>
               </div>
 
               <div className="mt-10 md:mt-auto pt-4 md:pt-8">

@@ -51,6 +51,7 @@ function MeasurementForm() {
     lila: "", // Lingkar Lengan Atas
     pitting_edema: false, // Boolean di UI
     cara_ukur: "Berdiri",
+    asi: "tidak",
   });
 
   const isFormComplete =
@@ -58,6 +59,7 @@ function MeasurementForm() {
     formData.tinggi !== "" &&
     formData.lingkar_kepala !== "" &&
     formData.lila !== "";
+  formData.asi !== "";
 
   // Fungsi untuk mengambil data dari Mock API Sensor
   const handleSimulateSensor = async () => {
@@ -114,6 +116,7 @@ function MeasurementForm() {
           : null,
         lila: formData.lila ? Number(formData.lila) : null,
         pitting_edema: formData.pitting_edema ? "Ya" : "Tidak",
+        asi: formData.asi ? "Ya" : "Tidak",
       };
 
       const response = await fetch("/api/pendataan", {
@@ -333,6 +336,25 @@ function MeasurementForm() {
                     Pitting Edema
                   </label>
                 </div>
+              </div>
+              <div className="flex flex-col gap-1.5 pt-4">
+                <label
+                  className="text-xs font-semibold text-slate-700"
+                  htmlFor="asi"
+                >
+                  Pemberian ASI Eksklusif
+                </label>
+                <select
+                  className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none cursor-pointer"
+                  id="asi"
+                  onChange={(e) =>
+                    setFormData({ ...formData, asi: e.target.value })
+                  }
+                  value={formData.asi}
+                >
+                  <option value="tidak">Tidak</option>
+                  <option value="ya">Ya</option>
+                </select>
               </div>
 
               {/* Tombol Submit Hono */}

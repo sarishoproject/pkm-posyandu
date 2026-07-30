@@ -45,7 +45,7 @@ function RootLayout() {
     isOpen: boolean;
     type: "alert" | "confirm";
     message: string;
-    resolve: ((val: any) => void) | null;
+    resolve: ((val: unknown) => void) | null;
   }>({
     isOpen: false,
     type: "alert",

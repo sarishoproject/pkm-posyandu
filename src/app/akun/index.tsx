@@ -487,11 +487,15 @@ function AkunPage() {
 
           <form className="space-y-4" onSubmit={handleLogin}>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <label
+                className="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                htmlFor="username"
+              >
                 Username
               </label>
               <input
                 className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm text-slate-800"
+                id="username"
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Masukkan username"
                 required
@@ -501,12 +505,16 @@ function AkunPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <label
+                className="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                htmlFor="password"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
                   className="w-full p-3.5 pr-10 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm text-slate-800"
+                  id="password"
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password"
                   required

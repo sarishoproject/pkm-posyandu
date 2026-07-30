@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Calendar,
+  Download,
   Loader2,
   Pencil,
   Plus,
@@ -29,6 +30,7 @@ interface DetailResponse {
     lila?: number | null;
     cara_ukur?: string | null;
     pitting_edema?: string | null;
+    asi?: string | null;
   }[];
   status: string;
   tanggal_lahir?: string;
@@ -51,6 +53,7 @@ function MemberDetailView() {
   const { id } = Route.useParams();
 
   const [data, setData] = useState<DetailResponse | null>(null);
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPoint, setSelectedPoint] = useState<GraphPoint | null>(null);
   const [selectedHistory, setSelectedHistory] = useState<RiwayatItem | null>(
@@ -59,6 +62,10 @@ function MemberDetailView() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const handleExportSingleUser = () => {
+    // Ganti 'id' dengan variabel state/param yang menyimpan ID anak tersebut
+    window.open(`/api/export?peserta_id=${id}`, "_blank");
+  };
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
@@ -218,11 +225,12 @@ function MemberDetailView() {
       <div className="sticky top-0 bg-[#F8F9FA]/90 backdrop-blur-md py-4 flex items-center border-b border-slate-100 z-20">
         <button
           className="p-2 -ml-2 text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
-          onClick={() => window.history.back()}
+          onClick={() => navigate({ to: "/anggota/" })}
           type="button"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
+
         <span
           className={`ml-2 text-base font-bold text-slate-800 truncate transition-all duration-300 transform ${isScrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}`}
         >
@@ -267,6 +275,17 @@ function MemberDetailView() {
                   </span>
                 </div>
               </div>
+            </div>
+            <div className="pt-4 pb-8">
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer shadow-sm"
+                onClick={handleExportSingleUser}
+                type="button"
+              >
+                <Download className="w-4 h-4" />{" "}
+                {/* Pastikan icon Download dari lucide-react di-import */}
+                <span>Ekspor Excel data Anak Ini</span>
+              </button>
             </div>
 
             <div className="mb-8">
@@ -674,6 +693,12 @@ function MemberDetailView() {
                   <span className="text-xs text-slate-500">Pitting Edema</span>
                   <span className="text-xs font-semibold text-slate-800">
                     {selectedHistory.pitting_edema || "-"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-500">asi</span>
+                  <span className="text-xs font-semibold text-slate-800">
+                    {selectedHistory.asi || "-"}
                   </span>
                 </div>
               </div>
