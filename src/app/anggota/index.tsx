@@ -4,7 +4,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { Mars, Pencil, Ruler, ScanLine, Search, Venus } from "lucide-react";
+import { Mars, Ruler, ScanLine, Search, Venus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/anggota/")({
@@ -187,7 +187,7 @@ function MobileView() {
               className="relative bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-slate-100/50 overflow-hidden cursor-pointer hover:border-indigo-200 transition-colors"
               key={child.id}
               params={{ id: String(child.id) }}
-              to="/anggota/info/$id"
+              to="/anggota/$id"
             >
               {/* Left indicator border based on checked status */}
               <div
@@ -224,8 +224,8 @@ function MobileView() {
                     e.preventDefault();
                     e.stopPropagation();
                     navigate({
-                      to: "/anggota/input/$pesertaId",
-                      params: { pesertaId: String(child.id) },
+                      to: "/anggota/$id/pengukuran/tambah",
+                      params: { id: String(child.id) },
                     });
                   }}
                   type="button"

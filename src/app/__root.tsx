@@ -103,18 +103,18 @@ function RootLayout() {
 
           <Link
             className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-16 [&.active]:text-indigo-700"
-            to="/anggota"
-          >
-            <Users className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Anggota</span>
-          </Link>
-
-          <Link
-            className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-16 [&.active]:text-indigo-700"
             to="/cari"
           >
             <Search className="w-6 h-6" />
             <span className="text-[10px] font-medium">Cari</span>
+          </Link>
+
+          <Link
+            className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-700 w-16 [&.active]:text-indigo-700"
+            to="/anggota"
+          >
+            <Users className="w-6 h-6" />
+            <span className="text-[10px] font-medium">Anggota</span>
           </Link>
 
           <Link

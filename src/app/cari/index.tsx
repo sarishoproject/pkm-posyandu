@@ -165,7 +165,7 @@ function CariPage() {
                     className="w-full flex items-center justify-between py-3 hover:opacity-75 transition-all text-left cursor-pointer"
                     key={child.id}
                     params={{ id: String(child.id) }}
-                    to="/anggota/info/$id"
+                    to="/anggota/$id"
                   >
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-slate-400 shrink-0" />
@@ -216,7 +216,7 @@ function CariPage() {
                 key={child.id}
                 onClick={() => addToHistory(child)}
                 params={{ id: String(child.id) }}
-                to="/anggota/info/$id"
+                to="/anggota/$id"
               >
                 <div className="flex flex-col">
                   <span className="font-semibold text-slate-800 text-sm">
@@ -238,8 +238,8 @@ function CariPage() {
                         e.stopPropagation();
                         addToHistory(child);
                         navigate({
-                          to: "/anggota/input/$pesertaId",
-                          params: { pesertaId: String(child.id) },
+                          to: "/anggota/$id/pengukuran/tambah",
+                          params: { id: String(child.id) },
                         });
                       }}
                       type="button"

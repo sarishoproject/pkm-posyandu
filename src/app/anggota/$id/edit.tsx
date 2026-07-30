@@ -3,12 +3,12 @@ import { Loader2, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/anggota/edit/$editId")({
+export const Route = createFileRoute("/anggota/$id/edit")({
   component: EditMemberForm,
 });
 
 function EditMemberForm() {
-  const { editId } = Route.useParams();
+  const { id } = Route.useParams();
   const navigate = useNavigate();
 
   const [isFetching, setIsFetching] = useState(true);
@@ -27,7 +27,7 @@ function EditMemberForm() {
   useEffect(() => {
     const fetchExistingData = async () => {
       try {
-        const response = await fetch(`/api/peserta/${editId}`);
+        const response = await fetch(`/api/peserta/${id}`);
         if (!response.ok) throw new Error("Data tidak ditemukan");
 
         const data = await response.json();
@@ -63,7 +63,7 @@ function EditMemberForm() {
     };
 
     fetchExistingData();
-  }, [editId]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +90,7 @@ function EditMemberForm() {
         tanggal_lahir: fullTanggalLahir,
       };
 
-      const response = await fetch(`/api/peserta/${editId}`, {
+      const response = await fetch(`/api/peserta/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -103,7 +103,7 @@ function EditMemberForm() {
       }
 
       await window.showCustomAlert("Data anggota berhasil diperbarui!");
-      navigate({ to: "/anggota/info/$id", params: { id: editId } });
+      navigate({ to: "/anggota/$id", params: { id } });
     } catch (error) {
       console.error("Error:", error);
       await window.showCustomAlert("Terjadi kesalahan saat memperbarui data.");

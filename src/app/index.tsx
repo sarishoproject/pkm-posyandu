@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  AlertCircle,
-  CheckCircle,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -599,7 +597,6 @@ function DashboardHome() {
           const sudah = stats.sudah_periksa_bulan_ini;
           const belum = stats.belum_periksa_bulan_ini;
           const persenSudah = (sudah / total) * 100;
-          const persenBelum = (belum / total) * 100;
 
           return (
             <div className="space-y-4">

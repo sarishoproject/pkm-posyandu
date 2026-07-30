@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/anggota/info/$id")({
+export const Route = createFileRoute("/anggota/$id")({
   component: MemberDetailView,
 });
 
@@ -62,11 +62,11 @@ function MemberDetailView() {
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
+      const target = e.target;
       const scrollTop =
-        target === document || target === document.documentElement
+        target === document
           ? window.scrollY
-          : target.scrollTop;
+          : (target as HTMLElement).scrollTop;
       setIsScrolled(scrollTop > 40);
     };
     window.addEventListener("scroll", handleScroll, true);
@@ -246,8 +246,8 @@ function MemberDetailView() {
                   {isAdmin && (
                     <Link
                       className="flex items-center gap-1 text-indigo-800 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full text-xs font-semibold transition-colors shrink-0 hover:bg-indigo-100"
-                      params={{ editId: id }}
-                      to="/anggota/edit/$editId"
+                      params={{ id }}
+                      to="/anggota/$id/edit"
                     >
                       <Pencil className="w-3 h-3" />
                       Edit
@@ -503,8 +503,8 @@ function MemberDetailView() {
               {isAdmin && (
                 <Link
                   className="flex items-center gap-1 bg-[#1E1B4B] text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-900 transition-colors"
-                  params={{ pesertaId: id }}
-                  to="/anggota/input/$pesertaId"
+                  params={{ id }}
+                  to="/anggota/$id/pengukuran/tambah"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Tambah
@@ -697,8 +697,11 @@ function MemberDetailView() {
 
                 <Link
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-750 hover:bg-indigo-100 border border-indigo-100 rounded-xl text-sm font-bold transition-colors"
-                  params={{ pengukuranId: String(selectedHistory.id) }}
-                  to="/anggota/edit-pengukuran/$pengukuranId"
+                  params={{
+                    id,
+                    pengukuranId: String(selectedHistory.id),
+                  }}
+                  to="/anggota/$id/pengukuran/$pengukuranId"
                 >
                   <Pencil className="w-4 h-4" />
                   Edit

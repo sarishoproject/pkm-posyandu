@@ -3,26 +3,53 @@ import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/anggota/edit-pengukuran/$pengukuranId")({
-  component: EditMeasurementForm,
+// Mendefinisikan route dinamis berdasarkan nama file $pesertaId.tsx
+export const Route = createFileRoute("/anggota/$id/pengukuran/tambah")({
+  component: MeasurementForm,
 });
 
-function EditMeasurementForm() {
-  const { pengukuranId } = Route.useParams();
+function MeasurementForm() {
   const navigate = useNavigate();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [isSensorLoading, setIsSensorLoading] = useState(false);
-  const [pesertaId, setPesertaId] = useState<string | null>(null);
+  // Mengambil ID dari URL (misal: /anggota/input/1 -> pesertaId = "1")
+  const { id } = Route.useParams();
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSensorLoading, setIsSensorLoading] = useState(false);
+  const [child, setChild] = useState<any | null>(null);
+
+  useEffect(() => {
+    const fetchChild = async () => {
+      try {
+        const response = await fetch(`/api/peserta/${id}`);
+        if (!response.ok) throw new Error("Gagal mengambil data");
+        const data = await response.json();
+        setChild(data);
+      } catch (error) {
+        console.error("Error fetching child:", error);
+      }
+    };
+    fetchChild();
+  }, [id]);
+
+  const getInitials = (name: string) => {
+    if (!name) return "AN";
+    const words = name.trim().split(" ");
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // State form sesuai dengan interface PendataanInput di backend
   const [formData, setFormData] = useState({
-    tanggal_ukur: "",
+    peserta_id: Number(id),
+    tanggal_ukur: new Date().toISOString().split("T")[0], // YYYY-MM-DD
     berat: "",
     tinggi: "",
     lingkar_kepala: "",
-    lila: "",
-    pitting_edema: false,
+    lila: "", // Lingkar Lengan Atas
+    pitting_edema: false, // Boolean di UI
     cara_ukur: "Berdiri",
   });
 
@@ -32,55 +59,29 @@ function EditMeasurementForm() {
     formData.lingkar_kepala !== "" &&
     formData.lila !== "";
 
-  // 1. Ambil Data Lama
-  useEffect(() => {
-    const fetchExistingData = async () => {
-      try {
-        const response = await fetch(`/api/pendataan/${pengukuranId}`);
-        if (!response.ok) throw new Error("Data tidak ditemukan");
-
-        const data = await response.json();
-        setPesertaId(data.peserta_id);
-
-        setFormData({
-          tanggal_ukur: data.tanggal_ukur
-            ? data.tanggal_ukur.split("T")[0]
-            : "",
-          berat: data.berat?.toString() || "",
-          tinggi: data.tinggi?.toString() || "",
-          lingkar_kepala: data.lingkar_kepala?.toString() || "",
-          lila: data.lila?.toString() || "",
-          pitting_edema: data.pitting_edema === "Ya",
-          cara_ukur: data.cara_ukur || "Berdiri",
-        });
-      } catch (error) {
-        console.error("Error:", error);
-        await window.showCustomAlert("Gagal memuat data lama.");
-      } finally {
-        setIsFetching(false);
-      }
-    };
-    fetchExistingData();
-  }, [pengukuranId]);
-
-  // 2. Fungsi Ambil Data dari Sensor
+  // Fungsi untuk mengambil data dari Mock API Sensor
   const handleSimulateSensor = async () => {
     setIsSensorLoading(true);
+
     try {
+      // Menjalankan fetch secara paralel agar lebih cepat
       const [weightRes, heightRes] = await Promise.all([
         fetch("https://mock.fadlanabduh.my.id/api/weight"),
         fetch("https://mock.fadlanabduh.my.id/api/height"),
       ]);
 
-      if (!weightRes.ok || !heightRes.ok)
+      if (!weightRes.ok || !heightRes.ok) {
         throw new Error("Gagal terhubung ke sensor alat ukur.");
+      }
 
       const weightData = await weightRes.json();
       const heightData = await heightRes.json();
 
+      // Ekstraksi nilai (menyesuaikan kemungkinan struktur JSON dari API)
       const hasilBerat = weightData.weight ?? weightData.value ?? weightData;
       const hasilTinggi = heightData.height ?? heightData.value ?? heightData;
 
+      // Update state dengan data dari sensor
       setFormData((prev) => ({
         ...prev,
         berat: Number(hasilBerat).toFixed(1),
@@ -89,21 +90,21 @@ function EditMeasurementForm() {
     } catch (error) {
       console.error("Error membaca sensor:", error);
       await window.showCustomAlert(
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil data dari sensor otomatis.",
+        (error as Error).message ||
+          "Gagal mengambil data dari sensor otomatis.",
       );
     } finally {
       setIsSensorLoading(false);
     }
   };
 
-  // 3. Fungsi Submit Edit (PUT)
+  // Fungsi untuk mengirim data ke backend Hono
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      // Konversi tipe data agar sesuai dengan skema database
       const payload = {
         ...formData,
         berat: formData.berat ? Number(formData.berat) : null,
@@ -115,63 +116,45 @@ function EditMeasurementForm() {
         pitting_edema: formData.pitting_edema ? "Ya" : "Tidak",
       };
 
-      const response = await fetch(`/api/pendataan/${pengukuranId}`, {
-        method: "PUT",
+      const response = await fetch("/api/pendataan", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(
-          errData?.error || "Gagal menyimpan perubahan ke server",
-        );
+        const errData = await response.json();
+        throw new Error(errData.error || "Gagal menyimpan data");
       }
 
-      await window.showCustomAlert("Data pengukuran berhasil diperbarui!");
-
-      if (pesertaId) {
-        navigate({
-          to: "/anggota/info/$id",
-          params: { id: pesertaId },
-        });
-      } else {
-        window.history.back();
-      }
+      await window.showCustomAlert("Data pengukuran berhasil disimpan!");
+      // Arahkan kembali ke halaman info/detail anggota
+      navigate({ to: "/anggota/$id", params: { id } });
     } catch (error) {
       console.error("Error submit data:", error);
       await window.showCustomAlert(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan saat menyimpan data.",
+        (error as Error).message ||
+          "Terjadi kesalahan pada sistem saat menyimpan data.",
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isFetching) {
-    return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#373895] animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans p-4 md:p-8 lg:p-12">
-      <div className="w-full max-w-4xl mx-auto flex flex-col relative">
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-sans md:p-6 lg:p-8 flex items-center justify-center">
+      <div className="w-full max-w-md md:max-w-4xl mx-auto flex flex-col relative md:bg-white md:rounded-[2rem] md:shadow-xl md:overflow-hidden md:min-h-[auto]">
         {/* Header */}
-        <div className="pb-6 flex items-center gap-2 border-b border-slate-200/65 mb-8">
+        <div className="p-4 md:px-8 md:pt-8 md:pb-4 flex items-center md:border-b md:border-slate-100">
           <button
-            className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors"
+            className="p-2 -ml-2 text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors cursor-pointer"
             onClick={() => window.history.back()}
             type="button"
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-bold text-slate-800">
-            Edit Data Pengukuran
+          <h1 className="hidden md:block ml-2 text-lg font-bold text-slate-800">
+            Input Data Pengukuran
           </h1>
         </div>
 
@@ -180,30 +163,32 @@ function EditMeasurementForm() {
             className="md:grid md:grid-cols-2 md:gap-10 lg:gap-14 h-full flex flex-col"
             onSubmit={handleSubmit}
           >
-            {/* ================= KOLOM KIRI ================= */}
+            {/* ================= KOLOM KIRI (Profil & Sensor) ================= */}
             <div className="flex flex-col">
+              {/* Card Profil Anak */}
               <div className="relative bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-slate-100 mb-8 overflow-hidden md:border-slate-200 md:shadow-md">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-orange-300 rounded-r-full" />
-                <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0 ml-1 text-xs">
-                  ID: {pesertaId || "..."}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-indigo-500 rounded-r-full" />
+                <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0 ml-1 text-sm tracking-wider">
+                  {child ? getInitials(child.nama_anak) : `ID: ${id}`}
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-slate-900 text-[16px]">
-                    Data Peserta
+                  <span className="font-bold text-slate-900 text-[16px] line-clamp-1">
+                    {child ? child.nama_anak : "Data Peserta"}
                   </span>
-                  <span className="text-sm text-slate-500 mt-0.5">
-                    Koreksi pengukuran
+                  <span className="text-xs text-slate-400 mt-0.5 font-semibold uppercase tracking-wider">
+                    {child ? `NIK: ${child.nik}` : "Memuat data peserta..."}
                   </span>
                 </div>
               </div>
 
+              {/* Area Sensor */}
               <div className="mb-6 md:mb-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-bold text-slate-500 tracking-wider uppercase">
                     Sensor Otomatis
                   </h3>
                   <span className="text-[10px] font-medium text-slate-400">
-                    Tgl: {formData.tanggal_ukur || "--"}
+                    Tgl: {formData.tanggal_ukur}
                   </span>
                 </div>
 
@@ -230,6 +215,7 @@ function EditMeasurementForm() {
                   </div>
                 </div>
 
+                {/* Tombol Fetch API Sensor */}
                 <button
                   className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
                   disabled={isSensorLoading}
@@ -244,7 +230,11 @@ function EditMeasurementForm() {
                   ) : (
                     <>
                       <Radio className="w-5 h-5" />
-                      <span>Ukur Ulang (Sensor)</span>
+                      <span>
+                        {formData.berat
+                          ? "Ukur Ulang (Sensor)"
+                          : "Ukur BB & TB (Sensor)"}
+                      </span>
                     </>
                   )}
                 </button>
@@ -253,7 +243,7 @@ function EditMeasurementForm() {
 
             <hr className="border-slate-200 my-6 md:hidden" />
 
-            {/* ================= KOLOM KANAN ================= */}
+            {/* ================= KOLOM KANAN (Input Manual) ================= */}
             <div className="flex flex-col space-y-4 h-full flex-1">
               <div className="flex-1">
                 <h3 className="hidden md:block text-xs font-bold text-slate-500 tracking-wider mb-4 uppercase">
@@ -270,7 +260,6 @@ function EditMeasurementForm() {
                     </label>
                     <input
                       className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
-                      id="lingkar_kepala"
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -293,7 +282,6 @@ function EditMeasurementForm() {
                     </label>
                     <input
                       className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
-                      id="lila"
                       onChange={(e) =>
                         setFormData({ ...formData, lila: e.target.value })
                       }
@@ -315,7 +303,6 @@ function EditMeasurementForm() {
                   </label>
                   <select
                     className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none cursor-pointer"
-                    id="cara_ukur"
                     onChange={(e) =>
                       setFormData({ ...formData, cara_ukur: e.target.value })
                     }
@@ -348,10 +335,11 @@ function EditMeasurementForm() {
                 </div>
               </div>
 
+              {/* Tombol Submit Hono */}
               <div className="mt-10 md:mt-auto pt-4 md:pt-8">
-                {/* Tombol Simpan */}
                 <button
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#1E1B4B] text-white font-semibold hover:bg-indigo-900 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-full bg-[#373895] text-white font-semibold hover:bg-indigo-800 transition-colors shadow-md disabled:bg-slate-400 disabled:cursor-not-allowed"
+                  // GANTI BARIS INI: Disable jika sedang loading ATAU form belum komplit
                   disabled={isLoading || !isFormComplete}
                   type="submit"
                 >
@@ -360,8 +348,9 @@ function EditMeasurementForm() {
                       <Loader2 className="w-5 h-5 animate-spin" />
                       Menyimpan Data...
                     </>
-                  ) : isFormComplete ? (
-                    "Simpan Perubahan"
+                  ) : // Opsional: Ubah teks tombol jika belum komplit agar user paham
+                  isFormComplete ? (
+                    "Simpan Data Pengukuran"
                   ) : (
                     "Lengkapi Data Dahulu"
                   )}

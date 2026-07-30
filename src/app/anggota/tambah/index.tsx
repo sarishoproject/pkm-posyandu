@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
@@ -74,12 +74,13 @@ function AddMemberForm() {
   return (
     <div className="w-full max-w-md mx-auto flex flex-col flex-1 pb-10 px-4">
       <div className="p-4 md:px-8 md:pt-8 flex items-center gap-3">
-        <Link
-          className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
-          to="/anggota"
+        <button
+          className="p-1 -ml-1 text-slate-700 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+          onClick={() => window.history.back()}
+          type="button"
         >
           <X className="w-6 h-6" />
-        </Link>
+        </button>
         <h1 className="text-[17px] font-medium text-slate-800">
           Tambah Anggota Baru
         </h1>
