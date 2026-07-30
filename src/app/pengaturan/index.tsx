@@ -35,6 +35,19 @@ interface Peserta {
 function AkunPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showAllQr, setShowAllQr] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Peserta | null>(null);
+
+  const downloadSingleQR = (member: Peserta) => {
+    const canvas = document.getElementById(`modal-qr-canvas-${member.id}`) as HTMLCanvasElement;
+    if (!canvas) return;
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qrcode_${member.nama_anak.replace(/\s+/g, "_").toLowerCase()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   useEffect(() => {
     document.title = "Pengaturan | Posyandu";
@@ -210,7 +223,8 @@ function AkunPage() {
           {members.map((member) => (
             <div
               key={member.id}
-              className="flex flex-col items-center text-center p-2 break-inside-avoid"
+              className="flex flex-col items-center text-center p-2 break-inside-avoid cursor-pointer hover:opacity-80 transition-all select-none"
+              onClick={() => setSelectedMember(member)}
             >
               {member.qr_code ? (
                 <div className="bg-white p-2 rounded-xl flex items-center justify-center">
@@ -235,6 +249,65 @@ function AkunPage() {
             </div>
           ))}
         </div>
+
+        {/* Detail QR Code Modal */}
+        {selectedMember && (
+          <div className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] p-6 max-w-xs w-full shadow-2xl border border-slate-100/50 flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200 relative">
+              <button
+                className="absolute right-4 top-4 p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                onClick={() => setSelectedMember(null)}
+                type="button"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-1 mt-2">
+                <h3 className="font-extrabold text-slate-800 text-sm leading-tight line-clamp-2 px-2">
+                  {selectedMember.nama_anak}
+                </h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                  NIK: {selectedMember.nik || "-"}
+                </p>
+              </div>
+
+              {selectedMember.qr_code ? (
+                <div className="bg-white p-3 rounded-2xl border border-slate-100/60 flex items-center justify-center shadow-inner">
+                  <QRCodeCanvas
+                    id={`modal-qr-canvas-${selectedMember.id}`}
+                    value={`http://${window.location.host}/anggota/${selectedMember.qr_code}/pengukuran/tambah`}
+                    size={160}
+                    level="H"
+                  />
+                </div>
+              ) : (
+                <div className="w-[160px] h-[160px] bg-slate-100 flex items-center justify-center rounded-2xl text-xs text-slate-400 font-semibold">
+                  Belum ada QR
+                </div>
+              )}
+
+              <div className="flex w-full gap-3 pt-1">
+                <button
+                  className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-650 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  onClick={() => setSelectedMember(null)}
+                  type="button"
+                >
+                  Tutup
+                </button>
+                {selectedMember.qr_code && (
+                  <button
+                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center gap-1.5"
+                    onClick={() => downloadSingleQR(selectedMember)}
+                    type="button"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Unduh
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
