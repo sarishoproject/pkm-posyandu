@@ -252,8 +252,14 @@ function AkunPage() {
 
         {/* Detail QR Code Modal */}
         {selectedMember && (
-          <div className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] p-6 max-w-xs w-full shadow-2xl border border-slate-100/50 flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200 relative">
+          <div
+            className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            onClick={() => setSelectedMember(null)}
+          >
+            <div
+              className="bg-white rounded-[2rem] p-6 max-w-xs w-full shadow-2xl border border-slate-100/50 flex flex-col items-center text-center space-y-5 animate-in zoom-in-95 duration-200 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
                 className="absolute right-4 top-4 p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                 onClick={() => setSelectedMember(null)}
@@ -286,22 +292,15 @@ function AkunPage() {
                 </div>
               )}
 
-              <div className="flex w-full gap-3 pt-1">
-                <button
-                  className="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-650 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                  onClick={() => setSelectedMember(null)}
-                  type="button"
-                >
-                  Tutup
-                </button>
+              <div className="w-full pt-1">
                 {selectedMember.qr_code && (
                   <button
-                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center gap-1.5"
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center gap-1.5"
                     onClick={() => downloadSingleQR(selectedMember)}
                     type="button"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    Unduh
+                    Unduh PNG
                   </button>
                 )}
               </div>
