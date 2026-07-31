@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.16.2] - 2026-07-31
+- ⚙️ Updated CI build targets to use 'baseline' suffixes for Bun windows and linux artifacts.
+- 🛠️ Adjusted conditional logic in workflow scripts to match updated target identifiers for consistent binary renaming.
+
 ## [2.16.1] - 2026-07-31
 - ⚙️ Remove macOS target configurations from GitHub Actions workflow to optimize CI pipeline runtime
 - 📝 Update README to provide instructions for manual macOS binary compilation

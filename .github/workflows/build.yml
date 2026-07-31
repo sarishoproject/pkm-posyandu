@@ -16,11 +16,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            target: bun-windows-x64
+            target: bun-windows-x64-baseline
             artifact_name: pkm-posyandu-windows-x64
             archive_ext: zip
           - os: ubuntu-latest
-            target: bun-linux-x64
+            target: bun-linux-x64-baseline
             artifact_name: pkm-posyandu-linux-x64
             archive_ext: tar.gz
           - os: ubuntu-latest
@@ -47,18 +47,18 @@ jobs:
           BUN_DOWNLOAD_TIMEOUT: "600"
 
       - name: Set executable permission (Unix only)
-        if: matrix.target != 'bun-windows-x64'
+        if: matrix.target != 'bun-windows-x64-baseline'
         run: |
           chmod +x build/pkm-posyandu-${{ matrix.target }}
           ls -la build/
 
       - name: Rename binary (Windows)
-        if: matrix.target == 'bun-windows-x64'
-        run: mv build/pkm-posyandu-bun-windows-x64.exe build/pkm-posyandu.exe
+        if: matrix.target == 'bun-windows-x64-baseline'
+        run: mv build/pkm-posyandu-bun-windows-x64-baseline.exe build/pkm-posyandu.exe
         shell: bash
 
       - name: Rename binary (Unix)
-        if: matrix.target != 'bun-windows-x64'
+        if: matrix.target != 'bun-windows-x64-baseline'
         run: mv build/pkm-posyandu-${{ matrix.target }} build/pkm-posyandu
         shell: bash
 
