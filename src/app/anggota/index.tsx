@@ -43,7 +43,6 @@ function MobileView() {
       return "semua";
     },
   );
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -54,14 +53,6 @@ function MobileView() {
       setActiveFilter("semua");
     }
   }, [location.search]);
-  useEffect(() => {
-    const checkAuth = () => {
-      setIsAdmin(localStorage.getItem("isLoggedIn") === "true");
-    };
-    checkAuth();
-    window.addEventListener("auth-change", checkAuth);
-    return () => window.removeEventListener("auth-change", checkAuth);
-  }, []);
 
   useEffect(() => {
     const fetchPeserta = async () => {
@@ -230,22 +221,20 @@ function MobileView() {
                 </div>
               </div>
 
-              {isAdmin && (
-                <button
-                  className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate({
-                      to: "/anggota/$id/pengukuran/tambah",
-                      params: { id: String(child.id) },
-                    });
-                  }}
-                  type="button"
-                >
-                  <Ruler className="w-5 h-5" />
-                </button>
-              )}
+              <button
+                className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate({
+                    to: "/anggota/$id/pengukuran/tambah",
+                    params: { id: String(child.id) },
+                  });
+                }}
+                type="button"
+              >
+                <Ruler className="w-5 h-5" />
+              </button>
             </Link>
           ))
         ) : (

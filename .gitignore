@@ -32,3 +32,5 @@ build/
 .tanstack/
 .commit-auth.json
 *.xlsx
+
+*.bun-build

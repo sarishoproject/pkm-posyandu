@@ -270,22 +270,25 @@ async function startServer() {
   const keyPath = path.join(exeDir, "key.pem");
   let hasCert = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
+  const isWin = process.platform === "win32";
+  const mkcertName = isWin ? "mkcert.exe" : "mkcert";
+
   // Jika sertifikat belum ada dan kita berjalan sebagai binary kompilasi, coba ekstrak & jalankan mkcert
   if (!hasCert && _embedded) {
-    const mkcertAsset = _embedded["mkcert.exe"];
+    const mkcertAsset = _embedded[mkcertName];
     if (mkcertAsset) {
       console.log(
         C.yellow(
-          "\n[SSL] Sertifikat SSL tidak ditemukan. Memulai setup otomatis...",
+          `\n[SSL] Sertifikat SSL tidak ditemukan. Memulai setup otomatis...`,
         ),
       );
-      const mkcertPath = path.join(exeDir, "mkcert.exe");
+      const mkcertPath = path.join(exeDir, mkcertName);
 
       try {
         if (!fs.existsSync(mkcertPath)) {
-          console.log(C.cyan("  [1/3] Mengekstrak mkcert.exe bawaan..."));
+          console.log(C.cyan(`  [1/3] Mengekstrak ${mkcertName} bawaan...`));
           await Bun.write(mkcertPath, Bun.file(mkcertAsset.content));
-          if (process.platform !== "win32") {
+          if (!isWin) {
             fs.chmodSync(mkcertPath, 0o755);
           }
         }

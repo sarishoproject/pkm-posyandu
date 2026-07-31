@@ -9,27 +9,66 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
+import { homedir } from "node:os";
 import { join, relative, sep } from "node:path";
+import { stdin as input, stdout as output } from "node:process";
+import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
 import { $ } from "bun";
+
+const getHostTarget = () => {
+  const platform = process.platform;
+  const arch = process.arch;
+  const platMap: Record<string, string> = {
+    win32: "windows",
+    darwin: "darwin",
+    linux: "linux",
+  };
+  const plat = platMap[platform] || "linux";
+  return `bun-${plat}-${arch}`;
+};
 
 const { values } = parseArgs({
   args: Bun.argv,
   options: {
     target: {
       type: "string",
-      default: "bun-linux-arm64",
     },
   },
   strict: true,
   allowPositionals: true,
 });
 
-const target = values.target;
+let target = values.target;
 
 if (!target) {
-  console.error("❌ Target kompilasi tidak boleh kosong.");
-  process.exit(1);
+  console.log("📋 Pilih target platform compile:");
+  console.log("1) Windows (bun-windows-x64)");
+  console.log("2) Linux (bun-linux-x64)");
+  console.log("3) Linux ARM64 (bun-linux-arm64)");
+  console.log("4) macOS (bun-darwin-x64)");
+  console.log("5) macOS ARM64 (bun-darwin-arm64)");
+  console.log(`6) Gunakan default host (${getHostTarget()})`);
+
+  const rl = createInterface({ input, output });
+  const answer = (
+    await rl.question("\nMasukkan pilihan (1-6) [Default: 6]: ")
+  ).trim();
+  rl.close();
+
+  if (answer === "1") {
+    target = "bun-windows-x64";
+  } else if (answer === "2") {
+    target = "bun-linux-x64";
+  } else if (answer === "3") {
+    target = "bun-linux-arm64";
+  } else if (answer === "4") {
+    target = "bun-darwin-x64";
+  } else if (answer === "5") {
+    target = "bun-darwin-arm64";
+  } else {
+    target = getHostTarget();
+  }
 }
 
 const cwd = process.cwd();
@@ -56,11 +95,30 @@ try {
 
 // ─── Step 3: Generate Embedded Assets ───────────────────────────────
 console.log("📝 [3/5] Generating embedded assets...");
-const mkcertSrc = join(cwd, "build/mkcert.exe");
-const mkcertDest = join(cwd, "dist/client/mkcert.exe");
-if (existsSync(mkcertSrc)) {
+const isWindows = target.includes("windows");
+const mkcertName = isWindows ? "mkcert.exe" : "mkcert";
+
+// Cari di cache global atau di folder build
+const globalCachePath = join(homedir(), ".vite-plugin-mkcert", mkcertName);
+const localBuildPath = join(cwd, "build", mkcertName);
+
+let mkcertSrc = "";
+if (existsSync(globalCachePath)) {
+  mkcertSrc = globalCachePath;
+} else if (existsSync(localBuildPath)) {
+  mkcertSrc = localBuildPath;
+}
+
+const mkcertDest = join(cwd, "dist/client", mkcertName);
+if (mkcertSrc) {
   copyFileSync(mkcertSrc, mkcertDest);
-  console.log("   📎 mkcert.exe copied to dist/client/ to embed in binary");
+  console.log(
+    `   📎 ${mkcertName} copied from ${mkcertSrc === globalCachePath ? "global cache" : "build folder"} to embed in binary`,
+  );
+} else {
+  console.log(
+    `   ⚠️  ${mkcertName} tidak ditemukan di global cache maupun build/ folder. Binary akan di-compile TANPA mkcert.`,
+  );
 }
 generateEmbeds(join(cwd, "dist/client"), join(cwd, "dist/_embeds.ts"));
 

@@ -61,7 +61,6 @@ function MemberDetailView() {
     null,
   );
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -75,15 +74,6 @@ function MemberDetailView() {
     };
     window.addEventListener("scroll", handleScroll, true);
     return () => window.removeEventListener("scroll", handleScroll, true);
-  }, []);
-
-  useEffect(() => {
-    const checkAuth = () => {
-      setIsAdmin(localStorage.getItem("isLoggedIn") === "true");
-    };
-    checkAuth();
-    window.addEventListener("auth-change", checkAuth);
-    return () => window.removeEventListener("auth-change", checkAuth);
   }, []);
 
   useEffect(() => {
@@ -317,26 +307,24 @@ function MemberDetailView() {
               </div>
             </div>
 
-            {isAdmin && (
-              <div className="grid grid-cols-3 gap-2 w-full mb-8">
-                <Link
-                  className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm text-center"
-                  params={{ id }}
-                  to="/anggota/barcode/$id"
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  QR
-                </Link>
-                <Link
-                  className="flex items-center justify-center gap-1.5 text-indigo-855 bg-indigo-50/60 border border-indigo-100/70 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-indigo-100/60 text-center"
-                  params={{ id }}
-                  to="/anggota/$id/edit"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                  Edit
-                </Link>
-              </div>
-            )}
+            <div className="grid grid-cols-2 gap-2 w-full mb-8">
+              <Link
+                className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm text-center"
+                params={{ id }}
+                to="/anggota/barcode/$id"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                QR
+              </Link>
+              <Link
+                className="flex items-center justify-center gap-1.5 text-indigo-855 bg-indigo-50/60 border border-indigo-100/70 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-indigo-100/60 text-center"
+                params={{ id }}
+                to="/anggota/$id/edit"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </Link>
+            </div>
 
             <div className="mb-8">
               <div className="mb-4">
@@ -567,16 +555,14 @@ function MemberDetailView() {
               <h3 className="font-semibold text-slate-800 text-[15px]">
                 Riwayat Pengukuran
               </h3>
-              {isAdmin && (
-                <Link
-                  className="hidden md:flex items-center gap-1 bg-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-700 transition-colors"
-                  params={{ id }}
-                  to="/anggota/$id/pengukuran/tambah"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah
-                </Link>
-              )}
+              <Link
+                className="hidden md:flex items-center gap-1 bg-indigo-600 text-white px-3 py-1.5 rounded-full text-xs font-medium hover:bg-indigo-700 transition-colors"
+                params={{ id }}
+                to="/anggota/$id/pengukuran/tambah"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah
+              </Link>
             </div>
 
             <div className="space-y-4">
@@ -762,63 +748,49 @@ function MemberDetailView() {
               </div>
             </div>
 
-            {isAdmin ? (
-              <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
-                <button
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-650 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed border border-red-100"
-                  disabled={isDeleting}
-                  onClick={() => handleDeleteHistory(selectedHistory.id)}
-                  type="button"
-                >
-                  {isDeleting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-4 h-4" />
-                  )}
-                  {isDeleting ? "Hapus..." : "Hapus"}
-                </button>
+            <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3">
+              <button
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-650 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed border border-red-100"
+                disabled={isDeleting}
+                onClick={() => handleDeleteHistory(selectedHistory.id)}
+                type="button"
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                {isDeleting ? "Hapus..." : "Hapus"}
+              </button>
 
-                <Link
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-750 hover:bg-indigo-100 border border-indigo-100 rounded-xl text-sm font-bold transition-colors"
-                  params={{
-                    id,
-                    pengukuranId: String(selectedHistory.id),
-                  }}
-                  to="/anggota/$id/pengukuran/$pengukuranId"
-                >
-                  <Pencil className="w-4 h-4" />
-                  Edit
-                </Link>
-              </div>
-            ) : (
-              <div className="p-5 bg-slate-50 border-t border-slate-100">
-                <button
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
-                  onClick={() => setSelectedHistory(null)}
-                  type="button"
-                >
-                  Tutup
-                </button>
-              </div>
-            )}
+              <Link
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-750 hover:bg-indigo-100 border border-indigo-100 rounded-xl text-sm font-bold transition-colors"
+                params={{
+                  id,
+                  pengukuranId: String(selectedHistory.id),
+                }}
+                to="/anggota/$id/pengukuran/$pengukuranId"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit
+              </Link>
+            </div>
           </div>
         </div>
       )}
 
-      {isAdmin && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-30 md:hidden no-print">
-          <button
-            className="w-full py-3.5 bg-[#1E1B4B] hover:bg-indigo-900 text-white rounded-2xl font-bold text-xs shadow-[0_8px_24px_rgba(30,27,75,0.25)] flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-[0.98]"
-            onClick={() =>
-              navigate({ to: "/anggota/$id/pengukuran/tambah", params: { id } })
-            }
-            type="button"
-          >
-            <Plus className="w-4 h-4" />
-            Tambah Pengukuran Baru
-          </button>
-        </div>
-      )}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-30 md:hidden no-print">
+        <button
+          className="w-full py-3.5 bg-[#1E1B4B] hover:bg-indigo-900 text-white rounded-2xl font-bold text-xs shadow-[0_8px_24px_rgba(30,27,75,0.25)] flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-[0.98]"
+          onClick={() =>
+            navigate({ to: "/anggota/$id/pengukuran/tambah", params: { id } })
+          }
+          type="button"
+        >
+          <Plus className="w-4 h-4" />
+          Tambah Pengukuran Baru
+        </button>
+      </div>
     </div>
   );
 }

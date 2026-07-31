@@ -351,7 +351,6 @@ function DashboardHome() {
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeMetric, setActiveMetric] = useState<"berat" | "tinggi">("berat");
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     document.title = "Beranda | Posyandu";
@@ -369,16 +368,6 @@ function DashboardHome() {
   })();
 
   const isNextDisabled = currentMonth >= maxMonth;
-
-  useEffect(() => {
-    const checkAuth = () => {
-      setIsAdmin(localStorage.getItem("isLoggedIn") === "true");
-    };
-    checkAuth();
-    window.addEventListener("auth-change", checkAuth);
-    return () => window.removeEventListener("auth-change", checkAuth);
-  }, []);
-
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -492,16 +481,14 @@ function DashboardHome() {
               Ringkasan data posyandu
             </p>
           </div>
-          {isAdmin && (
-            <button
-              className="flex items-center justify-start text-left gap-2 pl-3.5 pr-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-700 rounded-xl text-xs font-black shadow-sm transition-all hover:shadow-md cursor-pointer"
-              onClick={handleExport}
-              type="button"
-            >
-              <Download className="w-4 h-4 shrink-0" />
-              <span className="text-left leading-tight">Ekspor Data</span>
-            </button>
-          )}
+          <button
+            className="flex items-center justify-start text-left gap-2 pl-3.5 pr-4 py-2.5 bg-white hover:bg-slate-50 text-indigo-700 rounded-xl text-xs font-black shadow-sm transition-all hover:shadow-md cursor-pointer"
+            onClick={handleExport}
+            type="button"
+          >
+            <Download className="w-4 h-4 shrink-0" />
+            <span className="text-left leading-tight">Ekspor Data</span>
+          </button>
         </div>
 
         {/* Stats Grid inside Hero (Simplified - Flat) */}

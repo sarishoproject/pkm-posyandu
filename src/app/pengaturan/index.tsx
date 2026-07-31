@@ -4,17 +4,12 @@ import {
   ArrowLeft,
   BookOpen,
   Download,
-  Eye,
-  EyeOff,
   HelpCircle,
-  Key,
   Loader2,
-  LogIn,
-  LogOut,
   Printer,
   QrCode,
+  Settings,
   Trash2,
-  User,
   UserPlus,
   X,
 } from "lucide-react";
@@ -33,7 +28,6 @@ interface Peserta {
 }
 
 function AkunPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showAllQr, setShowAllQr] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Peserta | null>(null);
 
@@ -55,11 +49,6 @@ function AkunPage() {
     document.title = "Pengaturan | Posyandu";
   }, []);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState("");
-
   // Manage Members State
   const [members, setMembers] = useState<Peserta[]>([]);
   const [deleteInputName, setDeleteInputName] = useState("");
@@ -67,50 +56,21 @@ function AkunPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Fetch members to check name availability
   useEffect(() => {
-    localStorage.setItem("isLoggedIn", "true");
-    setIsLoggedIn(true);
-    window.dispatchEvent(new Event("auth-change"));
-  }, []);
-
-  // Fetch members to check name availability when logged in
-  useEffect(() => {
-    if (isLoggedIn) {
-      const fetchMembers = async () => {
-        try {
-          const res = await fetch("/api/peserta");
-          if (res.ok) {
-            const data = await res.json();
-            setMembers(data);
-          }
-        } catch (err) {
-          console.error("Gagal mengambil daftar anggota:", err);
+    const fetchMembers = async () => {
+      try {
+        const res = await fetch("/api/peserta");
+        if (res.ok) {
+          const data = await res.json();
+          setMembers(data);
         }
-      };
-      fetchMembers();
-    }
-  }, [isLoggedIn]);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username === "admin" && password === "Admin#1234") {
-      localStorage.setItem("isLoggedIn", "true");
-      setIsLoggedIn(true);
-      setLoginError("");
-      window.dispatchEvent(new Event("auth-change"));
-    } else {
-      setLoginError("Username atau password salah!");
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
-    setUsername("");
-    setPassword("");
-    setShowPassword(false);
-    window.dispatchEvent(new Event("auth-change"));
-  };
+      } catch (err) {
+        console.error("Gagal mengambil daftar anggota:", err);
+      }
+    };
+    fetchMembers();
+  }, []);
 
   const handleExport = () => {
     window.open("/api/export", "_blank");
@@ -318,65 +278,142 @@ function AkunPage() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-start p-6 max-w-md mx-auto w-full min-h-[85vh] space-y-6 pb-24">
-      {isLoggedIn ? (
-        /* ================= ADMIN VIEW ================= */
-        <div className="w-full space-y-6">
-          {/* Profile Header */}
-          <div className="w-full text-center space-y-4 py-4">
-            <div className="w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-inner">
-              <User className="w-8 h-8" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">
-                Admin Posyandu
-              </h2>
-              <div className="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
-                Administrator
+      <div className="w-full space-y-6">
+        {/* Profile Header */}
+        <div className="w-full text-center space-y-4 py-4">
+          <div className="w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-inner">
+            <Settings className="w-8 h-8" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">
+              Pengaturan Posyandu
+            </h2>
+            <p className="text-xs text-slate-400 mt-1 font-medium">
+              Konfigurasi & manajemen data aplikasi
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Actions (Export Only) */}
+        <div className="w-full space-y-4 pt-2">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Aksi Cepat
+          </h3>
+
+          {/* Export Data Button */}
+          <button
+            className="w-full flex items-center justify-between py-1 hover:opacity-80 transition-all text-left cursor-pointer"
+            onClick={handleExport}
+            type="button"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
+                <Download className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-800">
+                  Ekspor Laporan Excel
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  Download data rekap posyandu
+                </span>
               </div>
             </div>
-          </div>
+            <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+              Unduh
+            </span>
+          </button>
 
-          {/* Quick Actions (Export Only) */}
-          <div className="w-full space-y-4 pt-2">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Aksi Cepat
-            </h3>
+          <hr className="border-slate-100/60 mt-2" />
 
-            {/* Export Data Button */}
-            <button
-              className="w-full flex items-center justify-between py-1 hover:opacity-80 transition-all text-left cursor-pointer"
-              onClick={handleExport}
-              type="button"
+          {/* Bersihkan Riwayat Pencarian */}
+          <button
+            className="w-full flex items-center justify-between py-1.5 hover:opacity-80 transition-all text-left cursor-pointer"
+            onClick={async () => {
+              localStorage.removeItem("recent_searches");
+              await window.showCustomAlert(
+                "Riwayat pencarian telah dibersihkan!",
+              );
+            }}
+            type="button"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
+                <Trash2 className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-800">
+                  Bersihkan Riwayat Cari
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  Hapus riwayat pencarian anggota di HP ini
+                </span>
+              </div>
+            </div>
+            <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+              Hapus
+            </span>
+          </button>
+        </div>
+
+        {/* Keanggotaan Section */}
+        <div className="w-full space-y-4 pt-4">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Keanggotaan
+          </h3>
+
+          <div className="space-y-3">
+            {/* Tambah Anggota Button */}
+            <Link
+              className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
+              to="/anggota/tambah"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
-                  <Download className="w-4 h-4" />
+                  <UserPlus className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-slate-800">
-                    Ekspor Laporan Excel
+                    Tambah Anggota Baru
                   </span>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    Download data rekap posyandu
+                    Registrasi anak/balita baru
                   </span>
                 </div>
               </div>
               <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                Unduh
+                Buka
+              </span>
+            </Link>
+
+            {/* Tampilkan Semua Kode QR Button */}
+            <button
+              className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
+              onClick={() => setShowAllQr(true)}
+              type="button"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
+                  <QrCode className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-800">
+                    Tampilkan Semua Kode QR
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Lihat dan cetak kartu QR Code semua anggota
+                  </span>
+                </div>
+              </div>
+              <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                Lihat
               </span>
             </button>
 
-            <hr className="border-slate-100/60 mt-2" />
-
-            {/* Bersihkan Riwayat Pencarian */}
+            {/* Hapus Anggota Button */}
             <button
-              className="w-full flex items-center justify-between py-1.5 hover:opacity-80 transition-all text-left cursor-pointer"
-              onClick={async () => {
-                localStorage.removeItem("recent_searches");
-                await window.showCustomAlert(
-                  "Riwayat pencarian telah dibersihkan!",
-                );
-              }}
+              className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
+              onClick={() => setIsDeleteModalOpen(true)}
               type="button"
             >
               <div className="flex items-center gap-2.5">
@@ -385,371 +422,174 @@ function AkunPage() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-slate-800">
-                    Bersihkan Riwayat Cari
+                    Hapus Anggota
                   </span>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    Hapus riwayat pencarian anggota di HP ini
+                    Hapus permanen data anggota & riwayat
+                  </span>
+                </div>
+              </div>
+              <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                Buka
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bantuan Section */}
+        <div className="w-full space-y-4 pt-4">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Bantuan
+          </h3>
+
+          <div className="space-y-3">
+            {/* Tutorial Penggunaan */}
+            <button
+              className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
+              onClick={async () => {
+                await window.showCustomAlert(
+                  "Fitur Tutorial Penggunaan akan segera hadir!",
+                );
+              }}
+              type="button"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-800">
+                    Tutorial Penggunaan
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Panduan cara input & kelola data posyandu
                   </span>
                 </div>
               </div>
               <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                Hapus
+                Baca
+              </span>
+            </button>
+
+            {/* Bantuan & Dukungan */}
+            <button
+              className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
+              onClick={async () => {
+                await window.showCustomAlert(
+                  "Layanan Bantuan & Dukungan hubungi admin IT posyandu.",
+                );
+              }}
+              type="button"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-800">
+                    Bantuan & Dukungan
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Hubungi tim support jika terjadi error
+                  </span>
+                </div>
+              </div>
+              <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
+                Tanya
               </span>
             </button>
           </div>
-
-          {/* Keanggotaan Section */}
-          <div className="w-full space-y-4 pt-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Keanggotaan
-            </h3>
-
-            <div className="space-y-3">
-              {/* Tambah Anggota Button */}
-              <Link
-                className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
-                to="/anggota/tambah"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
-                    <UserPlus className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800">
-                      Tambah Anggota Baru
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      Registrasi anak/balita baru
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                  Buka
-                </span>
-              </Link>
-
-              {/* Tampilkan Semua Kode QR Button */}
-              <button
-                className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
-                onClick={() => setShowAllQr(true)}
-                type="button"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
-                    <QrCode className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800">
-                      Tampilkan Semua Kode QR
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      Lihat dan cetak kartu QR Code semua anggota
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                  Lihat
-                </span>
-              </button>
-
-              {/* Hapus Anggota Button */}
-              <button
-                className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
-                onClick={() => setIsDeleteModalOpen(true)}
-                type="button"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
-                    <Trash2 className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800">
-                      Hapus Anggota
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      Hapus permanen data anggota & riwayat
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                  Buka
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Bantuan Section */}
-          <div className="w-full space-y-4 pt-4">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Bantuan
-            </h3>
-
-            <div className="space-y-3">
-              {/* Tutorial Penggunaan */}
-              <button
-                className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
-                onClick={async () => {
-                  await window.showCustomAlert(
-                    "Fitur Tutorial Penggunaan akan segera hadir!",
-                  );
-                }}
-                type="button"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800">
-                      Tutorial Penggunaan
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      Panduan cara input & kelola data posyandu
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                  Baca
-                </span>
-              </button>
-
-              {/* Bantuan & Dukungan */}
-              <button
-                className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
-                onClick={async () => {
-                  await window.showCustomAlert(
-                    "Layanan Bantuan & Dukungan hubungi admin IT posyandu.",
-                  );
-                }}
-                type="button"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-600 flex items-center justify-center">
-                    <HelpCircle className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800">
-                      Bantuan & Dukungan
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      Hubungi tim support jika terjadi error
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                  Tanya
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Zona Berbahaya Section */}
-          <div className="w-full space-y-4 pt-4">
-            <h3 className="text-xs font-bold text-red-500 uppercase tracking-wider">
-              Zona Berbahaya
-            </h3>
-
-            <div className="space-y-3">
-              {/* Logout Button */}
-              <button
-                className="w-full flex items-center justify-between py-2 hover:opacity-80 transition-all text-left cursor-pointer"
-                onClick={handleLogout}
-                type="button"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-red-50 text-red-650 flex items-center justify-center">
-                    <LogOut className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-800">
-                      Keluar Akun
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      Keluar dari sesi administrator
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">
-                  Keluar
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* MODAL HAPUS ANGGOTA */}
-          {isDeleteModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-              {/* Backdrop click to close */}
-              <button
-                aria-label="Tutup modal"
-                className="absolute inset-0 z-10 cursor-default"
-                onClick={() => {
-                  setIsDeleteModalOpen(false);
-                  setDeleteInputName("");
-                  setDeleteError("");
-                }}
-                type="button"
-              />
-
-              <div className="relative z-20 bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                {/* Header Modal */}
-                <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                  <h3 className="font-bold text-slate-800 text-[15px]">
-                    Hapus Anggota
-                  </h3>
-                  <button
-                    className="p-1 hover:bg-slate-200 rounded-full transition-colors text-slate-500"
-                    onClick={() => {
-                      setIsDeleteModalOpen(false);
-                      setDeleteInputName("");
-                      setDeleteError("");
-                    }}
-                    type="button"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Konten Modal */}
-                <div className="p-6 space-y-4">
-                  <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                    Untuk mencegah ketidaksengajaan, silakan ketik **Nama
-                    Lengkap Anak** secara tepat dan sesuai ejaan.
-                  </p>
-
-                  {deleteError && (
-                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-650 rounded-xl text-xs font-semibold">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>{deleteError}</span>
-                    </div>
-                  )}
-
-                  <form className="space-y-4" onSubmit={handleDeleteByName}>
-                    <input
-                      className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 bg-white text-xs text-slate-800"
-                      onChange={(e) => setDeleteInputName(e.target.value)}
-                      placeholder="Ketik Nama Lengkap Anak..."
-                      required
-                      type="text"
-                      value={deleteInputName}
-                    />
-
-                    <div className="flex gap-3 pt-2">
-                      <button
-                        className="flex-1 py-3 bg-slate-150 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors border border-slate-200"
-                        onClick={() => {
-                          setIsDeleteModalOpen(false);
-                          setDeleteInputName("");
-                          setDeleteError("");
-                        }}
-                        type="button"
-                      >
-                        Batal
-                      </button>
-                      <button
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold transition-all shadow-sm cursor-pointer text-xs"
-                        disabled={isDeleting || !deleteInputName.trim()}
-                        type="submit"
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-3.5 h-3.5" />
-                        )}
-                        Hapus
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-      ) : (
-        /* ================= LOGIN FORM VIEW ================= */
-        <div className="w-full space-y-6 py-4">
-          <div className="text-center space-y-1.5">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-2">
-              <Key className="w-6 h-6" />
-            </div>
-            <h2 className="text-xl font-black text-slate-800">Masuk Admin</h2>
-            <p className="text-xs text-slate-400">
-              Silakan login untuk mengelola posyandu
-            </p>
-          </div>
 
-          {loginError && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl text-xs font-semibold">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{loginError}</span>
-            </div>
-          )}
+        {/* MODAL HAPUS ANGGOTA */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            {/* Backdrop click to close */}
+            <button
+              aria-label="Tutup modal"
+              className="absolute inset-0 z-10 cursor-default"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setDeleteInputName("");
+                setDeleteError("");
+              }}
+              type="button"
+            />
 
-          <form className="space-y-4" onSubmit={handleLogin}>
-            <div className="space-y-1.5">
-              <label
-                className="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                htmlFor="username"
-              >
-                Username
-              </label>
-              <input
-                className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm text-slate-800"
-                id="username"
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Masukkan username"
-                required
-                type="text"
-                value={username}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label
-                className="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                htmlFor="password"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  className="w-full p-3.5 pr-10 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white text-sm text-slate-800"
-                  id="password"
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Masukkan password"
-                  required
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                />
+            <div className="relative z-20 bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              {/* Header Modal */}
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 className="font-bold text-slate-800 text-[15px]">
+                  Hapus Anggota
+                </h3>
                 <button
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 cursor-pointer"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="p-1 hover:bg-slate-200 rounded-full transition-colors text-slate-500"
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setDeleteInputName("");
+                    setDeleteError("");
+                  }}
                   type="button"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-            </div>
 
-            <div className="text-[10.5px] text-slate-500 bg-slate-50 border border-slate-100/80 p-3 rounded-xl leading-relaxed italic">
-              Username dan password belum diperbarui oleh Komdigi sejak 20 Juni
-              2024
-            </div>
+              {/* Konten Modal */}
+              <div className="p-6 space-y-4">
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  Untuk mencegah ketidaksengajaan, silakan ketik **Nama Lengkap
+                  Anak** secara tepat dan sesuai ejaan.
+                </p>
 
-            <button
-              className="w-full flex items-center justify-center gap-2 py-3.5 mt-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-sm cursor-pointer text-sm"
-              type="submit"
-            >
-              <LogIn className="w-4 h-4" />
-              Masuk
-            </button>
-          </form>
-        </div>
-      )}
+                {deleteError && (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 text-red-650 rounded-xl text-xs font-semibold">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{deleteError}</span>
+                  </div>
+                )}
+
+                <form className="space-y-4" onSubmit={handleDeleteByName}>
+                  <input
+                    className="w-full p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 bg-white text-xs text-slate-800"
+                    onChange={(e) => setDeleteInputName(e.target.value)}
+                    placeholder="Ketik Nama Lengkap Anak..."
+                    required
+                    type="text"
+                    value={deleteInputName}
+                  />
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      className="flex-1 py-3 bg-slate-150 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors border border-slate-200"
+                      onClick={() => {
+                        setIsDeleteModalOpen(false);
+                        setDeleteInputName("");
+                        setDeleteError("");
+                      }}
+                      type="button"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white font-bold transition-all shadow-sm cursor-pointer text-xs"
+                      disabled={isDeleting || !deleteInputName.trim()}
+                      type="submit"
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                      Hapus
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

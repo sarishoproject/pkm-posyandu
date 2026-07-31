@@ -51,16 +51,7 @@ function CariPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
   useEffect(() => {
-    const checkAuth = () => {
-      setIsAdmin(localStorage.getItem("isLoggedIn") === "true");
-    };
-    checkAuth();
-    window.addEventListener("auth-change", checkAuth);
-
-    // Load recent searches
     const saved = localStorage.getItem("recent_searches");
     if (saved) {
       try {
@@ -69,8 +60,6 @@ function CariPage() {
         console.error("Gagal memuat riwayat pencarian:", e);
       }
     }
-
-    return () => window.removeEventListener("auth-change", checkAuth);
   }, []);
 
   useEffect(() => {
@@ -240,23 +229,21 @@ function CariPage() {
                       child.sudah_diperiksa ? "bg-green-500" : "bg-orange-400"
                     }`}
                   />
-                  {isAdmin && (
-                    <button
-                      className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addToHistory(child);
-                        navigate({
-                          to: "/anggota/$id/pengukuran/tambah",
-                          params: { id: String(child.id) },
-                        });
-                      }}
-                      type="button"
-                    >
-                      <Ruler className="w-4 h-4" />
-                    </button>
-                  )}
+                  <button
+                    className="text-indigo-800 p-2 hover:bg-indigo-50 rounded-full transition-colors z-10"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      addToHistory(child);
+                      navigate({
+                        to: "/anggota/$id/pengukuran/tambah",
+                        params: { id: String(child.id) },
+                      });
+                    }}
+                    type="button"
+                  >
+                    <Ruler className="w-4 h-4" />
+                  </button>
                 </div>
               </Link>
             ))}

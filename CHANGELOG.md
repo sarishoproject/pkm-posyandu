@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.15.0] - 2026-07-31
+- 🧹 Remove client-side isAdmin state logic across the application to improve security posture.
+- ⚙️ Update build script to support interactive target platform selection and dynamic mkcert path resolution.
+- 🎨 Overhaul settings page UI with enhanced navigation and improved administrative tool grouping.
+- 🚀 Remove localStorage-based authentication simulation from the frontend.
+- 📦 Ignore .bun-build directory in .gitignore.
+
+## [2.14.0] - 2026-07-31
+- 🧹 Remove client-side isAdmin state check across multiple views as the application is transitioning to a more secure authentication model.
+- ⚙️ Update build script to allow interactive selection of compilation targets and handle mkcert path resolution dynamically.
+- 🎨 Overhaul the settings page interface for improved navigation and access to administrative tools.
+- 🚀 Remove redundant localStorage-based authentication simulation in the frontend.
+
 ## [2.13.0] - 2026-07-31
 - 🚀 Add vite-plugin-mkcert to enable local HTTPS development.
 - ⚙️ Update binary compilation script to include mkcert.exe for production deployments.
