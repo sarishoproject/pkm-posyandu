@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.16.1] - 2026-07-31
+- ⚙️ Remove macOS target configurations from GitHub Actions workflow to optimize CI pipeline runtime
+- 📝 Update README to provide instructions for manual macOS binary compilation
+
 ## [2.16.0] - 2026-07-31
 - 🚀 Revamped CI pipeline to support multi-platform builds (Windows, Linux x64/arm64, macOS x64/arm64) using a matrix strategy.
 - 🛠️ Standardized binary naming conventions and added cross-platform archive creation (zip for Windows, tar.gz for Unix).

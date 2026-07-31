@@ -440,8 +440,8 @@ build\pkm-posyandu-bun-windows-x64.exe
 Setiap kali tag `v*` di-push ke GitHub, workflow akan dijalankan. Workflow menggunakan **matrix strategy** yang berarti binary untuk setiap platform di-build di runner native-nya:
 - `windows-latest` untuk Windows x64
 - `ubuntu-latest` untuk Linux x64 & ARM64
-- `macos-latest` untuk macOS ARM64
-- `macos-13` untuk macOS x64
+
+> **Catatan:** Build untuk macOS sengaja tidak disertakan di CI/CD GitHub Actions karena memakan waktu antrian runner yang sangat lama. Jika Anda membutuhkan binary untuk macOS, Anda bisa melakukan compile secara manual di perangkat Mac Anda menggunakan perintah `bun run compile --target=bun-darwin-arm64`.
 
 Setelah build selesai, binary di-zip (Windows) atau di-tar.gz (Unix) dengan permission executable yang sudah diatur. Kemudian, file-file tersebut di-upload ke halaman **GitHub Releases**.
 

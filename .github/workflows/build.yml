@@ -27,14 +27,6 @@ jobs:
             target: bun-linux-arm64
             artifact_name: pkm-posyandu-linux-arm64
             archive_ext: tar.gz
-          - os: macos-latest
-            target: bun-darwin-arm64
-            artifact_name: pkm-posyandu-darwin-arm64
-            archive_ext: tar.gz
-          - os: macos-13
-            target: bun-darwin-x64
-            artifact_name: pkm-posyandu-darwin-x64
-            archive_ext: tar.gz
 
     runs-on: ${{ matrix.os }}
     steps:
