@@ -33,7 +33,7 @@ async function runTask(name: string, cmd: string[]): Promise<TaskResult> {
     process.stdout.write(
       `\r${C.gray(spinnerFrames[frame])} ${C.dim(`Running ${name}...`)}`,
     );
-  }, 80);
+  }, 42);
 
   try {
     const proc = Bun.spawn(cmd, {
@@ -84,12 +84,7 @@ export async function runVerification(): Promise<boolean> {
   const warnings: string[] = [];
 
   // 1. Biome CI
-  const biomeRes = await runTask("Biome CI (Lint & Format)", [
-    "bun",
-    "x",
-    "biome",
-    "ci",
-  ]);
+  const biomeRes = await runTask("Biome CI (Lint & Format)", ["bun", "lint"]);
   if (!biomeRes.success) {
     hasError = true;
     console.log(C.red("   └── Detail Error Biome:"));

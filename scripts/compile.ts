@@ -143,21 +143,77 @@ console.log("   Flags: --minify --bytecode --sourcemap=none");
 
 mkdirSync(join(cwd, "build"), { recursive: true });
 
+// ✅ FIX: Nama output menyertakan target agar tidak saling timpa
+const binaryExt = isWindows ? ".exe" : "";
+const outputBase = `build/pkm-posyandu-${target}${binaryExt}`;
+
 const defineArg = 'process.env.NODE_ENV:"production"';
 
-try {
-  const outputBase = "build/pkm-posyandu";
-  await $`bun build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`;
-} catch (e) {
-  console.error("❌ Compilation gagal:", e);
+// ✅ FIX: Retry logic untuk mengatasi timeout download saat cross-compile
+const MAX_RETRIES = 3;
+let lastError: Error | null = null;
+
+for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+  try {
+    if (attempt > 1) {
+      console.log(`   🔄 Retry attempt ${attempt}/${MAX_RETRIES}...`);
+    }
+    console.log(`   ⏳ Compiling (attempt ${attempt})...`);
+
+    // ✅ FIX: Set env var untuk meningkatkan download timeout
+    // BUN_DOWNLOAD_TIMEOUT dalam detik (10 menit)
+    // BUN_CONFIG_MAX_HTTP_CONNECTIONS untuk retry connection
+    const env = {
+      ...process.env,
+      BUN_DOWNLOAD_TIMEOUT: "600", // 10 menit
+      BUN_CONFIG_TIMEOUT: "600000", // 10 menit dalam ms
+    };
+
+    await $`bun build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`.env(
+      env,
+    );
+    lastError = null;
+    console.log(`   ✅ Compile berhasil pada attempt ${attempt}`);
+    break;
+  } catch (e) {
+    lastError = e as Error;
+    const errMsg = (e as Error).message || "";
+    console.error(`   ⚠️  Attempt ${attempt} gagal: ${errMsg.split("\n")[0]}`);
+
+    if (errMsg.includes("Timeout") || errMsg.includes("download")) {
+      console.log(
+        `   💡 Masalah network saat download target binary. Mencoba lagi...`,
+      );
+      // Hapus output parsial jika ada
+      try {
+        if (existsSync(outputBase)) rmSync(outputBase, { force: true });
+      } catch {}
+      // Tunggu sebentar sebelum retry
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      continue;
+    }
+    // Jika bukan masalah timeout, langsung gagal
+    console.error("❌ Compilation gagal:", e);
+    process.exit(1);
+  }
+}
+
+if (lastError) {
+  console.error("\n❌ Compilation gagal setelah semua retry:", lastError);
+  console.error("\n💡 Tips:");
+  console.error("   1. Coba jalankan lagi (mungkin masalah network sementara)");
+  console.error(
+    "   2. Download manual binary target dari https://github.com/oven-sh/bun/releases",
+  );
+  console.error("   3. Gunakan VPN jika koneksi ke GitHub lambat");
+  console.error(
+    "   4. Atau build di environment yang sesuai (Linux untuk target Linux)",
+  );
   process.exit(1);
 }
 
 // ─── Print Summary ──────────────────────────────────────────────────
-const binaryName = target.includes("windows")
-  ? "pkm-posyandu.exe"
-  : "pkm-posyandu";
-const binaryPath = join(cwd, "build", binaryName);
+const binaryPath = outputBase;
 
 // Hapus file sourcemap yang tidak diperlukan (jika ada)
 const mapPath = join(cwd, "build", "entry.js.map");
@@ -170,17 +226,21 @@ if (existsSync(binaryPath)) {
   const sizeMB = (binarySize / 1024 / 1024).toFixed(2);
   console.log("");
   console.log("✅ ─────────────────────────────────────────────");
-  console.log(`   Binary  : build/${binaryName}`);
+  console.log(`   Binary  : ${outputBase}`);
   console.log(`   Size    : ${sizeMB} MB`);
   console.log(`   Target  : ${target}`);
   console.log(`   Features: minified + bytecode + embedded assets`);
   console.log("─────────────────────────────────────────────────");
   console.log("");
   console.log("   Menjalankan:");
-  console.log(`   ./build/${binaryName}`);
+  if (isWindows) {
+    console.log(`   .\\${outputBase}`);
+  } else {
+    console.log(`   chmod +x ${outputBase} && ./${outputBase}`);
+  }
   console.log("");
   console.log("   Dengan config custom:");
-  console.log(`   PORT=8080 DB_PATH=/data/posyandu.db ./build/${binaryName}`);
+  console.log(`   PORT=8080 DB_PATH=/data/posyandu.db ./${outputBase}`);
   console.log("");
 } else {
   console.error("❌ Binary tidak ditemukan di build/ setelah compile!");
@@ -197,7 +257,6 @@ function generateEmbeds(distPath: string, outputPath: string) {
     process.exit(1);
   }
 
-  // Scan semua file di dist/client/
   const files: string[] = [];
 
   function scan(dir: string) {
@@ -205,11 +264,9 @@ function generateEmbeds(distPath: string, outputPath: string) {
       const full = join(dir, entry);
       const stat = statSync(full);
       if (stat.isDirectory()) {
-        // Skip direktori internal Vite
         if (entry === ".vite") continue;
         scan(full);
       } else {
-        // Skip source maps (tidak perlu di production)
         if (entry.endsWith(".map")) continue;
         files.push(relative(distPath, full).split(sep).join("/"));
       }
@@ -223,7 +280,6 @@ function generateEmbeds(distPath: string, outputPath: string) {
     process.exit(1);
   }
 
-  // Kategorisasi: text vs binary
   const TEXT_EXTS = [
     ".html",
     ".htm",
@@ -273,11 +329,9 @@ function generateEmbeds(distPath: string, outputPath: string) {
     const mime = MIME_TYPES[ext] || "application/octet-stream";
     const isText = TEXT_EXTS.includes(ext);
     const varName = `_a${i}`;
-    // Path relatif dari dist/_embeds.ts ke dist/client/file
     const importPath = `../dist/client/${file}`;
 
     if (isText) {
-      // Text: import dengan type:"text" → konten langsung jadi string
       textImports.push(
         `import ${varName} from "${importPath}" with { type: "text" };`,
       );
@@ -286,8 +340,6 @@ function generateEmbeds(distPath: string, outputPath: string) {
       );
       textCount++;
     } else {
-      // Binary: import tanpa attribute → Bun embed raw bytes, return path
-      // Path digunakan dengan Bun.file(path) saat runtime
       binaryImports.push(`import ${varName} from "${importPath}";`);
       entries.push(
         `  ${JSON.stringify(file)}: { content: ${varName}, mime: ${JSON.stringify(mime)}, isText: false }`,
@@ -296,7 +348,6 @@ function generateEmbeds(distPath: string, outputPath: string) {
     }
   });
 
-  // Rakit kode
   let code = "";
   code += "// AUTO-GENERATED by scripts/compile.ts — DO NOT EDIT\n";
   code += `// ${files.length} files embedded (${textCount} text, ${binaryCount} binary)\n`;

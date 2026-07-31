@@ -1,148 +1,126 @@
-name: Compile, Test, and Release
+name: Build & Release
 
 on:
   push:
-    branches: ["main", "master"]
     tags:
-      - "v*" # Trigger release saat tag v* di-push (oleh script bun run commit)
-  pull_request:
-    branches: ["main", "master"]
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  # ═══════════════════════════════════════════════════════════
-  # JOB 1: Build untuk Testing di CI (Linux x64)
-  # ═══════════════════════════════════════════════════════════
-  test-build:
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: bun-windows-x64
+            artifact_name: pkm-posyandu-windows-x64
+            archive_ext: zip
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            artifact_name: pkm-posyandu-linux-x64
+            archive_ext: tar.gz
+          - os: ubuntu-latest
+            target: bun-linux-arm64
+            artifact_name: pkm-posyandu-linux-arm64
+            archive_ext: tar.gz
+          - os: macos-latest
+            target: bun-darwin-arm64
+            artifact_name: pkm-posyandu-darwin-arm64
+            archive_ext: tar.gz
+          - os: macos-13
+            target: bun-darwin-x64
+            artifact_name: pkm-posyandu-darwin-x64
+            archive_ext: tar.gz
+
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🥟 Setup Bun
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: 📦 Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Install dependencies
+        run: bun install
 
-      - name: 🔨 Compile binary untuk testing (Linux x64)
-        run: bun run compile -- --target=bun-linux-x64
+      - name: Build & Compile
+        run: bun run compile --target=${{ matrix.target }}
+        env:
+          BUN_DOWNLOAD_TIMEOUT: "600"
 
-      - name: 🚀 Run and test binary
+      - name: Set executable permission (Unix only)
+        if: matrix.target != 'bun-windows-x64'
         run: |
-          chmod +x ./build/app-bun-linux-x64
-          
-          export PORT=8080
-          export NODE_ENV=production
-          export DB_PATH=test-posyandu.db
-          
-          echo "Menjalankan binary di background..."
-          ./build/app-bun-linux-x64 > server.log 2>&1 &
-          PID=$!
-          
-          sleep 5
-          
-          if kill -0 $PID 2>/dev/null; then
-            echo "✅ Server berhasil berjalan tanpa error (PID: $PID)."
-            cat server.log
-            kill $PID
-            echo "🛑 Server telah dihentikan. Test sukses!"
-            exit 0
-          else
-            echo "❌ Server gagal berjalan (crash saat startup)."
-            cat server.log
-            exit 1
-          fi
+          chmod +x build/pkm-posyandu-${{ matrix.target }}
+          ls -la build/
 
-  # ═══════════════════════════════════════════════════════════
-  # JOB 2: Build Target Asli & Release ke GitHub
-  # ═══════════════════════════════════════════════════════════
+      - name: Rename binary (Windows)
+        if: matrix.target == 'bun-windows-x64'
+        run: mv build/pkm-posyandu-bun-windows-x64.exe build/pkm-posyandu.exe
+        shell: bash
+
+      - name: Rename binary (Unix)
+        if: matrix.target != 'bun-windows-x64'
+        run: mv build/pkm-posyandu-${{ matrix.target }} build/pkm-posyandu
+        shell: bash
+
+      - name: Create archive (Windows - zip)
+        if: matrix.archive_ext == 'zip'
+        run: |
+          cd build
+          7z a ../${{ matrix.artifact_name }}.zip pkm-posyandu.exe
+        shell: bash
+
+      - name: Create archive (Unix - tar.gz)
+        if: matrix.archive_ext == 'tar.gz'
+        run: |
+          cd build
+          tar -czvf ../${{ matrix.artifact_name }}.tar.gz pkm-posyandu
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            ${{ matrix.artifact_name }}.zip
+            ${{ matrix.artifact_name }}.tar.gz
+          if-no-files-found: ignore
+
   release:
-    if: startsWith(github.ref, 'refs/tags/v') # Hanya jalan kalau ada tag v* di-push
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: 📥 Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🥟 Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Extract latest changelog
+        id: changelog
+        run: |
+          echo "🚀 Binaries terbaru untuk PKM Posyandu. Silakan download sesuai sistem operasi Anda di bagian bawah." > release_notes.md
+          echo "" >> release_notes.md
+          echo "## 📝 Changelog" >> release_notes.md
+          # Ambil entry paling atas dari CHANGELOG.md sampai entry kedua
+          awk '/^## \[/{flag++} flag==1{print} flag==2{exit}' CHANGELOG.md >> release_notes.md
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          bun-version: latest
+          path: artifacts
+          merge-multiple: true
 
-      - name: 📦 Install dependencies
-        run: bun install --frozen-lockfile
-
-      # ─── LINUX ARM64 (Raspberry Pi) ───────────────────────────
-      - name: 🍓 Compile untuk Linux ARM64 (Raspberry Pi)
-        run: bun run compile -- --target=bun-linux-arm64
-
-      - name: 📦 Arsipkan Linux ARM64
-        run: |
-          cd build
-          tar -czf ../pkm-posyandu-${{ github.ref_name }}-linux-arm64.tar.gz .
-          cd ..
-          rm -rf build
-
-      # ─── LINUX X64 ────────────────────────────────────────────
-      - name: 🐧 Compile untuk Linux x64
-        run: bun run compile -- --target=bun-linux-x64
-
-      - name: 📦 Arsipkan Linux x64
-        run: |
-          cd build
-          tar -czf ../pkm-posyandu-${{ github.ref_name }}-linux-x64.tar.gz .
-          cd ..
-          rm -rf build
-
-      # ─── WINDOWS X64 ──────────────────────────────────────────
-      - name: 🪟 Compile untuk Windows x64
-        run: bun run compile -- --target=bun-windows-x64
-
-      - name: 📦 Arsipkan Windows x64
-        run: |
-          cd build
-          zip -r ../pkm-posyandu-${{ github.ref_name }}-windows-x64.zip .
-          cd ..
-          rm -rf build
-
-      # ─── MACOS ARM64 (Apple Silicon M1/M2/M3) ────────────────
-      - name: 🍎 Compile untuk macOS ARM64 (Apple Silicon)
-        run: bun run compile -- --target=bun-darwin-arm64
-
-      - name: 📦 Arsipkan macOS ARM64
-        run: |
-          cd build
-          tar -czf ../pkm-posyandu-${{ github.ref_name }}-darwin-arm64.tar.gz .
-          cd ..
-          rm -rf build
-
-      # ─── MACOS X64 (Intel) ────────────────────────────────────
-      - name: 🍏 Compile untuk macOS x64 (Intel)
-        run: bun run compile -- --target=bun-darwin-x64
-
-      - name: 📦 Arsipkan macOS x64
-        run: |
-          cd build
-          tar -czf ../pkm-posyandu-${{ github.ref_name }}-darwin-x64.tar.gz .
-          cd ..
-          rm -rf build
-
-      # ─── RELEASE KE GITHUB ────────────────────────────────────
-      - name: 🚀 Buat GitHub Release
+      - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          generate_release_notes: true
+          body_path: release_notes.md
           files: |
-            pkm-posyandu-${{ github.ref_name }}-linux-arm64.tar.gz
-            pkm-posyandu-${{ github.ref_name }}-linux-x64.tar.gz
-            pkm-posyandu-${{ github.ref_name }}-windows-x64.zip
-            pkm-posyandu-${{ github.ref_name }}-darwin-arm64.tar.gz
-            pkm-posyandu-${{ github.ref_name }}-darwin-x64.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            artifacts/*.zip
+            artifacts/*.tar.gz
+          fail_on_unmatched_files: false

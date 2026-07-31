@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.16.0] - 2026-07-31
+- 🚀 Revamped CI pipeline to support multi-platform builds (Windows, Linux x64/arm64, macOS x64/arm64) using a matrix strategy.
+- 🛠️ Standardized binary naming conventions and added cross-platform archive creation (zip for Windows, tar.gz for Unix).
+- 📦 Integrated artifact uploading for all platforms via GitHub Actions artifacts.
+- ⚙️ Automated release notes generation and binary upload process using workflow_dispatch.
+- 🧹 Cleaned up redundant job logic in build.yml to improve maintainability and performance.
+- 📖 Updated README with enhanced documentation on cross-compilation, network timeout handling, and the new verify script.
+- 🧹 Simplified project documentation and removed redundant internal API/schema technical details to improve readability.
+
+
 ## [2.15.0] - 2026-07-31
 - 🧹 Remove client-side isAdmin state logic across the application to improve security posture.
 - ⚙️ Update build script to support interactive target platform selection and dynamic mkcert path resolution.

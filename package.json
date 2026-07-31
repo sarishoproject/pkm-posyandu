@@ -1,6 +1,6 @@
 {
   "name": "pkm-posyandu",
-  "version": "2.15.0",
+  "version": "2.16.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "digest": "bunx @rilaptra/digester@latest",
     "lint": "biome check --write;biome ci",
     "preview": "bun --bun vite preview",
-    "start": "cmd /c \"if exist build\\\\pkm-posyandu.exe (build\\\\pkm-posyandu.exe) else (echo Error: File EXE belum ada, ngab! Jalanin 'bun run compile' dulu.)\"",
+    "start": "bun run scripts/start.ts",
     "verify": "bun run scripts/verify.ts"
   },
   "dependencies": {

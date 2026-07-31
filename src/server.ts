@@ -287,7 +287,9 @@ async function startServer() {
       try {
         if (!fs.existsSync(mkcertPath)) {
           console.log(C.cyan(`  [1/3] Mengekstrak ${mkcertName} bawaan...`));
-          await Bun.write(mkcertPath, Bun.file(mkcertAsset.content));
+          const mkcertFile = Bun.file(mkcertAsset.content);
+          const mkcertData = await mkcertFile.arrayBuffer();
+          await Bun.write(mkcertPath, mkcertData);
           if (!isWin) {
             fs.chmodSync(mkcertPath, 0o755);
           }
