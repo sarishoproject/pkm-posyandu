@@ -4,9 +4,14 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-vite-plugin";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import mkcert from "vite-plugin-mkcert";
 
 export default defineConfig({
+  server: {
+    https: {},
+  },
   plugins: [
+    mkcert(),
     honoDevServer({
       entry: "src/app/api/index.ts",
       injectClientScript: false,

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.13.0] - 2026-07-31
+- 🚀 Add vite-plugin-mkcert to enable local HTTPS development.
+- ⚙️ Update binary compilation script to include mkcert.exe for production deployments.
+- 🔐 Integrate automatic SSL certificate generation (local CA) in the server startup process.
+- 📦 Rename binary output from app- to pkm-posyandu for better branding.
+- 🐛 Fix numerical ID handling in the participant measurement form component.
+
+
 ## [2.12.0] - 2026-07-31
 - 🚀 Added QR scanner integration with camera error handling and UI feedback.
 - 📦 Updated dependencies including shadcn/ui and various utility libraries.

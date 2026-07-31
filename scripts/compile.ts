@@ -1,6 +1,7 @@
 // scripts/compile.ts
 
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -55,6 +56,12 @@ try {
 
 // ─── Step 3: Generate Embedded Assets ───────────────────────────────
 console.log("📝 [3/5] Generating embedded assets...");
+const mkcertSrc = join(cwd, "build/mkcert.exe");
+const mkcertDest = join(cwd, "dist/client/mkcert.exe");
+if (existsSync(mkcertSrc)) {
+  copyFileSync(mkcertSrc, mkcertDest);
+  console.log("   📎 mkcert.exe copied to dist/client/ to embed in binary");
+}
 generateEmbeds(join(cwd, "dist/client"), join(cwd, "dist/_embeds.ts"));
 
 // ─── Step 4: Generate Entry Point ───────────────────────────────────
@@ -81,17 +88,17 @@ mkdirSync(join(cwd, "build"), { recursive: true });
 const defineArg = 'process.env.NODE_ENV:"production"';
 
 try {
-  await $`bun build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=build/app-${target} ./dist/entry.ts`;
+  const outputBase = "build/pkm-posyandu";
+  await $`bun build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`;
 } catch (e) {
   console.error("❌ Compilation gagal:", e);
   process.exit(1);
 }
 
 // ─── Print Summary ──────────────────────────────────────────────────
-// FIX: Cek apakah target windows, jika ya tambahkan .exe
 const binaryName = target.includes("windows")
-  ? `app-${target}.exe`
-  : `app-${target}`;
+  ? "pkm-posyandu.exe"
+  : "pkm-posyandu";
 const binaryPath = join(cwd, "build", binaryName);
 
 // Hapus file sourcemap yang tidak diperlukan (jika ada)
@@ -194,6 +201,7 @@ function generateEmbeds(distPath: string, outputPath: string) {
     ".otf": "font/otf",
     ".eot": "application/vnd.ms-fontobject",
     ".wasm": "application/wasm",
+    ".exe": "application/octet-stream",
   };
 
   const textImports: string[] = [];

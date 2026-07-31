@@ -15,6 +15,7 @@ interface ChildData {
   asi_bulan_4?: string;
   asi_bulan_5?: string;
   asi_bulan_6?: string;
+  id: number;
   nama_anak: string;
   nik: string;
   tanggal_lahir: string | null;
@@ -37,6 +38,12 @@ function MeasurementForm() {
         const data: ChildData = await response.json();
         setChild(data);
         document.title = `Input Pengukuran ${data.nama_anak} | Posyandu`;
+
+        // Update peserta_id dengan ID numerik asli hasil fetch
+        setFormData((prev) => ({
+          ...prev,
+          peserta_id: data.id,
+        }));
 
         // Hitung umur bulan & fetch status ASI
         if (data.tanggal_lahir) {

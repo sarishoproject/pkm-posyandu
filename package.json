@@ -1,6 +1,6 @@
 {
   "name": "pkm-posyandu",
-  "version": "2.12.0",
+  "version": "2.13.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "digest": "bunx @rilaptra/digester@latest",
     "lint": "biome check --write;biome ci",
     "preview": "bun --bun vite preview",
-    "start": "cmd /c \"if exist build\\\\app-bun-windows-x64.exe (build\\\\app-bun-windows-x64.exe) else (echo Error: File EXE belum ada, ngab! Jalanin 'bun run compile' dulu.)\"",
+    "start": "cmd /c \"if exist build\\\\pkm-posyandu.exe (build\\\\pkm-posyandu.exe) else (echo Error: File EXE belum ada, ngab! Jalanin 'bun run compile' dulu.)\"",
     "verify": "bun run scripts/verify.ts"
   },
   "dependencies": {
@@ -46,6 +46,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vite-plugin-mkcert": "^2.1.0"
   }
 }

@@ -175,7 +175,7 @@ WantedBy=multi-user.target`;
 // ═══════════════════════════════════════════════════════════════════
 // Server Mode: Start HTTP Server
 // ═══════════════════════════════════════════════════════════════════
-function startServer() {
+async function startServer() {
   // Network Traffic Logger Middleware
   app.use("*", async (c, next) => {
     const start = Bun.nanoseconds();
@@ -265,14 +265,89 @@ function startServer() {
   const port = Number(process.env.PORT) || 3000;
   const startTime = Date.now();
 
+  const exeDir = path.dirname(process.execPath);
+  const certPath = path.join(exeDir, "cert.pem");
+  const keyPath = path.join(exeDir, "key.pem");
+  let hasCert = fs.existsSync(certPath) && fs.existsSync(keyPath);
+
+  // Jika sertifikat belum ada dan kita berjalan sebagai binary kompilasi, coba ekstrak & jalankan mkcert
+  if (!hasCert && _embedded) {
+    const mkcertAsset = _embedded["mkcert.exe"];
+    if (mkcertAsset) {
+      console.log(
+        C.yellow(
+          "\n[SSL] Sertifikat SSL tidak ditemukan. Memulai setup otomatis...",
+        ),
+      );
+      const mkcertPath = path.join(exeDir, "mkcert.exe");
+
+      try {
+        if (!fs.existsSync(mkcertPath)) {
+          console.log(C.cyan("  [1/3] Mengekstrak mkcert.exe bawaan..."));
+          await Bun.write(mkcertPath, Bun.file(mkcertAsset.content));
+          if (process.platform !== "win32") {
+            fs.chmodSync(mkcertPath, 0o755);
+          }
+        }
+
+        console.log(
+          C.cyan(
+            "  [2/3] Mendaftarkan Root CA Lokal (Mohon klik 'Yes' jika muncul konfirmasi)...",
+          ),
+        );
+        try {
+          runCmd([mkcertPath, "-install"]);
+        } catch {
+          console.log(
+            C.yellow(
+              "  [WARN] Konfirmasi ditolak atau gagal. Mencoba membuat sertifikat saja...",
+            ),
+          );
+        }
+
+        console.log(
+          C.cyan(
+            "  [3/3] Membuat sertifikat SSL untuk localhost & IP jaringan...",
+          ),
+        );
+        const localIP = getLocalIP();
+        runCmd([
+          mkcertPath,
+          "-cert-file",
+          certPath,
+          "-key-file",
+          keyPath,
+          "localhost",
+          "127.0.0.1",
+          localIP,
+        ]);
+
+        console.log(C.green("  [OK] Setup sertifikat SSL berhasil!"));
+        hasCert = true;
+      } catch (err) {
+        console.error(
+          C.red("  [FAIL] Gagal melakukan setup SSL otomatis:"),
+          err,
+        );
+      }
+    }
+  }
+
+  const protocol = hasCert ? "https" : "http";
+
   console.log("");
   console.log(C.bold(C.green("PKM Posyandu Server Running")));
   console.log(C.gray("---------------------------------"));
-  console.log(`  Local:    ${C.cyan(`http://localhost:${port}`)}`);
-  console.log(`  Network:  ${C.cyan(`http://${getLocalIP()}:${port}`)}`);
+  console.log(`  Local:    ${C.cyan(`${protocol}://localhost:${port}`)}`);
+  console.log(`  Network:  ${C.cyan(`${protocol}://${getLocalIP()}:${port}`)}`);
   console.log(
     `  Mode:     ${_embedded ? C.yellow("Embedded Binary") : C.yellow("Filesystem Dev")}`,
   );
+  if (hasCert) {
+    console.log(`  SSL:      ${C.green("Enabled (using cert.pem & key.pem)")}`);
+  } else {
+    console.log(`  SSL:      ${C.red("Disabled (run HTTP)")}`);
+  }
   console.log(C.gray("---------------------------------"));
   console.log("");
 
@@ -293,5 +368,11 @@ function startServer() {
   Bun.serve({
     port,
     fetch: app.fetch,
+    tls: hasCert
+      ? {
+          cert: Bun.file(certPath),
+          key: Bun.file(keyPath),
+        }
+      : undefined,
   });
 }
