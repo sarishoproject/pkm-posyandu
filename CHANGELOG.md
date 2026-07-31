@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.16.3] - 2026-07-31
+- ⚙️ Update build targets to use 'baseline' versions for improved compatibility.
+- 🐛 Improve error detection by reading stderr, ensuring network/extraction failures are correctly identified.
+- 🧹 Add automatic cache cleanup for Bun installation files to prevent issues with corrupted downloads.
+- ⚡️ Increase retry delay and refine network error handling logic for a more stable compilation process.
+
 ## [2.16.2] - 2026-07-31
 - ⚙️ Updated CI build targets to use 'baseline' suffixes for Bun windows and linux artifacts.
 - 🛠️ Adjusted conditional logic in workflow scripts to match updated target identifiers for consistent binary renaming.

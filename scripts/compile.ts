@@ -43,8 +43,8 @@ let target = values.target;
 
 if (!target) {
   console.log("📋 Pilih target platform compile:");
-  console.log("1) Windows (bun-windows-x64)");
-  console.log("2) Linux (bun-linux-x64)");
+  console.log("1) Windows (bun-windows-x64-baseline)");
+  console.log("2) Linux (bun-linux-x64-baseline)");
   console.log("3) Linux ARM64 (bun-linux-arm64)");
   console.log("4) macOS (bun-darwin-x64)");
   console.log("5) macOS ARM64 (bun-darwin-arm64)");
@@ -57,9 +57,9 @@ if (!target) {
   rl.close();
 
   if (answer === "1") {
-    target = "bun-windows-x64";
+    target = "bun-windows-x64-baseline";
   } else if (answer === "2") {
-    target = "bun-linux-x64";
+    target = "bun-linux-x64-baseline";
   } else if (answer === "3") {
     target = "bun-linux-arm64";
   } else if (answer === "4") {
@@ -143,13 +143,12 @@ console.log("   Flags: --minify --bytecode --sourcemap=none");
 
 mkdirSync(join(cwd, "build"), { recursive: true });
 
-// ✅ FIX: Nama output menyertakan target agar tidak saling timpa
 const binaryExt = isWindows ? ".exe" : "";
 const outputBase = `build/pkm-posyandu-${target}${binaryExt}`;
 
 const defineArg = 'process.env.NODE_ENV:"production"';
 
-// ✅ FIX: Retry logic untuk mengatasi timeout download saat cross-compile
+// ✅ FIX: Retry logic yang lebih pintar
 const MAX_RETRIES = 3;
 let lastError: Error | null = null;
 
@@ -160,13 +159,10 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     }
     console.log(`   ⏳ Compiling (attempt ${attempt})...`);
 
-    // ✅ FIX: Set env var untuk meningkatkan download timeout
-    // BUN_DOWNLOAD_TIMEOUT dalam detik (10 menit)
-    // BUN_CONFIG_MAX_HTTP_CONNECTIONS untuk retry connection
     const env = {
       ...process.env,
-      BUN_DOWNLOAD_TIMEOUT: "600", // 10 menit
-      BUN_CONFIG_TIMEOUT: "600000", // 10 menit dalam ms
+      BUN_DOWNLOAD_TIMEOUT: "600",
+      BUN_CONFIG_TIMEOUT: "600000",
     };
 
     await $`bun build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`.env(
@@ -175,24 +171,42 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     lastError = null;
     console.log(`   ✅ Compile berhasil pada attempt ${attempt}`);
     break;
-  } catch (e) {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanatioan>
+  } catch (e: any) {
     lastError = e as Error;
-    const errMsg = (e as Error).message || "";
+
+    // ✅ FIX: Baca stderr karena Bun.$ tidak memasukkan detail error ke message
+    const errMsg = (e?.stderr?.toString() || e?.message || "").toLowerCase();
     console.error(`   ⚠️  Attempt ${attempt} gagal: ${errMsg.split("\n")[0]}`);
 
-    if (errMsg.includes("Timeout") || errMsg.includes("download")) {
+    // Deteksi berbagai macam error network/download/ekstraksi
+    const isNetworkError =
+      errMsg.includes("timeout") ||
+      errMsg.includes("download") ||
+      errMsg.includes("extract") ||
+      errMsg.includes("incomplete") ||
+      errMsg.includes("fetch failed");
+
+    if (isNetworkError) {
       console.log(
-        `   💡 Masalah network saat download target binary. Mencoba lagi...`,
+        `   💡 Masalah download/ekstraksi terdeteksi. Membersihkan cache...`,
       );
-      // Hapus output parsial jika ada
       try {
+        // Hapus binary parsial
         if (existsSync(outputBase)) rmSync(outputBase, { force: true });
+        // Hapus cache download Bun yang mungkin korup
+        const bunInstallCache = join(homedir(), ".bun", "install", "cache");
+        if (existsSync(bunInstallCache)) {
+          console.log(`   🧹 Menghapus cache: ${bunInstallCache}`);
+          rmSync(bunInstallCache, { recursive: true, force: true });
+        }
       } catch {}
-      // Tunggu sebentar sebelum retry
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Tunggu 3 detik sebelum retry
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       continue;
     }
-    // Jika bukan masalah timeout, langsung gagal
+
+    // Jika bukan masalah network, langsung gagal
     console.error("❌ Compilation gagal:", e);
     process.exit(1);
   }
@@ -206,9 +220,6 @@ if (lastError) {
     "   2. Download manual binary target dari https://github.com/oven-sh/bun/releases",
   );
   console.error("   3. Gunakan VPN jika koneksi ke GitHub lambat");
-  console.error(
-    "   4. Atau build di environment yang sesuai (Linux untuk target Linux)",
-  );
   process.exit(1);
 }
 
