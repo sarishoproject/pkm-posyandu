@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.12.0] - 2026-07-31
+- 🚀 Added QR scanner integration with camera error handling and UI feedback.
+- 📦 Updated dependencies including shadcn/ui and various utility libraries.
+- 🛠️ Refactored member registration form with NIK validation and improved error handling.
+- 🎨 Enhanced UI for Add Member screen, adding responsive layout and better input management.
+- ⚡️ Enabled development mode with host access for testing.
+- 🧹 Cleaned up biome.json exclusions and legacy commented-out code.
+
 ### [2026-07-30]
 - 📝 Update README content to provide comprehensive guides on project usage, scripts, and API documentation.
 - 🚀 Added detailed sections for Application Features, CRUD workflow, and Backend API specs.

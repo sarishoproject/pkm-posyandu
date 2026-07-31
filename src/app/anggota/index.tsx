@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { Mars, Ruler, ScanLine, Search, Venus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/anggota/")({
   component: MobileView,
@@ -127,9 +128,17 @@ function MobileView() {
         >
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
           <span>Telusuri</span>
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-850 transition-colors">
+          <Button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-850 transition-colors cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.dispatchEvent(new Event("open-scanner"));
+            }}
+            variant="ghost"
+          >
             <ScanLine className="w-5 h-5" />
-          </span>
+          </Button>
         </Link>
       </div>
 

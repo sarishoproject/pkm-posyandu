@@ -382,10 +382,7 @@ function DashboardHome() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Only trigger the full screen loading state on initial load (when stats is null)
-        if (!stats) {
-          setIsLoading(true);
-        }
+        setIsLoading(true); // Fix: always set true to prevent stale UI flash
         const response = await fetch(`/api/stats?month=${currentMonth}`);
         if (!response.ok) throw new Error("Gagal mengambil statistik");
         const data = await response.json();
@@ -398,7 +395,7 @@ function DashboardHome() {
     };
 
     fetchStats();
-  }, [currentMonth, stats]);
+  }, [currentMonth]);
 
   const handleExport = () => {
     window.open("/api/export", "_blank");

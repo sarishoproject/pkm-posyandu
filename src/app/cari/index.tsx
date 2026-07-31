@@ -9,6 +9,7 @@ import {
   ScanLine,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/cari/")({
   component: CariPage,
@@ -145,12 +146,17 @@ function CariPage() {
             type="text"
             value={searchQuery}
           />
-          <button
-            className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
-            type="button"
+          <Button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-850 transition-colors cursor-pointer"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.dispatchEvent(new Event("open-scanner"));
+            }}
+            variant="ghost"
           >
             <ScanLine className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
       </div>
 

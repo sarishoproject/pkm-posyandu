@@ -19,9 +19,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import React from "react";
+import { useEffect, useState } from "react";
 
-// Add global TypeScript typings for custom alert/confirm handlers
 declare global {
   interface Window {
     showCustomAlert: (message: string) => Promise<void>;
@@ -38,9 +37,10 @@ export const Route = createRootRouteWithContext<{
 function RootLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isScanOpen, setIsScanOpen] = React.useState(false);
-  const [isCameraLoading, setIsCameraLoading] = React.useState(true);
-  const [isMirrored, setIsMirrored] = React.useState(false);
+  const [isScanOpen, setIsScanOpen] = useState(false);
+  const [isCameraLoading, setIsCameraLoading] = useState(true);
+  const [isMirrored, setIsMirrored] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   const showNavbar = [
     "/",
@@ -52,7 +52,7 @@ function RootLayout() {
     "/pengaturan/",
   ].includes(location.pathname);
 
-  const [dialog, setDialog] = React.useState<{
+  const [dialog, setDialog] = useState<{
     isOpen: boolean;
     type: "alert" | "confirm";
     message: string;
@@ -64,7 +64,7 @@ function RootLayout() {
     resolve: null,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     window.showCustomAlert = (message: string) => {
       return new Promise<void>((resolve) => {
         setDialog({
@@ -94,13 +94,13 @@ function RootLayout() {
     };
   }, []);
 
-  // Effect to manage Html5Qrcode scanning inside the drawer
-  React.useEffect(() => {
+  useEffect(() => {
     let html5QrCode: Html5Qrcode | null = null;
     let isActive = true;
 
     if (isScanOpen) {
       setIsCameraLoading(true);
+      setCameraError(null);
       const isMobile =
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
           navigator.userAgent,
@@ -114,8 +114,8 @@ function RootLayout() {
             { facingMode: "environment" },
             {
               fps: 10,
-              qrbox: (width, height) => {
-                const size = Math.min(width, height) * 0.7;
+              qrbox: () => {
+                const size = 200;
                 return { width: size, height: size };
               },
             },
@@ -159,6 +159,39 @@ function RootLayout() {
           console.error("Gagal memulai scanner QR:", err);
           if (isActive) {
             setIsCameraLoading(false);
+            let msg =
+              "Gagal mengakses kamera. Pastikan tidak ada aplikasi lain yang menggunakan kamera saat ini.";
+            if (
+              err instanceof Error ||
+              (typeof err === "object" && err !== null && "name" in err)
+            ) {
+              const errName = (err as Error).name;
+              if (
+                errName === "NotAllowedError" ||
+                errName === "PermissionDeniedError"
+              ) {
+                msg =
+                  "Izin kamera ditolak. Mohon berikan izin kamera di pengaturan browser.";
+              } else if (
+                errName === "NotFoundError" ||
+                errName === "DevicesNotFoundError"
+              ) {
+                msg = "Kamera tidak ditemukan di perangkat ini.";
+              } else if (
+                errName === "NotReadableError" ||
+                errName === "TrackStartError"
+              ) {
+                msg =
+                  "Kamera sedang digunakan aplikasi lain. Tutup aplikasi tersebut dan coba lagi.";
+              } else if (
+                window.location.protocol !== "https:" &&
+                window.location.hostname !== "localhost"
+              ) {
+                msg =
+                  "Akses kamera membutuhkan HTTPS. Silakan akses via https:// atau http://localhost";
+              }
+            }
+            setCameraError(msg);
           }
         }
       };
@@ -178,6 +211,13 @@ function RootLayout() {
       };
     }
   }, [isScanOpen, navigate]);
+
+  // Listen for custom event to open scanner
+  useEffect(() => {
+    const openScanner = () => setIsScanOpen(true);
+    window.addEventListener("open-scanner", openScanner);
+    return () => window.removeEventListener("open-scanner", openScanner);
+  }, []);
 
   return (
     <div
@@ -205,7 +245,6 @@ function RootLayout() {
             <span className="text-[9px] font-semibold">Cari</span>
           </Link>
 
-          {/* Tombol Tengah (Scan QR) */}
           <button
             className="flex flex-col items-center justify-center -mt-6 bg-indigo-600 hover:bg-indigo-700 text-white w-13 h-13 rounded-full shadow-[0_4px_15px_rgba(79,70,229,0.35)] border-4 border-[#F8F9FA] transition-all cursor-pointer shrink-0 select-none"
             onClick={() => setIsScanOpen(true)}
@@ -232,7 +271,6 @@ function RootLayout() {
         </div>
       )}
 
-      {/* Global QR Scanner Drawer */}
       <button
         aria-label="Tutup Scanner"
         className={`fixed inset-0 bg-black/60 z-[9990] transition-opacity duration-300 w-full border-none cursor-default ${isScanOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
@@ -243,7 +281,6 @@ function RootLayout() {
       <div
         className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[2.5rem] shadow-2xl z-[9995] px-6 pt-5 pb-8 transition-transform duration-300 ease-out transform ${isScanOpen ? "translate-y-0 pointer-events-auto" : "translate-y-full pointer-events-none"}`}
       >
-        {/* Handle bar drag indicator */}
         <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 shrink-0" />
 
         <div className="flex items-center justify-between mb-4">
@@ -251,7 +288,7 @@ function RootLayout() {
             Scan QR Code Anak
           </h3>
           <div className="flex items-center gap-2">
-            {isScanOpen && (
+            {isScanOpen && !cameraError && (
               <button
                 className={`p-1.5 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
                   isMirrored
@@ -275,7 +312,6 @@ function RootLayout() {
           </div>
         </div>
 
-        {/* Scanner reader viewport */}
         {isScanOpen && (
           <div className="w-full h-[280px] overflow-hidden rounded-2xl border border-slate-100/60 bg-slate-50 shadow-inner my-2 relative flex items-center justify-center">
             <style>{`
@@ -286,7 +322,7 @@ function RootLayout() {
                 ${isMirrored ? "transform: scaleX(-1) !important;" : ""}
               }
             `}</style>
-            {/* Loading Placeholder */}
+
             {isCameraLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/90 z-10 gap-3">
                 <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
@@ -295,6 +331,28 @@ function RootLayout() {
                 </span>
               </div>
             )}
+
+            {cameraError && !isCameraLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/95 z-10 gap-3 p-4 text-center">
+                <AlertCircle className="w-8 h-8 text-red-500" />
+                <span className="text-xs text-red-600 font-semibold max-w-[200px]">
+                  {cameraError}
+                </span>
+                <button
+                  className="text-xs text-indigo-600 underline cursor-pointer mt-1"
+                  onClick={() => {
+                    setCameraError(null);
+                    setIsCameraLoading(true);
+                    setIsScanOpen(false);
+                    setTimeout(() => setIsScanOpen(true), 100);
+                  }}
+                  type="button"
+                >
+                  Coba lagi
+                </button>
+              </div>
+            )}
+
             <div className="w-full h-full" id="reader" />
           </div>
         )}
@@ -305,11 +363,9 @@ function RootLayout() {
         </p>
       </div>
 
-      {/* Custom Alert/Confirm Modal Dialog */}
       {dialog.isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-[2rem] p-6 max-w-sm w-full shadow-2xl border border-slate-100/50 flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
-            {/* Icon based on type */}
             <div
               className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
                 dialog.type === "confirm"
@@ -324,7 +380,6 @@ function RootLayout() {
               )}
             </div>
 
-            {/* Title & Message */}
             <div className="space-y-1">
               <h3 className="font-black text-slate-800 text-base leading-tight">
                 {dialog.type === "confirm"
@@ -336,7 +391,6 @@ function RootLayout() {
               </p>
             </div>
 
-            {/* Buttons */}
             <div className="flex w-full gap-3 pt-2">
               {dialog.type === "confirm" ? (
                 <>

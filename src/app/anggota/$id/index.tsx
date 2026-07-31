@@ -55,6 +55,7 @@ function MemberDetailView() {
   const [data, setData] = useState<DetailResponse | null>(null);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<GraphPoint | null>(null);
   const [selectedHistory, setSelectedHistory] = useState<RiwayatItem | null>(
     null,
@@ -88,8 +89,12 @@ function MemberDetailView() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setNotFound(false);
         const response = await fetch(`/api/peserta/${id}`);
-        if (!response.ok) throw new Error("Data tidak ditemukan");
+        if (!response.ok) {
+          if (response.status === 404) setNotFound(true);
+          throw new Error("Data tidak ditemukan");
+        }
 
         const json = await response.json();
         setData(json);
@@ -104,10 +109,31 @@ function MemberDetailView() {
     fetchData();
   }, [id]);
 
-  if (isLoading || !data) {
+  // Handler untuk Loading Global
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#1E1B4B] animate-spin" />
+      </div>
+    );
+  }
+
+  // Handler untuk 404 / Data Tidak Ditemukan
+  if (notFound || !data) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center justify-center p-4 text-center">
+        <h2 className="text-xl font-bold text-slate-800 mb-2">
+          Data Tidak Ditemukan
+        </h2>
+        <p className="text-slate-500 text-sm mb-6">
+          Anggota yang kamu cari tidak ada di database atau URL tidak valid.
+        </p>
+        <Link
+          className="px-6 py-3 bg-[#1E1B4B] text-white rounded-xl text-sm font-bold hover:bg-indigo-900 transition-colors"
+          to="/anggota"
+        >
+          Kembali ke Daftar Anggota
+        </Link>
       </div>
     );
   }
@@ -139,7 +165,7 @@ function MemberDetailView() {
       if (diffMonths <= 0) return "";
       return `${diffMonths} Bulan Lalu`;
     } catch {
-      return "";
+      return false;
     }
   };
 
@@ -293,17 +319,8 @@ function MemberDetailView() {
 
             {isAdmin && (
               <div className="grid grid-cols-3 gap-2 w-full mb-8">
-                {/* <button
-                  className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm text-center"
-                  onClick={handleExportSingleUser}
-                  type="button"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Excel
-                </button> */}
                 <Link
                   className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm text-center"
-                  // className="flex items-center justify-center gap-1.5 text-indigo-850 bg-indigo-50/60 border border-indigo-100/70 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-indigo-100/60 text-center"
                   params={{ id }}
                   to="/anggota/barcode/$id"
                 >
@@ -386,7 +403,7 @@ function MemberDetailView() {
                         const isSelected = selectedPoint?.id === d.id;
 
                         return (
-                          // biome-ignore lint/a11y/noStaticElementInteractions: SVG chart point
+                          // biome-ignore lint/a11y/noStaticElementInteractions: <explanationa>
                           <g
                             className="cursor-pointer outline-none"
                             key={d.id}
@@ -500,7 +517,6 @@ function MemberDetailView() {
             </div>
 
             <div className="border-t border-b border-slate-200 divide-y divide-slate-100 mb-8 md:mb-0">
-              {/* Row 1: Berat & Tinggi */}
               <div className="flex items-center justify-between py-4">
                 <div className="flex-1 flex flex-col items-center border-r border-slate-200">
                   <span className="text-[10px] text-slate-500 mb-1">
@@ -520,7 +536,6 @@ function MemberDetailView() {
                 </div>
               </div>
 
-              {/* Row 2: Lingkar Kepala & LILA */}
               <div className="flex items-center justify-between py-4">
                 <div className="flex-1 flex flex-col items-center border-r border-slate-200">
                   <span className="text-[10px] text-slate-500 mb-1">
@@ -648,10 +663,8 @@ function MemberDetailView() {
         </div>
       </div>
 
-      {/* MODAL POP-UP DETAIL RIWAYAT */}
       {selectedHistory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          {/* Tombol backdrop transparan untuk menutup modal (tanpa melanggar a11y) */}
           <button
             aria-label="Tutup detail"
             className="absolute inset-0 z-10 cursor-default"
@@ -660,7 +673,6 @@ function MemberDetailView() {
           />
 
           <div className="relative z-20 bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            {/* Header Modal */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-[#F8F9FA]">
               <h3 className="font-bold text-slate-800 text-[15px]">
                 Detail Pengukuran
@@ -674,7 +686,6 @@ function MemberDetailView() {
               </button>
             </div>
 
-            {/* Konten Modal */}
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-center border-b border-slate-50 pb-3">
                 <span className="text-xs text-slate-500 font-medium">
@@ -794,7 +805,6 @@ function MemberDetailView() {
         </div>
       )}
 
-      {/* Sticky Bottom Add Measurement Button for Mobile */}
       {isAdmin && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-30 md:hidden no-print">
           <button

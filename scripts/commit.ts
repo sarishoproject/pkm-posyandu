@@ -205,10 +205,10 @@ async function main() {
   runGit(["add", "."]);
 
   // 2. Jalankan Verifikasi Otomatis
-  // const isVerified = await runVerification();
-  // if (!isVerified) {
-  //   process.exit(1); // Stop jika verifikasi gagal
-  // }
+  const isVerified = await runVerification();
+  if (!isVerified) {
+    process.exit(1); // Stop jika verifikasi gagal
+  }
 
   // 3. Get Diff
   const rawDiff = runGit(["diff", "--cached", "-U0"]);

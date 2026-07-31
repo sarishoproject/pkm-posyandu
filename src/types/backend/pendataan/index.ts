@@ -1,4 +1,5 @@
 export interface Pendataan {
+  asi_bulan_ini: string | null;
   berat: number | null;
   cara_ukur: string | null;
   created_at: string;
@@ -15,6 +16,7 @@ export interface Pendataan {
 }
 
 export interface PendataanInput {
+  asi_bulan_ini?: string;
   berat?: number;
   cara_ukur?: string;
   kelas_ibu_balita?: string;
