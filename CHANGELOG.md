@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.0] - 2026-08-01
+- 🚀 Added 'prepareBunBinary' function to pre-download specific Bun variants before compilation to avoid CI download errors.
+- ⚙️ Integrated automated curl-based download, verification, and extraction logic for cross-platform binary handling.
+- 📦 Implemented robust cleanup process for temporary directories and partial/corrupt Bun bin caches.
+- ⚡️ Increased retry delay from 3s to 5s to improve build reliability in unstable network environments.
+- 🛠️ Refactored compilation logic to conditionally use the downloaded binary or fallback to --target flags.
+
 ## [2.16.3] - 2026-07-31
 - ⚙️ Update build targets to use 'baseline' versions for improved compatibility.
 - 🐛 Improve error detection by reading stderr, ensuring network/extraction failures are correctly identified.
