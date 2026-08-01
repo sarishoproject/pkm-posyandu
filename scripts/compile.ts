@@ -139,7 +139,6 @@ writeFileSync(join(cwd, "dist/entry.ts"), entryCode);
 
 // ─── Step 5: Compile Binary ─────────────────────────────────────────
 console.log(`🔨 [5/5] Compiling binary for ${target}...`);
-console.log("   Flags: --minify --bytecode --sourcemap=none");
 
 mkdirSync(join(cwd, "build"), { recursive: true });
 
@@ -147,6 +146,38 @@ const binaryExt = isWindows ? ".exe" : "";
 const outputBase = `build/pkm-posyandu-${target}${binaryExt}`;
 
 const defineArg = 'process.env.NODE_ENV:"production"';
+
+// Deteksi apakah sedang cross-compile (OS Host berbeda dengan OS Target)
+const hostPlatform =
+  process.platform === "win32"
+    ? "windows"
+    : process.platform === "darwin"
+      ? "darwin"
+      : "linux";
+const targetPlatform = target.split("-")[1]; // windows, linux, darwin
+const isCrossCompile = hostPlatform !== targetPlatform;
+
+// Siapkan flags
+const compileFlags = [
+  "build",
+  "--compile",
+  `--target=${target}`,
+  "--minify",
+  "--sourcemap=none",
+  `--define=${defineArg}`,
+  `--outfile=${outputBase}`,
+  "./dist/entry.ts",
+];
+
+// Hanya pakai --bytecode jika BUKAN cross-compile
+if (!isCrossCompile) {
+  compileFlags.push("--bytecode");
+  console.log("   Flags: --minify --bytecode --sourcemap=none");
+} else {
+  console.log(
+    "   Flags: --minify --sourcemap=none (bytecode disabled for cross-compile stability)",
+  );
+}
 
 const MAX_RETRIES = 3;
 let lastError: Error | null = null;
@@ -164,9 +195,8 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       BUN_CONFIG_TIMEOUT: "600000",
     };
 
-    await $`bun build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`.env(
-      env,
-    );
+    // Jalankan Bun dengan flags yang sudah disiapkan
+    await $`bun ${compileFlags}`.env(env);
 
     lastError = null;
     console.log(`   ✅ Compile berhasil pada attempt ${attempt}`);

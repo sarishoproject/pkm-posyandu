@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.19.0] - 2026-08-01
+- ⚙️ Added logic to detect cross-compilation based on host vs target platform
+- ⚡️ Disabled --bytecode flag during cross-compilation to ensure build stability
+- 🛠️ Refactored compilation command to use a dynamic array of flags instead of a hardcoded string
+
 ## [2.18.0] - 2026-08-01
 - ⚙️ Optimize GitHub Actions workflow by streamlining artifact packaging and release steps.
 - 🚀 Upgrade Bun to version 1.3.14 for builds.
