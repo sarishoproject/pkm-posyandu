@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.18.0] - 2026-08-01
+- ⚙️ Optimize GitHub Actions workflow by streamlining artifact packaging and release steps.
+- 🚀 Upgrade Bun to version 1.3.14 for builds.
+- 🧹 Refactor `compile.ts` to remove complex pre-download logic, relying on standard `bun build --compile`.
+- 📦 Standardize binary output handling and artifact naming across platforms.
+- ⚡️ Improve build speed by removing redundant pre-download steps and cleanup intervals.
+
 ## [2.17.0] - 2026-08-01
 - 🚀 Added 'prepareBunBinary' function to pre-download specific Bun variants before compilation to avoid CI download errors.
 - ⚙️ Integrated automated curl-based download, verification, and extraction logic for cross-platform binary handling.

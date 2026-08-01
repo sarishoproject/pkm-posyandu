@@ -148,120 +148,8 @@ const outputBase = `build/pkm-posyandu-${target}${binaryExt}`;
 
 const defineArg = 'process.env.NODE_ENV:"production"';
 
-// ═════════════════════════════════════════════════════════════════════
-// NEW: Pre-download target binary untuk hindari download error di CI
-// ═════════════════════════════════════════════════════════════════════
-async function prepareBunBinary(target: string): Promise<{
-  bunPath: string;
-  useTargetFlag: boolean;
-  cleanup?: () => void;
-}> {
-  const hostTarget = getHostTarget();
-  const targetPlatform = target.split("-")[1]; // windows, linux, darwin
-  const hostPlatform = hostTarget.split("-")[1];
-  const targetArch = target.split("-")[2]; // x64, arm64
-  const hostArch = hostTarget.split("-")[2];
-
-  const isSamePlatform =
-    targetPlatform === hostPlatform && targetArch === hostArch;
-
-  if (!isSamePlatform) {
-    // True cross-compile: gunakan --target flag seperti biasa
-    return { bunPath: process.execPath, useTargetFlag: true };
-  }
-
-  // Same platform — cek apakah variant sama (baseline vs non-baseline)
-  const isBaseline = target.includes("baseline");
-  const hostIsBaseline = hostTarget.includes("baseline");
-
-  if (isBaseline === hostIsBaseline) {
-    // Variant sama, gunakan host Bun langsung
-    return { bunPath: process.execPath, useTargetFlag: false };
-  }
-
-  // Variant beda (misal: host=non-baseline, target=baseline)
-  // → Download binary target variant dengan curl
-  const version = Bun.version;
-  const targetName = target.replace("bun-", "");
-  const url = `https://github.com/oven-sh/bun/releases/download/bun-v${version}/bun-${targetName}.zip`;
-
-  const tempDir = join(cwd, ".temp-bun-target");
-  mkdirSync(tempDir, { recursive: true });
-  const tempZip = join(tempDir, `bun-${targetName}.zip`);
-
-  console.log(`   📥 Pre-downloading target Bun variant (${targetName})...`);
-  console.log(`   URL: ${url}`);
-
-  try {
-    // Download dengan curl (lebih reliable daripada internal Bun downloader)
-    await $`curl -L --retry 5 --retry-delay 5 --retry-connrefused --connect-timeout 30 --max-time 600 -o ${tempZip} ${url}`;
-
-    // Verifikasi ukuran file (Bun binary biasanya > 40MB)
-    const stats = statSync(tempZip);
-    const sizeMB = stats.size / 1024 / 1024;
-    console.log(`   📦 Downloaded ${sizeMB.toFixed(2)} MB`);
-
-    if (sizeMB < 10) {
-      throw new Error(
-        `Downloaded file too small (${sizeMB.toFixed(2)} MB). Download may be incomplete.`,
-      );
-    }
-
-    // Extract
-    if (process.platform === "win32") {
-      await $`powershell -Command "Expand-Archive -Path '${tempZip}' -DestinationPath '${tempDir}' -Force"`;
-    } else {
-      await $`unzip -o ${tempZip} -d ${tempDir}`;
-    }
-
-    // Cari bun executable
-    const bunExeName = process.platform === "win32" ? "bun.exe" : "bun";
-    const bunPath = join(tempDir, bunExeName);
-
-    if (!existsSync(bunPath)) {
-      throw new Error("Bun executable not found after extraction");
-    }
-
-    // Set permission executable di Unix
-    if (process.platform !== "win32") {
-      await $`chmod +x ${bunPath}`;
-    }
-
-    // Verifikasi binary berfungsi
-    const versionCheck = Bun.spawnSync([bunPath, "--version"], {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    if (versionCheck.exitCode !== 0) {
-      throw new Error("Downloaded binary failed version check");
-    }
-
-    console.log(
-      `   ✅ Target Bun variant ready: ${new TextDecoder().decode(versionCheck.stdout).trim()}`,
-    );
-
-    return {
-      bunPath,
-      useTargetFlag: false, // Tidak perlu --target karena same platform
-      cleanup: () => {
-        rmSync(tempDir, { recursive: true, force: true });
-      },
-    };
-  } catch (e) {
-    console.log(`   ⚠️  Pre-download gagal: ${(e as Error).message}`);
-    console.log(`   🔄 Fallback ke cross-compile dengan --target flag...`);
-    rmSync(tempDir, { recursive: true, force: true });
-    return { bunPath: process.execPath, useTargetFlag: true };
-  }
-}
-
-// ═════════════════════════════════════════════════════════════════════
-// Compile dengan retry logic
-// ═════════════════════════════════════════════════════════════════════
 const MAX_RETRIES = 3;
 let lastError: Error | null = null;
-
-const { bunPath, useTargetFlag, cleanup } = await prepareBunBinary(target);
 
 for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
   try {
@@ -276,23 +164,17 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       BUN_CONFIG_TIMEOUT: "600000",
     };
 
-    // Gunakan binary yang sudah di-download, tanpa --target jika same platform
-    if (useTargetFlag) {
-      await $`${bunPath} build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`.env(
-        env,
-      );
-    } else {
-      await $`${bunPath} build --compile --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`.env(
-        env,
-      );
-    }
+    await $`bun build --compile --target=${target} --minify --bytecode --sourcemap=none --define ${defineArg} --outfile=${outputBase} ./dist/entry.ts`.env(
+      env,
+    );
 
     lastError = null;
     console.log(`   ✅ Compile berhasil pada attempt ${attempt}`);
     break;
-    // biome-ignore lint/suspicious/noExplicitAny: <explanatiaon>
+    // biome-ignore lint/suspicious/noExplicitAny: <explanationa>
   } catch (e: any) {
     lastError = e as Error;
+
     const errMsg = (e?.stderr?.toString() || e?.message || "").toLowerCase();
     console.error(`   ⚠️  Attempt ${attempt} gagal: ${errMsg.split("\n")[0]}`);
 
@@ -309,35 +191,30 @@ for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       );
       try {
         if (existsSync(outputBase)) rmSync(outputBase, { force: true });
+
         const bunInstallCache = join(homedir(), ".bun", "install", "cache");
         if (existsSync(bunInstallCache)) {
           console.log(`   🧹 Menghapus cache: ${bunInstallCache}`);
           rmSync(bunInstallCache, { recursive: true, force: true });
         }
-        // Tambahan: bersihkan temp cache Bun
-        const bunTempCache = join(homedir(), ".bun", "bin");
-        if (existsSync(bunTempCache)) {
-          console.log(`   🧹 Menghapus bin cache: ${bunTempCache}`);
-          // Hanya hapus file bun-* bukan bun utama
-          for (const f of readdirSync(bunTempCache)) {
+
+        const bunBinCache = join(homedir(), ".bun", "bin");
+        if (existsSync(bunBinCache)) {
+          console.log(`   🧹 Menghapus bin cache: ${bunBinCache}`);
+          for (const f of readdirSync(bunBinCache)) {
             if (f.startsWith("bun-") && f !== "bun" && f !== "bun.exe") {
-              rmSync(join(bunTempCache, f), { force: true });
+              rmSync(join(bunBinCache, f), { force: true });
             }
           }
         }
       } catch {}
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       continue;
     }
 
     console.error("❌ Compilation gagal:", e);
     process.exit(1);
   }
-}
-
-// Cleanup temp binary
-if (cleanup) {
-  cleanup();
 }
 
 if (lastError) {
@@ -377,9 +254,6 @@ if (existsSync(binaryPath)) {
   } else {
     console.log(`   chmod +x ${outputBase} && ./${outputBase}`);
   }
-  console.log("");
-  console.log("   Dengan config custom:");
-  console.log(`   PORT=8080 DB_PATH=/data/posyandu.db ./${outputBase}`);
   console.log("");
 } else {
   console.error("❌ Binary tidak ditemukan di build/ setelah compile!");
