@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.20.0] - 2026-08-01
+- ⚙️ Introduce 'config.yaml' for runtime-configurable sensor settings (API base URL, endpoints, and timeouts).
+- 🛠️ Add 'lib/config.ts' to handle configuration resolution, parsing, and automated fallback/generation.
+- 📦 Create '/api/sensor' route to act as a proxy for external medical sensor data with improved error handling, timeout management, and validation.
+- 🎨 Refactor QR code processing in root component to include robust validation, sanitization, and alert feedback for invalid inputs.
+- ⚡️ Update sensor integration logic to use the new proxy API instead of direct external calls, improving security and reliability.
+
 ## [2.19.0] - 2026-08-01
 - ⚙️ Added logic to detect cross-compilation based on host vs target platform
 - ⚡️ Disabled --bytecode flag during cross-compilation to ensure build stability

@@ -34,3 +34,5 @@ build/
 *.xlsx
 
 *.bun-build
+# Config file (auto-generated, user-editable at runtime)
+config.yaml

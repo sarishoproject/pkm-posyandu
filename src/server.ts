@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import app from "./app/api/index";
+import { getConfig } from "./lib/config";
 
 // ─── ANSI Color Helpers (Native Bun) ────────────────────────────────
 const color = (c: string, t: string) => {
@@ -338,6 +339,8 @@ async function startServer() {
     }
   }
 
+  // ... (setelah blok SSL setup)
+
   const protocol = hasCert ? "https" : "http";
 
   console.log("");
@@ -353,6 +356,10 @@ async function startServer() {
   } else {
     console.log(`  SSL:      ${C.red("Disabled (run HTTP)")}`);
   }
+
+  // ─── Initialize config file ──────────────────────────────────────────
+  getConfig();
+
   console.log(C.gray("---------------------------------"));
   console.log("");
 

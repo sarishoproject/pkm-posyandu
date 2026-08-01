@@ -80,25 +80,23 @@ function EditMeasurementForm() {
 
   const handleSimulateSensor = async () => {
     setIsSensorLoading(true);
+
     try {
-      const [weightRes, heightRes] = await Promise.all([
-        fetch("https://mock.fadlanabduh.my.id/api/weight"),
-        fetch("https://mock.fadlanabduh.my.id/api/height"),
-      ]);
+      const response = await fetch("/api/sensor");
 
-      if (!weightRes.ok || !heightRes.ok)
-        throw new Error("Gagal terhubung ke sensor alat ukur.");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(
+          errData?.error || "Gagal terhubung ke sensor alat ukur.",
+        );
+      }
 
-      const weightData = await weightRes.json();
-      const heightData = await heightRes.json();
-
-      const hasilBerat = weightData.weight ?? weightData.value ?? weightData;
-      const hasilTinggi = heightData.height ?? heightData.value ?? heightData;
+      const data = await response.json();
 
       setFormData((prev) => ({
         ...prev,
-        berat: Number(hasilBerat).toFixed(1),
-        tinggi: Number(hasilTinggi).toFixed(1),
+        berat: data.berat,
+        tinggi: data.tinggi,
       }));
     } catch (error) {
       console.error("Error membaca sensor:", error);

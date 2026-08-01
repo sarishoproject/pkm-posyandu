@@ -121,24 +121,84 @@ function RootLayout() {
             },
             (decodedText) => {
               if (!isActive) return;
-              html5QrCode
-                ?.stop()
-                .then(() => {
-                  setIsScanOpen(false);
-                  let qrCode = decodedText;
+              isActive = false; // Cegah callback duplikat
+
+              const processQrCode = async () => {
+                try {
+                  // ─── Step 1: Extract ID dari QR content ───────────────
+                  let rawId = decodedText;
+
                   if (decodedText.includes("/anggota/")) {
                     const parts = decodedText.split("/anggota/");
                     if (parts.length > 1) {
                       const subParts = parts[1].split("/pengukuran/tambah");
-                      qrCode = subParts[0];
+                      rawId = subParts[0];
                     }
                   }
+
+                  // ─── Step 2: Sanitize ─────────────────────────────────
+                  // Hapus trailing slash, query params, fragments
+                  const id = rawId.trim().replace(/\/+$/, "").split(/[?#]/)[0];
+
+                  // ─── Step 3: Validate non-empty ───────────────────────
+                  if (!id) {
+                    await window.showCustomAlert(
+                      "QR Code tidak valid: ID peserta kosong. Pastikan Anda memindai QR Code yang benar.",
+                    );
+                    return;
+                  }
+
+                  // ─── Step 4: Validate format ──────────────────────────
+                  // Hanya alphanumeric dan hyphen yang diizinkan
+                  if (!/^[a-zA-Z0-9-]+$/.test(id)) {
+                    await window.showCustomAlert(
+                      "QR Code tidak valid. Pastikan Anda memindai QR Code dari kartu posyandu, bukan QR Code lain.",
+                    );
+                    return;
+                  }
+
+                  // ─── Step 5: Validate via API ─────────────────────────
+                  const checkRes = await fetch(`/api/peserta/${id}`);
+
+                  if (checkRes.status === 404) {
+                    await window.showCustomAlert(
+                      "Data peserta tidak ditemukan. QR Code mungkin belum terdaftar di sistem atau sudah tidak aktif.",
+                    );
+                    return;
+                  }
+
+                  if (!checkRes.ok) {
+                    await window.showCustomAlert(
+                      `Gagal memverifikasi QR Code (Error ${checkRes.status}). Silakan coba lagi atau hubungi admin.`,
+                    );
+                    return;
+                  }
+
+                  // ─── Step 6: Semua validasi lulus → navigate ──────────
                   navigate({
                     to: "/anggota/$id/pengukuran/tambah",
-                    params: { id: qrCode },
+                    params: { id },
                   });
+                } catch (error) {
+                  console.error("Error processing QR Code:", error);
+                  await window.showCustomAlert(
+                    "Gagal terhubung ke server untuk memverifikasi QR Code. Periksa koneksi internet dan coba lagi.",
+                  );
+                }
+              };
+
+              html5QrCode
+                ?.stop()
+                .then(() => {
+                  setIsScanOpen(false);
+                  processQrCode();
                 })
-                .catch((e) => console.error("Error stopping scanner:", e));
+                .catch((e) => {
+                  console.error("Error stopping scanner:", e);
+                  setIsScanOpen(false);
+                  // Tetap proses QR code meski stop() gagal
+                  processQrCode();
+                });
             },
             () => {
               // verbose error callback
