@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.21.0] - 2026-08-04
+- ⚡️ Refactor sensor API route to support individual queries for weight ('bb') and height ('tb') via query parameters.
+- 🎨 Update frontend measurement forms to support independent triggering of weight and height sensor readings.
+- 🛠️ Replace bulk sensor measurement button with dedicated action buttons for better granular control.
+- 🧹 Improve error handling and validation logic for sensor data retrieval.
+
+
 ## [2.20.0] - 2026-08-01
 - ⚙️ Introduce 'config.yaml' for runtime-configurable sensor settings (API base URL, endpoints, and timeouts).
 - 🛠️ Add 'lib/config.ts' to handle configuration resolution, parsing, and automated fallback/generation.

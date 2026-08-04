@@ -26,7 +26,8 @@ function MeasurementForm() {
   const { id } = Route.useParams();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isSensorLoading, setIsSensorLoading] = useState(false);
+  const [isBbLoading, setIsBbLoading] = useState(false);
+  const [isTbLoading, setIsTbLoading] = useState(false);
   const [child, setChild] = useState<ChildData | null>(null);
   const [asiInfo, setAsiInfo] = useState<string | null>(null);
 
@@ -39,13 +40,11 @@ function MeasurementForm() {
         setChild(data);
         document.title = `Input Pengukuran ${data.nama_anak} | Posyandu`;
 
-        // Update peserta_id dengan ID numerik asli hasil fetch
         setFormData((prev) => ({
           ...prev,
           peserta_id: data.id,
         }));
 
-        // Hitung umur bulan & fetch status ASI
         if (data.tanggal_lahir) {
           const birth = new Date(data.tanggal_lahir);
           const now = new Date();
@@ -60,7 +59,7 @@ function MeasurementForm() {
             const asiStatus = data[`asi_bulan_${umurBulan}` as keyof ChildData];
             setAsiInfo(asiStatus === "ya" ? "Ya" : "Tidak");
           } else {
-            setAsiInfo(null); // Umur > 6 bulan, tidak perlu tampilkan ASI
+            setAsiInfo(null);
           }
         }
       } catch (error) {
@@ -96,35 +95,55 @@ function MeasurementForm() {
     formData.lingkar_kepala !== "" &&
     formData.lila !== "";
 
-  const handleSimulateSensor = async () => {
-    setIsSensorLoading(true);
-
+  const handleUkurBB = async () => {
+    setIsBbLoading(true);
     try {
-      const response = await fetch("/api/sensor");
+      const response = await fetch("/api/sensor?sensorType=bb");
+      const data = await response.json();
 
       if (!response.ok) {
-        const errData = await response.json().catch(() => null);
         throw new Error(
-          errData?.error || "Gagal terhubung ke sensor alat ukur.",
+          data.error || "Gagal mengambil data berat badan dari sensor.",
         );
       }
 
-      const data = await response.json();
-
-      setFormData((prev) => ({
-        ...prev,
-        berat: data.berat,
-        tinggi: data.tinggi,
-      }));
+      setFormData((prev) => ({ ...prev, berat: data.berat }));
+      await window.showCustomAlert("Berat badan berhasil diukur!");
     } catch (error) {
-      console.error("Error membaca sensor:", error);
+      console.error("Error ukur BB:", error);
       await window.showCustomAlert(
         error instanceof Error
           ? error.message
-          : "Gagal mengambil data dari sensor otomatis.",
+          : "Terjadi kesalahan saat menghubungi sensor BB. Silakan input manual.",
       );
     } finally {
-      setIsSensorLoading(false);
+      setIsBbLoading(false);
+    }
+  };
+
+  const handleUkurTB = async () => {
+    setIsTbLoading(true);
+    try {
+      const response = await fetch("/api/sensor?sensorType=tb");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Gagal mengambil data tinggi badan dari sensor.",
+        );
+      }
+
+      setFormData((prev) => ({ ...prev, tinggi: data.tinggi }));
+      await window.showCustomAlert("Tinggi badan berhasil diukur!");
+    } catch (error) {
+      console.error("Error ukur TB:", error);
+      await window.showCustomAlert(
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat menghubungi sensor TB. Silakan input manual.",
+      );
+    } finally {
+      setIsTbLoading(false);
     }
   };
 
@@ -133,7 +152,6 @@ function MeasurementForm() {
     setIsLoading(true);
 
     try {
-      // Hapus payload asi, karena asi sudah dikelola di data peserta
       const payload = {
         ...formData,
         berat: formData.berat ? Number(formData.berat) : null,
@@ -206,7 +224,6 @@ function MeasurementForm() {
                 </div>
               </div>
 
-              {/* ================= INFO ASI OTOMATIS ================= */}
               {asiInfo !== null && (
                 <div className="mb-6 bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center justify-between">
                   <div className="flex flex-col">
@@ -230,7 +247,7 @@ function MeasurementForm() {
               <div className="mb-6 md:mb-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-bold text-slate-500 tracking-wider uppercase">
-                    Sensor Otomatis
+                    Data Utama
                   </h3>
                   <span className="text-[10px] font-medium text-slate-400">
                     Tgl: {formData.tanggal_ukur}
@@ -238,50 +255,75 @@ function MeasurementForm() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
-                    <span className="text-xs text-slate-500 mb-2 text-center">
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-xs font-semibold text-slate-700"
+                      htmlFor="berat"
+                    >
                       Berat Badan (kg)
-                    </span>
-                    <span
-                      className={`text-2xl font-bold ${formData.berat ? "text-indigo-600" : "text-slate-800"}`}
-                    >
-                      {formData.berat || "--"}
-                    </span>
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
+                        id="berat"
+                        onChange={(e) =>
+                          setFormData({ ...formData, berat: e.target.value })
+                        }
+                        placeholder="Contoh: 12.5"
+                        required
+                        step="0.1"
+                        type="number"
+                        value={formData.berat}
+                      />
+                      <button
+                        className="shrink-0 px-3 py-2 rounded-xl border-2 border-indigo-200 text-indigo-700 text-xs font-semibold flex justify-center items-center gap-1 hover:bg-indigo-50 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
+                        disabled={isBbLoading}
+                        onClick={handleUkurBB}
+                        type="button"
+                      >
+                        {isBbLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Radio className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
-                    <span className="text-xs text-slate-500 mb-2 text-center">
-                      Tinggi Badan (cm)
-                    </span>
-                    <span
-                      className={`text-2xl font-bold ${formData.tinggi ? "text-orange-500" : "text-slate-800"}`}
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-xs font-semibold text-slate-700"
+                      htmlFor="tinggi"
                     >
-                      {formData.tinggi || "--"}
-                    </span>
+                      Tinggi Badan (cm)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 bg-white md:bg-slate-50 text-sm"
+                        id="tinggi"
+                        onChange={(e) =>
+                          setFormData({ ...formData, tinggi: e.target.value })
+                        }
+                        placeholder="Contoh: 85.5"
+                        required
+                        step="0.1"
+                        type="number"
+                        value={formData.tinggi}
+                      />
+                      <button
+                        className="shrink-0 px-3 py-2 rounded-xl border-2 border-pink-200 text-pink-700 text-xs font-semibold flex justify-center items-center gap-1 hover:bg-pink-50 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
+                        disabled={isTbLoading}
+                        onClick={handleUkurTB}
+                        type="button"
+                      >
+                        {isTbLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Radio className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <button
-                  className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
-                  disabled={isSensorLoading}
-                  onClick={handleSimulateSensor}
-                  type="button"
-                >
-                  {isSensorLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Membaca Sensor...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Radio className="w-5 h-5" />
-                      <span>
-                        {formData.berat
-                          ? "Ukur Ulang (Sensor)"
-                          : "Ukur BB & TB (Sensor)"}
-                      </span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
 
@@ -303,6 +345,7 @@ function MeasurementForm() {
                     </label>
                     <input
                       className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
+                      id="lingkar_kepala"
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -325,6 +368,7 @@ function MeasurementForm() {
                     </label>
                     <input
                       className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
+                      id="lila"
                       onChange={(e) =>
                         setFormData({ ...formData, lila: e.target.value })
                       }
@@ -346,6 +390,7 @@ function MeasurementForm() {
                   </label>
                   <select
                     className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm appearance-none cursor-pointer"
+                    id="cara_ukur"
                     onChange={(e) =>
                       setFormData({ ...formData, cara_ukur: e.target.value })
                     }

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, Radio } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,6 @@ function EditMeasurementForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
-  const [isSensorLoading, setIsSensorLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     tanggal_ukur: "",
@@ -77,38 +76,6 @@ function EditMeasurementForm() {
     };
     fetchExistingData();
   }, [pengukuranId]);
-
-  const handleSimulateSensor = async () => {
-    setIsSensorLoading(true);
-
-    try {
-      const response = await fetch("/api/sensor");
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(
-          errData?.error || "Gagal terhubung ke sensor alat ukur.",
-        );
-      }
-
-      const data = await response.json();
-
-      setFormData((prev) => ({
-        ...prev,
-        berat: data.berat,
-        tinggi: data.tinggi,
-      }));
-    } catch (error) {
-      console.error("Error membaca sensor:", error);
-      await window.showCustomAlert(
-        error instanceof Error
-          ? error.message
-          : "Gagal mengambil data dari sensor otomatis.",
-      );
-    } finally {
-      setIsSensorLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,54 +172,55 @@ function EditMeasurementForm() {
               <div className="mb-6 md:mb-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-bold text-slate-500 tracking-wider uppercase">
-                    Sensor Otomatis
+                    Data Utama
                   </h3>
                   <span className="text-[10px] font-medium text-slate-400">
                     Tgl: {formData.tanggal_ukur || "--"}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
-                    <span className="text-xs text-slate-500 mb-2 text-center">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-xs font-semibold text-slate-700"
+                      htmlFor="berat"
+                    >
                       Berat Badan (kg)
-                    </span>
-                    <span
-                      className={`text-2xl font-bold ${formData.berat ? "text-indigo-600" : "text-slate-800"}`}
-                    >
-                      {formData.berat || "--"}
-                    </span>
+                    </label>
+                    <input
+                      className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
+                      id="berat"
+                      onChange={(e) =>
+                        setFormData({ ...formData, berat: e.target.value })
+                      }
+                      placeholder="Contoh: 12.5"
+                      required
+                      step="0.1"
+                      type="number"
+                      value={formData.berat}
+                    />
                   </div>
-                  <div className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm border border-slate-100 md:border-slate-200 md:shadow-md md:py-6 relative">
-                    <span className="text-xs text-slate-500 mb-2 text-center">
-                      Tinggi Badan (cm)
-                    </span>
-                    <span
-                      className={`text-2xl font-bold ${formData.tinggi ? "text-orange-500" : "text-slate-800"}`}
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="text-xs font-semibold text-slate-700"
+                      htmlFor="tinggi"
                     >
-                      {formData.tinggi || "--"}
-                    </span>
+                      Tinggi Badan (cm)
+                    </label>
+                    <input
+                      className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
+                      id="tinggi"
+                      onChange={(e) =>
+                        setFormData({ ...formData, tinggi: e.target.value })
+                      }
+                      placeholder="Contoh: 85.5"
+                      required
+                      step="0.1"
+                      type="number"
+                      value={formData.tinggi}
+                    />
                   </div>
                 </div>
-
-                <button
-                  className="w-full py-3.5 md:py-4 rounded-full border-2 border-indigo-200 text-indigo-700 font-semibold flex justify-center items-center gap-2 hover:bg-indigo-50 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 disabled:cursor-not-allowed"
-                  disabled={isSensorLoading}
-                  onClick={handleSimulateSensor}
-                  type="button"
-                >
-                  {isSensorLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Membaca Sensor...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Radio className="w-5 h-5" />
-                      <span>Ukur Ulang (Sensor)</span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
 
