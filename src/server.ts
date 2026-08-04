@@ -269,77 +269,7 @@ async function startServer() {
   const exeDir = path.dirname(process.execPath);
   const certPath = path.join(exeDir, "cert.pem");
   const keyPath = path.join(exeDir, "key.pem");
-  let hasCert = fs.existsSync(certPath) && fs.existsSync(keyPath);
-
-  const isWin = process.platform === "win32";
-  const mkcertName = isWin ? "mkcert.exe" : "mkcert";
-
-  // Jika sertifikat belum ada dan kita berjalan sebagai binary kompilasi, coba ekstrak & jalankan mkcert
-  if (!hasCert && _embedded) {
-    const mkcertAsset = _embedded[mkcertName];
-    if (mkcertAsset) {
-      console.log(
-        C.yellow(
-          `\n[SSL] Sertifikat SSL tidak ditemukan. Memulai setup otomatis...`,
-        ),
-      );
-      const mkcertPath = path.join(exeDir, mkcertName);
-
-      try {
-        if (!fs.existsSync(mkcertPath)) {
-          console.log(C.cyan(`  [1/3] Mengekstrak ${mkcertName} bawaan...`));
-          const mkcertFile = Bun.file(mkcertAsset.content);
-          const mkcertData = await mkcertFile.arrayBuffer();
-          await Bun.write(mkcertPath, mkcertData);
-          if (!isWin) {
-            fs.chmodSync(mkcertPath, 0o755);
-          }
-        }
-
-        console.log(
-          C.cyan(
-            "  [2/3] Mendaftarkan Root CA Lokal (Mohon klik 'Yes' jika muncul konfirmasi)...",
-          ),
-        );
-        try {
-          runCmd([mkcertPath, "-install"]);
-        } catch {
-          console.log(
-            C.yellow(
-              "  [WARN] Konfirmasi ditolak atau gagal. Mencoba membuat sertifikat saja...",
-            ),
-          );
-        }
-
-        console.log(
-          C.cyan(
-            "  [3/3] Membuat sertifikat SSL untuk localhost & IP jaringan...",
-          ),
-        );
-        const localIP = getLocalIP();
-        runCmd([
-          mkcertPath,
-          "-cert-file",
-          certPath,
-          "-key-file",
-          keyPath,
-          "localhost",
-          "127.0.0.1",
-          localIP,
-        ]);
-
-        console.log(C.green("  [OK] Setup sertifikat SSL berhasil!"));
-        hasCert = true;
-      } catch (err) {
-        console.error(
-          C.red("  [FAIL] Gagal melakukan setup SSL otomatis:"),
-          err,
-        );
-      }
-    }
-  }
-
-  // ... (setelah blok SSL setup)
+  const hasCert = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
   const protocol = hasCert ? "https" : "http";
 

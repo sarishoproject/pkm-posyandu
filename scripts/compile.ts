@@ -1,7 +1,6 @@
 // scripts/compile.ts
 
 import {
-  copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -95,31 +94,6 @@ try {
 
 // ─── Step 3: Generate Embedded Assets ───────────────────────────────
 console.log("📝 [3/5] Generating embedded assets...");
-const isWindows = target.includes("windows");
-const mkcertName = isWindows ? "mkcert.exe" : "mkcert";
-
-// Cari di cache global atau di folder build
-const globalCachePath = join(homedir(), ".vite-plugin-mkcert", mkcertName);
-const localBuildPath = join(cwd, "build", mkcertName);
-
-let mkcertSrc = "";
-if (existsSync(globalCachePath)) {
-  mkcertSrc = globalCachePath;
-} else if (existsSync(localBuildPath)) {
-  mkcertSrc = localBuildPath;
-}
-
-const mkcertDest = join(cwd, "dist/client", mkcertName);
-if (mkcertSrc) {
-  copyFileSync(mkcertSrc, mkcertDest);
-  console.log(
-    `   📎 ${mkcertName} copied from ${mkcertSrc === globalCachePath ? "global cache" : "build folder"} to embed in binary`,
-  );
-} else {
-  console.log(
-    `   ⚠️  ${mkcertName} tidak ditemukan di global cache maupun build/ folder. Binary akan di-compile TANPA mkcert.`,
-  );
-}
 generateEmbeds(join(cwd, "dist/client"), join(cwd, "dist/_embeds.ts"));
 
 // ─── Step 4: Generate Entry Point ───────────────────────────────────
@@ -142,6 +116,7 @@ console.log(`🔨 [5/5] Compiling binary for ${target}...`);
 
 mkdirSync(join(cwd, "build"), { recursive: true });
 
+const isWindows = target.includes("windows");
 const binaryExt = isWindows ? ".exe" : "";
 const outputBase = `build/pkm-posyandu-${target}${binaryExt}`;
 

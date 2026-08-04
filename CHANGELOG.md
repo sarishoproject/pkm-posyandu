@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.22.0] - 2026-08-04
+- 🧹 Cleanup unused mkcert binary extraction logic from compilation scripts.
+- ⚙️ Remove automatic SSL certificate generation via mkcert from server startup to reduce binary size and complexity.
+- 🏷️ Bump Biome configuration schema to v2.5.6.
+
 ## [2.21.0] - 2026-08-04
 - ⚡️ Refactor sensor API route to support individual queries for weight ('bb') and height ('tb') via query parameters.
 - 🎨 Update frontend measurement forms to support independent triggering of weight and height sensor readings.
