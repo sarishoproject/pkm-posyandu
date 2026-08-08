@@ -15,21 +15,22 @@ type ExportRow = {
   pitting_edema: string | null;
   cara_ukur: string | null;
   vita: string | null;
-  asi_bulan_0: number | null;
-  asi_bulan_1: number | null;
-  asi_bulan_2: number | null;
-  asi_bulan_3: number | null;
-  asi_bulan_4: number | null;
-  asi_bulan_5: number | null;
-  asi_bulan_6: number | null;
-  kelas_ibu_balita: number | null;
-  mbg: number | null;
+  asi_bulan_0: string | null;
+  asi_bulan_1: string | null;
+  asi_bulan_2: string | null;
+  asi_bulan_3: string | null;
+  asi_bulan_4: string | null;
+  asi_bulan_5: string | null;
+  asi_bulan_6: string | null;
+  kelas_ibu_balita: string | null;
+  mbg: string | null;
 };
 
 export const GET: NextRouteHandler = async () => {
   try {
     const data = db
-      .query(`
+      .query(
+        `
       SELECT 
         p.nik, 
         p.nama_anak, 
@@ -54,7 +55,8 @@ export const GET: NextRouteHandler = async () => {
       FROM pendataan d
       JOIN peserta p ON d.peserta_id = p.id
       ORDER BY d.tanggal_ukur DESC
-    `)
+    `,
+      )
       .all() as ExportRow[];
 
     const workbook = new ExcelJS.Workbook();
@@ -95,23 +97,22 @@ export const GET: NextRouteHandler = async () => {
     const headerRow = sheet.getRow(1);
     headerRow.font = {
       bold: true,
-      color: { argb: "FFFFFF" },
       name: "Calibri",
-      size: 10,
+      size: 11,
     };
     headerRow.height = 25;
     headerRow.eachCell((cell) => {
       cell.fill = {
         type: "pattern",
         pattern: "solid",
-        fgColor: { argb: "FFFF00" }, // Indigo
+        fgColor: { argb: "FFFF00" },
       };
       cell.alignment = { vertical: "middle", horizontal: "center" };
       cell.border = {
-        top: { style: "thin", color: { argb: "D3D3D3" } },
-        bottom: { style: "medium", color: { argb: "303F9F" } },
-        left: { style: "thin", color: { argb: "D3D3D3" } },
-        right: { style: "thin", color: { argb: "D3D3D3" } },
+        top: { style: "thin", color: { argb: "FFFF00" } },
+        bottom: { style: "medium", color: { argb: "FFFF00" } },
+        left: { style: "thin", color: { argb: "FFFF00" } },
+        right: { style: "thin", color: { argb: "FFFF00" } },
       };
     });
 
@@ -140,9 +141,8 @@ export const GET: NextRouteHandler = async () => {
         mbg: row.mbg,
       });
 
-      // Align cells and add borders
       addedRow.eachCell((cell, colNumber) => {
-        cell.font = { name: "Calibri", size: 9 };
+        cell.font = { name: "Calibri", size: 11 };
         cell.border = {
           top: { style: "thin", color: { argb: "E0E0E0" } },
           bottom: { style: "thin", color: { argb: "E0E0E0" } },
@@ -159,7 +159,9 @@ export const GET: NextRouteHandler = async () => {
 
     const buffer = await workbook.xlsx.writeBuffer();
 
-    return new NextResponse(buffer, {
+    // FIX: Return raw Response, BUKAN NextResponse
+    // NextResponse akan dipassing ke c.json() yang merusak binary data
+    return new Response(new Uint8Array(buffer), {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -168,9 +170,9 @@ export const GET: NextRouteHandler = async () => {
     });
   } catch (error) {
     console.error("Error generating Excel:", error);
-    return new NextResponse(
-      JSON.stringify({ error: "Gagal mengekspor data ke Excel." }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+    return NextResponse.json(
+      { error: "Gagal mengekspor data ke Excel." },
+      { status: 500 },
     );
   }
 };

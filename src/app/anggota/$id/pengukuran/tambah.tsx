@@ -90,6 +90,7 @@ function MeasurementForm() {
   });
 
   const isFormComplete =
+    formData.tanggal_ukur !== "" &&
     formData.berat !== "" &&
     formData.tinggi !== "" &&
     formData.lingkar_kepala !== "" &&
@@ -245,13 +246,30 @@ function MeasurementForm() {
               )}
 
               <div className="mb-6 md:mb-0">
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3">
                   <h3 className="text-xs font-bold text-slate-500 tracking-wider uppercase">
                     Data Utama
                   </h3>
-                  <span className="text-[10px] font-medium text-slate-400">
-                    Tgl: {formData.tanggal_ukur}
-                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1.5 mb-4">
+                  <label
+                    className="text-xs font-semibold text-slate-700"
+                    htmlFor="tanggal_ukur"
+                  >
+                    Tanggal Pengukuran
+                  </label>
+                  <input
+                    className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 bg-white md:bg-slate-50 text-sm"
+                    id="tanggal_ukur"
+                    max={new Date().toISOString().split("T")[0]}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tanggal_ukur: e.target.value })
+                    }
+                    required
+                    type="date"
+                    value={formData.tanggal_ukur}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">

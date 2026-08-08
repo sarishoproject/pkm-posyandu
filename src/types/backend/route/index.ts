@@ -7,4 +7,4 @@ export type NextRouteHandler<
   TRes = unknown,
 > = (
   req: NextRequest<TParams, TQuery, TBody>,
-) => Promise<NextResponse<TRes>> | NextResponse<TRes>;
+) => Promise<NextResponse<TRes> | Response> | NextResponse<TRes> | Response;

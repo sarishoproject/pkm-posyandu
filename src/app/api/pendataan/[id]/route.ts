@@ -24,16 +24,25 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
   try {
     const { id } = req.params;
     const body = await req.json();
-    const { berat, tinggi, lingkar_kepala, lila, cara_ukur, pitting_edema } =
-      body;
+    const {
+      berat,
+      tinggi,
+      lingkar_kepala,
+      lila,
+      cara_ukur,
+      pitting_edema,
+      tanggal_ukur,
+    } = body;
 
     const updated = db
-      .prepare(`
+      .prepare(
+        `
         UPDATE pendataan 
-        SET berat = ?, tinggi = ?, lingkar_kepala = ?, lila = ?, cara_ukur = ?, pitting_edema = ?
+        SET berat = ?, tinggi = ?, lingkar_kepala = ?, lila = ?, cara_ukur = ?, pitting_edema = ?, tanggal_ukur = ?
         WHERE id = ? 
         RETURNING *
-      `)
+      `,
+      )
       .get(
         berat ? Number(berat) : null,
         tinggi ? Number(tinggi) : null,
@@ -41,6 +50,7 @@ export const PUT: NextRouteHandler<{ id: string }> = async (req) => {
         lila ? Number(lila) : null,
         cara_ukur || "Berdiri",
         pitting_edema,
+        tanggal_ukur || new Date().toISOString().split("T")[0],
         id,
       );
 

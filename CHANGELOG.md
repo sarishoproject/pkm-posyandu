@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.22.1] - 2026-08-08
+- ⚡️ Implement tanggal_ukur input field in both edit and add measurement forms for better data tracking.
+- 🐛 Fix Excel export by returning raw Response instead of NextResponse to prevent binary corruption.
+- ⚙️ Update data types for nutritional fields (ASI, etc.) to string in export API to ensure data compatibility.
+- 🎨 Improve table styling for Excel export output.
+- 🛠️ Synchronize database schema updates to include tanggal_ukur in pendataan update routine.
+- 📦 Downgrade Biome schema version for consistency.
+
+
 ## [2.22.0] - 2026-08-04
 - 🧹 Cleanup unused mkcert binary extraction logic from compilation scripts.
 - ⚙️ Remove automatic SSL certificate generation via mkcert from server startup to reduce binary size and complexity.
